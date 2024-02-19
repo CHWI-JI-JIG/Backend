@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from abc import *
+from abc import ABCMeta, abstractmethod
 from typing import Optional, Self
 from uuid import uuid4, UUID
 

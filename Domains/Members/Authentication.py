@@ -1,6 +1,6 @@
 import __init__
 from dataclasses import dataclass
-from abc import *
+from abc import ABCMeta, abstractmethod
 from typing import Optional, Self
 from datetime import datetime
 import pytz
