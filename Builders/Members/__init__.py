@@ -9,10 +9,12 @@ if not (str(root_path) in sys.path):
 
 from Builders.Members.MemberBuilder import (
     MemberIDBuilder,
-    NoFillterMemberBuilder,
+    NoFilterMemberBuilder,
+    NoFilterPrivacyBuilder,
 )
 
 __all__ = [
     "MemberIDBuilder",
-    "NoFillterMemberBuilder",
+    "NoFilterMemberBuilder",
+    "NoFilterPrivacyBuilder",
 ]

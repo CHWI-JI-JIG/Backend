@@ -18,10 +18,17 @@ from Domains.Members.Member import (
     IMemberBuilder,
 )
 
+from Domains.Members.Privacy import (
+    Privacy,
+    IPrivacyBuilder,
+)
+
 __all__ = [
     "MemberUUID",
     "MemberID",
     "IMemberIDBuilder",
     "Member",
     "IMemberBuilder",
+    "Privacy",
+    "IPrivacyBuilder",
 ]

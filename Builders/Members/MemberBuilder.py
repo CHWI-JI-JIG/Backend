@@ -2,13 +2,7 @@ import __init__
 from typing import Optional, Self
 from uuid import uuid4, UUID
 
-from Domains.Members import (
-    IMemberBuilder,
-    IMemberIDBuilder,
-    Member,
-    MemberUUID,
-    MemberID,
-)
+from Domains.Members import *
 
 
 class MemberIDBuilder(IMemberIDBuilder):
@@ -56,14 +50,14 @@ class MemberIDBuilder(IMemberIDBuilder):
                 assert False, "Unknown Error"
 
 
-class NoFillterMemberBuilder(IMemberBuilder):
+class NoFilterMemberBuilder(IMemberBuilder):
     def __init__(
         self,
-        id: Optional[str] = None,
+        account: Optional[str] = None,
         passwd: Optional[str] = None,
     ):
         self.id: Optional[MemberID] = None
-        self.account: Optional[str] = id
+        self.account: Optional[str] = account
         self.passwd: Optional[str] = passwd
 
     def set_id(self, id: Optional[MemberID] = None) -> Self:
@@ -99,4 +93,87 @@ class NoFillterMemberBuilder(IMemberBuilder):
             id=self.id,
             account=self.account,
             passwd=self.passwd,
+        )
+
+
+class NoFilterPrivacyBuilder(IPrivacyBuilder):
+    def __init__(
+        self,
+        name: Optional[str] = None,
+        phone: Optional[str] = None,
+        email: Optional[str] = None,
+        address: Optional[str] = None,
+        company_registration_number: Optional[str] = None,
+    ):
+        self.id: Optional[MemberID] = None
+        self.name: Optional[str] = name
+        self.phone: Optional[str] = phone
+        self.email: Optional[str] = email
+        self.address: Optional[str] = address
+        self.company_registration_number: Optional[str] = company_registration_number
+
+    def set_id(self, id: MemberID) -> Self:
+        assert self.id is None, "id is already set."
+
+        if id is None:
+            id = MemberIDBuilder().set_uuid4().build()
+
+        assert isinstance(id, MemberUUID), "ValueType Error"
+
+        self.id = id
+        return self
+
+    def set_name(self, name: str) -> Self:
+        assert self.name is None, "name is already set."
+        assert isinstance(name, str), "Type of name is str"
+
+        self.name = name
+        return self
+
+    def set_phone(self, phone: str) -> Self:
+        assert self.phone is None, "phone is already set."
+        assert isinstance(phone, str), "Type of phone is str"
+
+        self.phone = phone
+        return self
+
+    def set_email(self, email: str) -> Self:
+        assert self.email is None, "email is already set."
+        assert isinstance(email, str), "Type of email is str"
+
+        self.email = email
+        return self
+
+    def set_address(self, address: str) -> Self:
+        assert self.address is None, "address is already set."
+        assert isinstance(address, str), "Type of address is str"
+
+        self.address = address
+        return self
+
+    def set_company_registration_number(self, company_registration_number: str) -> Self:
+        assert (
+            self.company_registration_number is None
+        ), "company_registration_number is already set."
+        assert isinstance(
+            company_registration_number, str
+        ), "Type of company_registration_number is str"
+
+        self.company_registration_number = company_registration_number
+        return self
+
+    def build(self) -> Privacy:
+        assert isinstance(self.id, MemberUUID), "You didn't set the id."
+        assert isinstance(self.name, str), "You didn't set the name."
+        assert isinstance(self.phone, str), "You didn't set the phone."
+        assert isinstance(self.email, str), "You didn't set the email."
+        assert isinstance(self.address, str), "You didn't set the address."
+
+        return Privacy(
+            id=self.id,
+            name=self.name,
+            phone=self.phone,
+            email=self.email,
+            address=self.address,
+            company_registration_number=self.company_registration_number,
         )
