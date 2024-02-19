@@ -1,7 +1,10 @@
 import __init__
 from typing import Optional, Self
 from uuid import uuid4, UUID
+from datetime import datetime
+import pytz
 
+from Commons.format import KOREA_TIME_FORMAT
 from Domains.Members import *
 
 
@@ -191,12 +194,14 @@ class NoFilterPrivacyBuilder(IPrivacyBuilder):
         )
 
 
-class AuthenticationBuilder(IMemberBuilder):
+class AuthenticationBuilder(IAuthenticationBuilder):
     def __init__(
         self,
+        cnt: Optional[int] = None,
     ):
         self.id: Optional[MemberID] = None
-        self.rule: Optional[RuleType] = None
+        self.fail_count: Optional[int] = cnt
+        self.last_access: Optional[datetime] = None
 
     def set_id(self, id: Optional[MemberID] = None) -> Self:
         assert self.id is None, "id is already set."
@@ -209,9 +214,48 @@ class AuthenticationBuilder(IMemberBuilder):
         self.id = id
         return self
 
+    def set_fail_count(self, count: int) -> Self:
+        assert self.fail_count is None, "fail count is already set."
+        assert count >= 0, "count >= 0"
+
+        self.fail_count = count
+        return self
+
+    def set_last_access(
+        self, time: Optional[str] = None, input_timezone: str = "UTC"
+    ) -> Self:
+        assert self.time is None, "time is already set."
+
+        if time is None:
+            self.time = datetime.now(pytz.utc)
+            return self
+
+        assert isinstance(time, str), "Type of time is str."
+        assert isinstance(input_timezone, str), "Type of input_timezone is str."
+
+        match input_timezone.lower():
+            case "utc":
+                convert_time = datetime.fromisoformat(time).replace(tzinfo=pytz.utc)
+            case "asia/seoul" | "korea" | "korean" | "k":
+                tz = pytz.timezone("Asia/Seoul")
+                convert_time = tz.localize(
+                    datetime.strptime(time, KOREA_TIME_FORMAT)
+                ).astimezone(pytz.utc)
+            case _:
+                assert False, "There are only two timezones: UTC or Korea time."
+
+        assert convert_time.utcoffset() == pytz.utc, "Not in UTC time."
+
+        self.time = convert_time
+        return self
+
     def build(self) -> Member:
         assert isinstance(self.id, MemberUUID), "You didn't set the id."
+        assert isinstance(self.fail_count, int), "You didn't set the fail_count."
+        assert isinstance(self.last_access, datetime), "You didn't set the last_access."
 
         return Authentication(
             id=self.id,
+            last_access=self.last_access,
+            fail_count=self.fail_count,
         )
