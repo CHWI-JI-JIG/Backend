@@ -8,6 +8,11 @@ from Domains.Members import MemberID
 
 @dataclass(frozen=True)
 class Privacy:
+    """_summary_
+    Args:
+        company_registration_number: seller(str) / buyer(None) / admin(None)
+    """
+
     id: MemberID
     name: str
     phone: str
