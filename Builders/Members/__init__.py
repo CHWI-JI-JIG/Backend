@@ -7,7 +7,7 @@ root_path = now_path.parent.parents
 if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
-from Builders.Members.MemberBuilder import (
+from Builders.Members.BasicMemberBuilder import (
     MemberIDBuilder,
     NoFilterMemberBuilder,
     NoFilterPrivacyBuilder,
