@@ -177,3 +177,38 @@ class NoFilterPrivacyBuilder(IPrivacyBuilder):
             address=self.address,
             company_registration_number=self.company_registration_number,
         )
+
+
+class AuthenticationBuilder(IMemberBuilder):
+    def __init__(
+        self,
+    ):
+        self.id: Optional[MemberID] = None
+        self.rule: Optional[str] = None
+
+    def set_id(self, id: Optional[MemberID] = None) -> Self:
+        assert self.id is None, "id is already set."
+
+        if id is None:
+            id = MemberIDBuilder().set_uuid4().build()
+
+        assert isinstance(id, MemberUUID), "ValueType Error"
+
+        self.id = id
+        return self
+
+    def set_rule(self, rule: str) -> Self:
+        assert self.rule is None, "rule is already set."
+        assert isinstance(rule, str), "Type of rule is str"
+
+        self.rule = rule
+        return self
+
+    def build(self) -> Member:
+        assert isinstance(self.id, MemberUUID), "You didn't set the id."
+        assert isinstance(self.rule, str), "You didn't set the rule."
+
+        return Authentication(
+            id=self.id,
+            rule=self.rule,
+        )
