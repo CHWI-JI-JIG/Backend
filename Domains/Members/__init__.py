@@ -15,12 +15,18 @@ from Domains.Members.ID import (
 
 from Domains.Members.Member import (
     Member,
+    RuleType,
     IMemberBuilder,
 )
 
 from Domains.Members.Privacy import (
     Privacy,
     IPrivacyBuilder,
+)
+
+from Domains.Members.Authentication import (
+    Authentication,
+    IAuthenticationBuilder,
 )
 
 __all__ = [
@@ -31,4 +37,7 @@ __all__ = [
     "IMemberBuilder",
     "Privacy",
     "IPrivacyBuilder",
+    "Authentication",
+    "IAuthenticationBuilder",
+    "RuleType",
 ]

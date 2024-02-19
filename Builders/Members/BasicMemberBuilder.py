@@ -59,6 +59,7 @@ class NoFilterMemberBuilder(IMemberBuilder):
         self.id: Optional[MemberID] = None
         self.account: Optional[str] = account
         self.passwd: Optional[str] = passwd
+        self.rule: Optional[RuleType] = None
 
     def set_id(self, id: Optional[MemberID] = None) -> Self:
         assert self.id is None, "id is already set."
@@ -84,15 +85,26 @@ class NoFilterMemberBuilder(IMemberBuilder):
         self.passwd = passwd
         return self
 
+    def set_rule(self, rule: str) -> Self:
+        assert self.rule is None, "rule is already set."
+        assert isinstance(rule, str), "Type of rule is str."
+
+        self.rule = RuleType[rule.strip(" \n\t").upper()]
+        assert isinstance(rule, RuleType), "Type of rule is RuleType. "
+
+        return self
+
     def build(self) -> Member:
         assert isinstance(self.id, MemberUUID), "You didn't set the id."
         assert isinstance(self.account, str), "You didn't set the account."
         assert isinstance(self.passwd, str), "You didn't set the passwd."
+        assert isinstance(self.rule, RuleType), "You didn't set the rule."
 
         return Member(
             id=self.id,
             account=self.account,
             passwd=self.passwd,
+            rule=self.rule,
         )
 
 
@@ -184,7 +196,7 @@ class AuthenticationBuilder(IMemberBuilder):
         self,
     ):
         self.id: Optional[MemberID] = None
-        self.rule: Optional[str] = None
+        self.rule: Optional[RuleType] = None
 
     def set_id(self, id: Optional[MemberID] = None) -> Self:
         assert self.id is None, "id is already set."
@@ -197,18 +209,9 @@ class AuthenticationBuilder(IMemberBuilder):
         self.id = id
         return self
 
-    def set_rule(self, rule: str) -> Self:
-        assert self.rule is None, "rule is already set."
-        assert isinstance(rule, str), "Type of rule is str"
-
-        self.rule = rule
-        return self
-
     def build(self) -> Member:
         assert isinstance(self.id, MemberUUID), "You didn't set the id."
-        assert isinstance(self.rule, str), "You didn't set the rule."
 
         return Authentication(
             id=self.id,
-            rule=self.rule,
         )
