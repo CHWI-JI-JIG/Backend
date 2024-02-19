@@ -70,7 +70,9 @@ class NoFilterMemberBuilder(IMemberBuilder):
         if id is None:
             id = MemberIDBuilder().set_uuid4().build()
 
-        assert isinstance(id, MemberUUID), "ValueType Error"
+        assert isinstance(
+            id, MemberUUID
+        ), "ValueType Error: Initialize the id via MemberIDBuilder."
 
         self.id = id
         return self
@@ -133,7 +135,9 @@ class NoFilterPrivacyBuilder(IPrivacyBuilder):
         if id is None:
             id = MemberIDBuilder().set_uuid4().build()
 
-        assert isinstance(id, MemberUUID), "ValueType Error"
+        assert isinstance(
+            id, MemberUUID
+        ), "ValueType Error: Initialize the id via MemberIDBuilder.set_uuid_hex(str) and put it in."
 
         self.id = id
         return self
@@ -209,7 +213,9 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         if id is None:
             id = MemberIDBuilder().set_uuid4().build()
 
-        assert isinstance(id, MemberUUID), "ValueType Error"
+        assert isinstance(
+            id, MemberUUID
+        ), "ValueType Error: Initialize the id via MemberIDBuilder.set_uuid_hex(str) and put it in."
 
         self.id = id
         return self
