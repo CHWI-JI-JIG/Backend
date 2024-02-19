@@ -11,7 +11,7 @@ pip install -r requirements.txt
 
 # Requirements
 ```bash
-# python<=3.11
+# python<=3.12
 pip install -r requirements.txt
 ```
 
