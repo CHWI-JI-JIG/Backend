@@ -26,7 +26,6 @@ class MySqlMigrations:
     def create_user(self):
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
-        auth_table_name = self.get_padding_name("user_auth")
 
         try:
             # 커서 생성
@@ -34,40 +33,21 @@ class MySqlMigrations:
                 # "users" 테이블 생성 쿼리
                 create_user_table_query = f"""
 CREATE TABLE IF NOT EXISTS {user_table_name} (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    pw VARCHAR(511) NOT NULL,
-    account VARCHAR(50) UNIQUE,
-    name VARCHAR(100) NOT NULL,
-    nickname VARCHAR(50),
-    time_of_try_login TIMESTAMP,
-    lock_flag BOOLEAN,
-    count_of_login_fail INT,
-    post_last_update_date TIMESTAMP,
-    post_num INT,
-    delete_flag BOOLEAN
+    seq INT AUTO_INCREMENT,
+    id HEX PRIMARY KEY,
+    account STRING NOT NULL,
+    passwd STRING NOT NULL,
+    passwd_check STRING NOT NULL,
+    email STRING NOT NULL,
+    rule STRING NOT NULL,
+    company_registration_number STRING,
+    phone STRING NOT NULL,
+    address STRING NOT NULL,
+    name STRING NOT NULL 
 );
                 """
                 # user 생성
                 cursor.execute(create_user_table_query)
-                policy = ", ".join(
-                    list(map(lambda x: f"'{x}'", Policy.__members__.keys()))
-                )
-                scope = ", ".join(
-                    list(map(lambda x: f"'{x}'", TargetScope.__members__.keys()))
-                )
-                # UserAuth 테이블 생성 쿼리
-                create_auth_table_query = f"""
-CREATE TABLE IF NOT EXISTS {auth_table_name} (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    policy ENUM({policy}) NOT NULL,
-    scope ENUM({scope}) NOT NULL,
-    account VARCHAR(50) NOT NULL,
-    delete_flag BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (account) REFERENCES {user_table_name}(account)
-);
-"""
-                # UserAuth 테이블 생성
-                cursor.execute(create_auth_table_query)
                 connection.commit()
 
         except Exception as ex:
@@ -82,14 +62,9 @@ CREATE TABLE IF NOT EXISTS {auth_table_name} (
     def delete_user(self):
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
-        auth_table_name = self.get_padding_name("user_auth")
         try:
             # 커서 생성
             with connection.cursor() as cursor:
-                # "users" 테이블 삭제 쿼리
-                drop_table_query = f"DROP TABLE IF EXISTS {auth_table_name};"
-                cursor.execute(drop_table_query)
-
                 # "users" 테이블 삭제 쿼리
                 drop_table_query = f"DROP TABLE IF EXISTS {user_table_name};"
                 cursor.execute(drop_table_query)
