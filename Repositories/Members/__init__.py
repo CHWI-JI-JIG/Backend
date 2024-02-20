@@ -8,7 +8,7 @@ if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
 from Repositories.Members.ISaveableMember import ISaveableMember
-
+from Repositories.Members.IVerifiableAuthentication import IVerifiableAuthentication
 
 __all__ = [
     "ISaveableMember",
