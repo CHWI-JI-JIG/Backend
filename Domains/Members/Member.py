@@ -20,7 +20,7 @@ class RuleType(Enum):
 class Member:
     id: MemberID
     account: str
-    passwd: str
+    passwd: Optional[str] = None
     rule: RuleType
 
 

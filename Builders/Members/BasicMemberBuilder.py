@@ -102,7 +102,6 @@ class NoFilterMemberBuilder(IMemberBuilder):
     def build(self) -> Member:
         assert isinstance(self.id, MemberUUID), "You didn't set the id."
         assert isinstance(self.account, str), "You didn't set the account."
-        assert isinstance(self.passwd, str), "You didn't set the passwd."
         assert isinstance(self.rule, RuleType), "You didn't set the rule."
 
         return Member(
@@ -206,6 +205,7 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         self.id: Optional[MemberID] = None
         self.fail_count: Optional[int] = cnt
         self.last_access: Optional[datetime] = None
+        self.is_sucess: Optional[bool] = None
 
     def set_id(self, id: Optional[MemberID] = None) -> Self:
         assert self.id is None, "id is already set."
@@ -225,6 +225,13 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         assert count >= 0, "count >= 0"
 
         self.fail_count = count
+        return self
+
+    def set_is_sucess(self, is_sucess: bool) -> Self:
+        assert self.is_sucess is None, "fail count is already set."
+        assert isinstance(is_sucess, bool), "is_sucess is bool."
+
+        self.is_sucess = is_sucess
         return self
 
     def set_last_access(
@@ -259,9 +266,11 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         assert isinstance(self.id, MemberUUID), "You didn't set the id."
         assert isinstance(self.fail_count, int), "You didn't set the fail_count."
         assert isinstance(self.last_access, datetime), "You didn't set the last_access."
+        assert isinstance(self.is_sucess, datetime), "You didn't set the is_sucess."
 
         return Authentication(
             id=self.id,
             last_access=self.last_access,
             fail_count=self.fail_count,
+            is_sucess=self.is_sucess,
         )
