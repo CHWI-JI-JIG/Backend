@@ -14,6 +14,7 @@ class Authentication:
     id: MemberID
     last_access: datetime
     fail_count: int
+    is_sucess: bool
 
     def str_last_access(self, timezone: str = "UTC") -> str:
         match timezone.lower():

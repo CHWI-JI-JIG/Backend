@@ -11,10 +11,12 @@ from Builders.Members.BasicMemberBuilder import (
     MemberIDBuilder,
     NoFilterMemberBuilder,
     NoFilterPrivacyBuilder,
+    AuthenticationBuilder,
 )
 
 __all__ = [
     "MemberIDBuilder",
     "NoFilterMemberBuilder",
     "NoFilterPrivacyBuilder",
+    "AuthenticationBuilder",
 ]

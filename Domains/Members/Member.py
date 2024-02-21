@@ -7,7 +7,7 @@ from enum import Enum
 from Domains.Members import MemberID
 
 
-class RuleType(Enum):
+class RoleType(Enum):
     SELLER = "seller"
     BUYER = "buyer"
     ADMIN = "admin"
@@ -20,8 +20,8 @@ class RuleType(Enum):
 class Member:
     id: MemberID
     account: str
-    passwd: str
-    rule: RuleType
+    passwd: Optional[str] = None
+    role: RoleType
 
 
 class IMemberBuilder(metaclass=ABCMeta):
@@ -35,7 +35,7 @@ class IMemberBuilder(metaclass=ABCMeta):
     def set_passwd(self, passwd: str) -> Self: ...
 
     @abstractmethod
-    def set_rule(self, rule: RuleType) -> Self: ...
+    def set_role(self, role: RoleType) -> Self: ...
 
     @abstractmethod
     def build(self) -> Member: ...
