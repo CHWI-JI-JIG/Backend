@@ -15,7 +15,7 @@ from Domains.Members.ID import (
 
 from Domains.Members.Member import (
     Member,
-    RuleType,
+    RoleType,
     IMemberBuilder,
 )
 
@@ -29,6 +29,11 @@ from Domains.Members.Authentication import (
     IAuthenticationBuilder,
 )
 
+from Domains.Members.PayData import (
+    PayData,
+    IPayDataBuilder,
+)
+
 __all__ = [
     "MemberUUID",
     "MemberID",
@@ -39,5 +44,7 @@ __all__ = [
     "IPrivacyBuilder",
     "Authentication",
     "IAuthenticationBuilder",
-    "RuleType",
+    "RoleType",
+    "PayData",
+    "IPayDataBuilder",
 ]

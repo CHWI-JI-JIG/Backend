@@ -1,5 +1,5 @@
 import __init__
-from typing import Optional, Self,List,Union
+from typing import Optional, Self, List, Union
 from uuid import uuid4, UUID
 from datetime import datetime
 import pytz
@@ -281,7 +281,7 @@ class PayDataBuilder(IPayDataBuilder):
         self,
     ):
         self.id: Optional[MemberID] = None
-        self.pay_account_list:List[str] = []
+        self.pay_account_list: List[str] = []
 
     def set_id(self, id: Optional[MemberID] = None) -> Self:
         assert self.id is None, "id is already set."
@@ -295,26 +295,25 @@ class PayDataBuilder(IPayDataBuilder):
 
         self.id = id
         return self
-    
-    def add_pay_account(self, pay_account: Union[List[str],str]) -> Self:
+
+    def add_pay_account(self, pay_account: Union[List[str], str]) -> Self:
         match pay_account:
             case str_pay if isinstance(str_pay, str):
                 self.pay_account_list.append(str_pay)
-            case list_pay:List[str]:
-                
+            case list_pay if isinstance(list_pay, list):
+                for pay in list_pay:
+                    assert isinstance(pay, str), "Type of pay is str."
+                    self.pay_account_list.append(pay)
+            case _:
+                assert False, "Type of pay is str."
 
-        self.fail_count = count
         return self
 
-    def build(self) -> Member:
+    def build(self) -> PayData:
         assert isinstance(self.id, MemberUUID), "You didn't set the id."
-        assert isinstance(self.fail_count, int), "You didn't set the fail_count."
-        assert isinstance(self.last_access, datetime), "You didn't set the last_access."
-        assert isinstance(self.is_sucess, datetime), "You didn't set the is_sucess."
+        assert len(self.pay_account_list) > 0, "You didn't set the pay_account."
 
-        return Authentication(
+        return PayData(
             id=self.id,
-            last_access=self.last_access,
-            fail_count=self.fail_count,
-            is_sucess=self.is_sucess,
+            pay_account_list=self.pay_account_list,
         )
