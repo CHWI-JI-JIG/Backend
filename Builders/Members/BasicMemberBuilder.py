@@ -1,5 +1,5 @@
 import __init__
-from typing import Optional, Self
+from typing import Optional, Self,List,Union
 from uuid import uuid4, UUID
 from datetime import datetime
 import pytz
@@ -62,7 +62,7 @@ class NoFilterMemberBuilder(IMemberBuilder):
         self.id: Optional[MemberID] = None
         self.account: Optional[str] = account
         self.passwd: Optional[str] = passwd
-        self.rule: Optional[RuleType] = None
+        self.role: Optional[RoleType] = None
 
     def set_id(self, id: Optional[MemberID] = None) -> Self:
         assert self.id is None, "id is already set."
@@ -90,25 +90,25 @@ class NoFilterMemberBuilder(IMemberBuilder):
         self.passwd = passwd
         return self
 
-    def set_rule(self, rule: str) -> Self:
-        assert self.rule is None, "rule is already set."
-        assert isinstance(rule, str), "Type of rule is str."
+    def set_role(self, role: str) -> Self:
+        assert self.role is None, "rule is already set."
+        assert isinstance(role, str), "Type of rule is str."
 
-        self.rule = RuleType[rule.strip(" \n\t").upper()]
-        assert isinstance(rule, RuleType), "Type of rule is RuleType. "
+        self.role = RoleType[role.strip(" \n\t").upper()]
+        assert isinstance(role, RoleType), "Type of rule is RuleType. "
 
         return self
 
     def build(self) -> Member:
         assert isinstance(self.id, MemberUUID), "You didn't set the id."
         assert isinstance(self.account, str), "You didn't set the account."
-        assert isinstance(self.rule, RuleType), "You didn't set the rule."
+        assert isinstance(self.role, RoleType), "You didn't set the rule."
 
         return Member(
             id=self.id,
             account=self.account,
             passwd=self.passwd,
-            rule=self.rule,
+            role=self.role,
         )
 
 
@@ -260,6 +260,50 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         assert convert_time.utcoffset() == pytz.utc, "Not in UTC time."
 
         self.time = convert_time
+        return self
+
+    def build(self) -> Member:
+        assert isinstance(self.id, MemberUUID), "You didn't set the id."
+        assert isinstance(self.fail_count, int), "You didn't set the fail_count."
+        assert isinstance(self.last_access, datetime), "You didn't set the last_access."
+        assert isinstance(self.is_sucess, datetime), "You didn't set the is_sucess."
+
+        return Authentication(
+            id=self.id,
+            last_access=self.last_access,
+            fail_count=self.fail_count,
+            is_sucess=self.is_sucess,
+        )
+
+
+class PayDataBuilder(IPayDataBuilder):
+    def __init__(
+        self,
+    ):
+        self.id: Optional[MemberID] = None
+        self.pay_account_list:List[str] = []
+
+    def set_id(self, id: Optional[MemberID] = None) -> Self:
+        assert self.id is None, "id is already set."
+
+        if id is None:
+            id = MemberIDBuilder().set_uuid4().build()
+
+        assert isinstance(
+            id, MemberUUID
+        ), "ValueType Error: Initialize the id via MemberIDBuilder.set_uuid_hex(str) and put it in."
+
+        self.id = id
+        return self
+    
+    def add_pay_account(self, pay_account: Union[List[str],str]) -> Self:
+        match pay_account:
+            case str_pay if isinstance(str_pay, str):
+                self.pay_account_list.append(str_pay)
+            case list_pay:List[str]:
+                
+
+        self.fail_count = count
         return self
 
     def build(self) -> Member:
