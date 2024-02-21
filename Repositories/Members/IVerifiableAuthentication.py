@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional
 from result import Result
 
-from Domains.Members import *
+from Domains.Members import Authentication
 
 
 class IVerifiableAuthentication(metaclass=ABCMeta):
