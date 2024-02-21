@@ -4,7 +4,7 @@ import pymysql
 from icecream import ic
 
 
-class MySqlMigrations:
+class MySqlCreateUser:
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
@@ -33,19 +33,20 @@ class MySqlMigrations:
                 # "users" 테이블 생성 쿼리
                 create_user_table_query = f"""
 CREATE TABLE IF NOT EXISTS {user_table_name} (
-    seq INT AUTO_INCREMENT,
-    id HEX PRIMARY KEY,
-    account STRING NOT NULL,
-    passwd STRING NOT NULL,
-    passwd_check STRING NOT NULL,
-    email STRING NOT NULL,
-    rule STRING NOT NULL,
-    company_registration_number STRING,
-    phone STRING NOT NULL,
-    address STRING NOT NULL,
-    name STRING NOT NULL 
+    seq INT AUTO_INCREMENT PRIMARY KEY,
+    id VARCHAR(255) UNIQUE,
+    account VARCHAR(255) NOT NULL,
+    pay_account VARCHAR(255) NOT NULL,
+    passwd VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    role VARCHAR(255) NOT NULL,
+    company_registration_number VARCHAR(255),
+    phone VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL
 );
                 """
+                print(create_user_table_query)
                 # user 생성
                 cursor.execute(create_user_table_query)
                 connection.commit()
@@ -96,3 +97,6 @@ CREATE TABLE IF NOT EXISTS {user_table_name} (
             # 연결 닫기
             connection.close()
             return ret
+        
+        
+    
