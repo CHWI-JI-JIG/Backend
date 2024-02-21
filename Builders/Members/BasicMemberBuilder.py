@@ -41,7 +41,7 @@ class MemberIDBuilder(IMemberIDBuilder):
                 if seq is None:
                     seq = -1
 
-                return MemberUUID(
+                return MemberID(
                     uuid=uuid,
                     sequence=seq,
                 )
@@ -71,7 +71,7 @@ class NoFilterMemberBuilder(IMemberBuilder):
             id = MemberIDBuilder().set_uuid4().build()
 
         assert isinstance(
-            id, MemberUUID
+            id, MemberID
         ), "ValueType Error: Initialize the id via MemberIDBuilder."
 
         self.id = id
@@ -100,7 +100,7 @@ class NoFilterMemberBuilder(IMemberBuilder):
         return self
 
     def build(self) -> Member:
-        assert isinstance(self.id, MemberUUID), "You didn't set the id."
+        assert isinstance(self.id, MemberID), "You didn't set the id."
         assert isinstance(self.account, str), "You didn't set the account."
         assert isinstance(self.role, RoleType), "You didn't set the rule."
 
@@ -135,7 +135,7 @@ class NoFilterPrivacyBuilder(IPrivacyBuilder):
             id = MemberIDBuilder().set_uuid4().build()
 
         assert isinstance(
-            id, MemberUUID
+            id, MemberID
         ), "ValueType Error: Initialize the id via MemberIDBuilder.set_uuid_hex(str) and put it in."
 
         self.id = id
@@ -181,7 +181,7 @@ class NoFilterPrivacyBuilder(IPrivacyBuilder):
         return self
 
     def build(self) -> Privacy:
-        assert isinstance(self.id, MemberUUID), "You didn't set the id."
+        assert isinstance(self.id, MemberID), "You didn't set the id."
         assert isinstance(self.name, str), "You didn't set the name."
         assert isinstance(self.phone, str), "You didn't set the phone."
         assert isinstance(self.email, str), "You didn't set the email."
@@ -214,7 +214,7 @@ class AuthenticationBuilder(IAuthenticationBuilder):
             id = MemberIDBuilder().set_uuid4().build()
 
         assert isinstance(
-            id, MemberUUID
+            id, MemberID
         ), "ValueType Error: Initialize the id via MemberIDBuilder.set_uuid_hex(str) and put it in."
 
         self.id = id
@@ -263,7 +263,7 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         return self
 
     def build(self) -> Member:
-        assert isinstance(self.id, MemberUUID), "You didn't set the id."
+        assert isinstance(self.id, MemberID), "You didn't set the id."
         assert isinstance(self.fail_count, int), "You didn't set the fail_count."
         assert isinstance(self.last_access, datetime), "You didn't set the last_access."
         assert isinstance(self.is_sucess, datetime), "You didn't set the is_sucess."
@@ -290,7 +290,7 @@ class PayDataBuilder(IPayDataBuilder):
             id = MemberIDBuilder().set_uuid4().build()
 
         assert isinstance(
-            id, MemberUUID
+            id, MemberID
         ), "ValueType Error: Initialize the id via MemberIDBuilder.set_uuid_hex(str) and put it in."
 
         self.id = id
@@ -310,7 +310,7 @@ class PayDataBuilder(IPayDataBuilder):
         return self
 
     def build(self) -> PayData:
-        assert isinstance(self.id, MemberUUID), "You didn't set the id."
+        assert isinstance(self.id, MemberID), "You didn't set the id."
         assert len(self.pay_account_list) > 0, "You didn't set the pay_account."
 
         return PayData(

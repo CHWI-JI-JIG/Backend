@@ -20,8 +20,8 @@ class RoleType(Enum):
 class Member:
     id: MemberID
     account: str
-    passwd: Optional[str] = None
     role: RoleType
+    passwd: Optional[str] = None
 
 
 class IMemberBuilder(metaclass=ABCMeta):

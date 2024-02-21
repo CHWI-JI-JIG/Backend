@@ -8,7 +8,6 @@ if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
 from Domains.Members.ID import (
-    MemberUUID,
     MemberID,
     IMemberIDBuilder,
 )
@@ -35,7 +34,6 @@ from Domains.Members.PayData import (
 )
 
 __all__ = [
-    "MemberUUID",
     "MemberID",
     "IMemberIDBuilder",
     "Member",

@@ -5,6 +5,10 @@ from icecream import ic
 
 from Migrations import MySqlCreateUser, MySqlCreateProduct
 
+from Builders.Members import *
+from Storages.Members import MySqlSaveMember
+from Domains.Members import *
+
 
 class user_test_migrate(unittest.TestCase):
     @classmethod
@@ -14,6 +18,7 @@ class user_test_migrate(unittest.TestCase):
         ## 썼으면 삭제
         user_migrate = MySqlCreateUser("test_migrate_")
         product_migrate = MySqlCreateProduct("test_migrate_")
+        mysql_save_member = MySqlSaveMember("test_migrate_")
 
 
         if product_migrate.check_exist_product():
@@ -23,6 +28,7 @@ class user_test_migrate(unittest.TestCase):
             
         cls.user_migrate= user_migrate
         cls.product_migrate=product_migrate
+        cls.mysql_save_member=mysql_save_member
 
     @classmethod
     def tearDownClass(cls):
@@ -56,6 +62,30 @@ class user_test_migrate(unittest.TestCase):
         print("\t\t", sys._getframe(0).f_code.co_name)
         self.user_migrate.create_user()
         self.assertTrue(self.user_migrate.check_exist_user())
+        
+        ######## MySqlSaveMember.py 테스트코드 자리  #################
+        id = (MemberIDBuilder().set_uuid4().set_seqence(1).build())
+        
+        member = Member(
+            id=id,
+            account="jihee",
+            passwd="jh1234@",
+            role=RoleType.SELLER
+        )
+        privacy = Privacy(
+            id=id,
+            name="김지희",
+            phone="01012345678",
+            email="jihee@test.com",
+            address="서울시 여러분"
+        )
+        pay = PayData(id = id,pay_account_list=["123-1234-4567"])
+
+        result = self.mysql_save_member.save_member(member, privacy, pay)
+        self.assertTrue(result)
+        
+        ####################################
+        
         
     def test_create_product(self):
         "Hook method for deconstructing the test fixture after testing it."
