@@ -77,11 +77,19 @@ class user_test_migrate(unittest.TestCase):
             name="김지희",
             phone="01012345678",
             email="jihee@test.com",
-            address="서울시 여러분"
+            address="서울시 여러분",
+            pay_account = "123-1234-4567",
+            company_registration_number = "123-45-12345"
         )
-        pay = PayData(id = id,pay_account_list=["123-1234-4567"])
+        
+        authentication = Authentication(
+            id=id,
+            last_access = "",
+            fail_count = 1,
+            is_sucess=""
+        )
 
-        result = self.mysql_save_member.save_member(member, privacy, pay)
+        result = self.mysql_save_member.save_member(member, privacy, authentication)
         self.assertTrue(result)
         
         ####################################

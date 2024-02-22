@@ -18,6 +18,7 @@ class Privacy:
     phone: str
     email: str
     address: str
+    pay_account : Optional[str] = None
     company_registration_number: Optional[str] = None
 
 

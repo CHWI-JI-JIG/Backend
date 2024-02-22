@@ -43,7 +43,9 @@ CREATE TABLE IF NOT EXISTS {user_table_name} (
     company_registration_number VARCHAR(255),
     phone VARCHAR(255) NOT NULL,
     address VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(255) NOT NULL,
+    last_access DATETIME,
+    fail_count INT
 );
                 """
                 print(create_user_table_query)

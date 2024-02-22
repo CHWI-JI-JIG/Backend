@@ -30,7 +30,7 @@ class MySqlSaveMember(ISaveableMember):
         return f"{self.name_padding}{name}"
 
     
-    def save_member(self, member: Member, privacy: Privacy, pay:PayData) -> Result[None, str]:
+    def save_member(self, member: Member, privacy: Privacy, authentication:Authentication) -> Result[None, str]:
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
         member.id.get_id()
@@ -48,31 +48,32 @@ INSERT INTO {user_table_name} (
     company_registration_number,
     phone,
     address,
-    name
-) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+    name,
+    last_access,
+    fail_count
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
                 """
                 cursor.execute(
                     insert_query,
                     (
                         member.id.get_id(),
                         member.account,
-                        pay.pay_account_list[0],
+                        privacy.pay_account,
                         member.passwd,
                         privacy.email,
                         str(member.role),
                         privacy.company_registration_number,
                         privacy.phone,
                         privacy.address,
-                        privacy.name,                                              
+                        privacy.name,
+                        authentication.last_access,
+                        authentication.fail_count,                                           
                     ),
                 )
                 # 변경 사항을 커밋
                 connection.commit()
+                return Ok(None)
         except Exception as e:
             connection.rollback()
-            return Err(str(e))
-        finally:
-            # 연결 닫기
             connection.close()
-        return Err("Mysql_Fail_SaveUser_Not_Found")
-
+            return Err(str(e))
