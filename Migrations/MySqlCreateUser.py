@@ -35,7 +35,7 @@ class MySqlCreateUser:
 CREATE TABLE IF NOT EXISTS {user_table_name} (
     seq INT AUTO_INCREMENT PRIMARY KEY,
     id VARCHAR(255) UNIQUE,
-    account VARCHAR(255) NOT NULL,
+    account VARCHAR(255) UNIQUE,
     pay_account VARCHAR(255) NOT NULL,
     passwd VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
@@ -44,8 +44,8 @@ CREATE TABLE IF NOT EXISTS {user_table_name} (
     phone VARCHAR(255) NOT NULL,
     address VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
-    last_access DATETIME,
-    fail_count INT
+    last_access DATETIME NOT NULL DEFAULT '1900-01-01 01:01:01',
+    fail_count INT NOT NULL DEFAULT 0
 );
                 """
                 # print(create_user_table_query)

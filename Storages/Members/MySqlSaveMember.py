@@ -5,6 +5,7 @@ from result import Result, Err,Ok
 
 from Domains.Members import *
 from Repositories.Members import *
+from Builders.Members import *
 
 import pymysql
 
@@ -30,7 +31,8 @@ class MySqlSaveMember(ISaveableMember):
         return f"{self.name_padding}{name}"
 
     
-    def save_member(self, member: Member, privacy: Privacy, authentication:Authentication) -> Result[None, str]:
+    def save_member(self, member: Member, privacy: Privacy) -> Result[None, str]:
+        builder = AuthenticationBuilder().set_last_access().set_is_sucess(True).set_fail_count(0).set_id(member.id).build()
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
         member.id.get_id()
@@ -66,12 +68,13 @@ INSERT INTO {user_table_name} (
                         privacy.phone,
                         privacy.address,
                         privacy.name,
-                        authentication.last_access,
-                        authentication.fail_count,                                           
+                        builder.str_last_access(),
+                        0,                                           
                     ),
                 )
                 # 변경 사항을 커밋
                 connection.commit()
+                ic(builder.str_last_access())
                 return Ok(None)
         except Exception as e:
             connection.rollback()

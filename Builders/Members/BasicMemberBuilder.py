@@ -7,7 +7,7 @@ import pytz
 from Commons.format import KOREA_TIME_FORMAT
 from Domains.Members import *
 
-
+from icecream import ic
 class MemberIDBuilder(IMemberIDBuilder):
     def __init__(self):
         self.uuid: Optional[UUID] = None
@@ -255,38 +255,24 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         return self
 
     def set_last_access(
-        self, time: Optional[str] = None, input_timezone: str = "UTC"
+        self, time: Optional[datetime] = None
     ) -> Self:
-        assert self.time is None, "time is already set."
+        assert self.last_access is None, "time is already set."
 
         if time is None:
-            self.time = datetime.now(pytz.utc)
+            self.last_access = datetime.now()
             return self
 
-        assert isinstance(time, str), "Type of time is str."
-        assert isinstance(input_timezone, str), "Type of input_timezone is str."
+        assert isinstance(time, datetime), "Type of time is datetime."
 
-        match input_timezone.lower():
-            case "utc":
-                convert_time = datetime.fromisoformat(time).replace(tzinfo=pytz.utc)
-            case "asia/seoul" | "korea" | "korean" | "k":
-                tz = pytz.timezone("Asia/Seoul")
-                convert_time = tz.localize(
-                    datetime.strptime(time, KOREA_TIME_FORMAT)
-                ).astimezone(pytz.utc)
-            case _:
-                assert False, "There are only two timezones: UTC or Korea time."
-
-        assert convert_time.utcoffset() == pytz.utc, "Not in UTC time."
-
-        self.time = convert_time
+        self.last_access = time
         return self
 
-    def build(self) -> Member:
+    def build(self) -> Authentication:
         assert isinstance(self.id, MemberID), "You didn't set the id."
         assert isinstance(self.fail_count, int), "You didn't set the fail_count."
         assert isinstance(self.last_access, datetime), "You didn't set the last_access."
-        assert isinstance(self.is_sucess, datetime), "You didn't set the is_sucess."
+        assert isinstance(self.is_sucess, bool), "You didn't set the is_sucess."
 
         return Authentication(
             id=self.id,

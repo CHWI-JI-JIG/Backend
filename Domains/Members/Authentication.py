@@ -16,19 +16,9 @@ class Authentication:
     fail_count: int
     is_sucess: bool
 
-    def str_last_access(self, timezone: str = "UTC") -> str:
-        match timezone.lower():
-            case "utc":
-                time = self.last_access.isoformat()
-            case "asia/seoul" | "korea" | "korean" | "k":
-                tz = pytz.timezone("Asia/Seoul")
-                time = (
-                    self.last_access.replace(tzinfo=tz)
-                    .astimezone(tz)
-                    .strftime(KOREA_TIME_FORMAT)
-                )
-            case _:
-                assert False, "There are only two timezones: UTC or Korea time."
+    def str_last_access(self) -> str:
+        assert isinstance(self.last_access, datetime), "Type of last_access is datetime"
+        time = self.last_access.strftime(KOREA_TIME_FORMAT)
         return time
 
 
