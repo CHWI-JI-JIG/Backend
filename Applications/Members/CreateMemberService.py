@@ -48,10 +48,10 @@ class CreateMemberService:
             address=address,
         )
 
-        if self.read_repo.check_exist_account(account=account):
-            return Err(
-                "AccountAlreadyExists: Fail_CreateMemberService_AccountAlreadyExists"
-            )
+        # if self.read_repo.check_exist_account(account=account):
+        #     return Err(
+        #         "AccountAlreadyExists: Fail_CreateMemberService_AccountAlreadyExists"
+        #     )
         member_builder.set_account(account=account).set_passwd(passwd)
 
         match role:
