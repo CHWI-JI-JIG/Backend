@@ -82,14 +82,8 @@ class user_test_migrate(unittest.TestCase):
             company_registration_number = "123-45-12345"
         )
         
-        authentication = Authentication(
-            id=id,
-            last_access = "",
-            fail_count = 1,
-            is_sucess=""
-        )
 
-        result = self.mysql_save_member.save_member(member, privacy, authentication)
+        result = self.mysql_save_member.save_member(member, privacy)
         self.assertTrue(result)
         
         ####################################

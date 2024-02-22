@@ -237,10 +237,10 @@ class AuthenticationBuilder(IAuthenticationBuilder):
     def set_last_access(
         self, time: Optional[str] = None, input_timezone: str = "UTC"
     ) -> Self:
-        assert self.time is None, "time is already set."
+        assert self.last_access is None, "time is already set."
 
         if time is None:
-            self.time = datetime.now(pytz.utc)
+            self.last_access = datetime.now(pytz.utc)
             return self
 
         assert isinstance(time, str), "Type of time is str."
@@ -259,14 +259,14 @@ class AuthenticationBuilder(IAuthenticationBuilder):
 
         assert convert_time.utcoffset() == pytz.utc, "Not in UTC time."
 
-        self.time = convert_time
+        self.last_access = convert_time
         return self
 
-    def build(self) -> Member:
+    def build(self) -> Authentication:
         assert isinstance(self.id, MemberID), "You didn't set the id."
         assert isinstance(self.fail_count, int), "You didn't set the fail_count."
         assert isinstance(self.last_access, datetime), "You didn't set the last_access."
-        assert isinstance(self.is_sucess, datetime), "You didn't set the is_sucess."
+        assert isinstance(self.is_sucess, bool), "You didn't set the is_sucess."
 
         return Authentication(
             id=self.id,

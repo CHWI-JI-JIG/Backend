@@ -35,7 +35,7 @@ class MySqlCreateUser:
 CREATE TABLE IF NOT EXISTS {user_table_name} (
     seq INT AUTO_INCREMENT PRIMARY KEY,
     id VARCHAR(255) UNIQUE,
-    account VARCHAR(255) NOT NULL,
+    account VARCHAR(255) UNIQUE,
     pay_account VARCHAR(255) NOT NULL,
     passwd VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,

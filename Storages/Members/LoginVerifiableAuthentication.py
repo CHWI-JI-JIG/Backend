@@ -6,6 +6,7 @@ from datetime import datetime
 
 from Domains.Members import *
 from Repositories.Members import *
+from Builders.Members import *
 
 import pymysql
 
@@ -30,26 +31,38 @@ class LoginVerifiableAuthentication(IVerifiableAuthentication):
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
 
-    
+
     def identify_and_authenticate(self, account: str, passwd: str) -> Result[Authentication, str]:
+        
+        connection = self.connect()
+        user_table_name = self.get_padding_name("user")
+        
         try:
-            connection = self.connect()
-            user_table_name = self.get_padding_name("user")
             with connection.cursor() as cursor:
-                query = f"SELECT * FROM {user_table_name} WHERE account = %s"
+                query = f"""
+SELECT seq, id, passwd, last_access, fail_count
+FROM {user_table_name}
+WHERE account = '%s';
+                """
+                
+                cursor.execute(query, (account,)) 
+                result = cursor.fetchone()             
             
-            if member is None:
+            if not result:
                 return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
             
-            if member.passwd != passwd:
-                member.fail_count += 1
-                self.member.repository.update_member(member)
-                return Err("Incorrect password")
             
-            return Ok(Authentication(id=member.id, last_access=datetime.now(), fail_count=0, is_success=True))
+            if result[2] != passwd:
+                Fbuilder = AuthenticationBuilder().set_last_access().set_is_sucess(False).set_fail_count(0).set_id(result[1]).build()
+                return Ok(Fbuilder)
+            
+            Tbuilder = AuthenticationBuilder().set_last_access().set_is_sucess(True).set_fail_count(0).set_id(result[1]).build()
+            return Ok(Tbuilder)
             
         except Exception as e:
             return Err(str(e))
+
+
         
         
     def update_access(self, auth: Authentication) -> Result[None, str]:
