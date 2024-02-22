@@ -46,7 +46,6 @@ SELECT seq, id, passwd, last_access, fail_count
 FROM {user_table_name}
 WHERE account = %s;
                 """
-                print(query)
                 cursor.execute(query, (account,))
                 result = cursor.fetchone()
             if not result:
