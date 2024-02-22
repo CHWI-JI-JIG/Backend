@@ -4,16 +4,8 @@ from typing import Optional, Self
 from uuid import uuid4, UUID
 
 
-class ID(metaclass=ABCMeta):
-    @abstractmethod
-    def get_id(self) -> str: ...
-
-
-class MemberID(metaclass=ABCMeta): ...
-
-
 @dataclass(frozen=True)
-class MemberUUID(MemberID):
+class MemberID:
     uuid: UUID
     sequence: int = -1
 
