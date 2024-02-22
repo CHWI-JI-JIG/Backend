@@ -74,6 +74,7 @@ INSERT INTO {user_table_name} (
                 )
                 # 변경 사항을 커밋
                 connection.commit()
+                ic(builder.str_last_access())
                 return Ok(None)
         except Exception as e:
             connection.rollback()

@@ -44,8 +44,8 @@ CREATE TABLE IF NOT EXISTS {user_table_name} (
     phone VARCHAR(255) NOT NULL,
     address VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
-    last_access DATETIME,
-    fail_count INT
+    last_access DATETIME NOT NULL DEFAULT '1900-01-01 01:01:01',
+    fail_count INT NOT NULL DEFAULT 0
 );
                 """
                 print(create_user_table_query)

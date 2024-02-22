@@ -42,22 +42,21 @@ class LoginVerifiableAuthentication(IVerifiableAuthentication):
                 query = f"""
 SELECT seq, id, passwd, last_access, fail_count
 FROM {user_table_name}
-WHERE account = '%s';
+WHERE account = %s;
                 """
-                
+                print(query)
                 cursor.execute(query, (account,)) 
                 result = cursor.fetchone()             
-            
+            ic(result[3])
             if not result:
                 return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
-            
-            
+            id = (MemberIDBuilder().set_uuid_hex(result[1]).set_seqence(1).build())
+            b =  AuthenticationBuilder().set_last_access(result[3]).set_fail_count(result[4]).set_id(id)
             if result[2] != passwd:
-                Fbuilder = AuthenticationBuilder().set_last_access().set_is_sucess(False).set_fail_count(0).set_id(result[1]).build()
-                return Ok(Fbuilder)
-            
-            Tbuilder = AuthenticationBuilder().set_last_access().set_is_sucess(True).set_fail_count(0).set_id(result[1]).build()
-            return Ok(Tbuilder)
+                b.set_is_sucess(False)
+                return Ok(b.build())
+            b.set_is_sucess(True)
+            return Ok(b.build())
             
         except Exception as e:
             return Err(str(e))
@@ -66,14 +65,5 @@ WHERE account = '%s';
         
         
     def update_access(self, auth: Authentication) -> Result[None, str]:
-        """_summary_
-        Update last_access with the current time, and Update the fail_count according to the successes and failures.
-
-        Args:
-            auth (Authentication): Use the value returned by identify_and_authenticate as is.
-
-        Returns:
-            Result[None, str]:
-                Err(str) : Represents errors in storage, if any, as a string.
-        """
-        raise NotImplementedError()
+        
+        
