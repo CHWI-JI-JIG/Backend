@@ -33,7 +33,6 @@ class LoginVerifiableAuthentication(IVerifiableAuthentication):
 
 
     def identify_and_authenticate(self, account: str, passwd: str) -> Result[Authentication, str]:
-        
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
         
@@ -65,5 +64,34 @@ WHERE account = %s;
         
         
     def update_access(self, auth: Authentication) -> Result[None, str]:
+        connection = self.connect()
+        user_table_name = self.get_padding_name("user")
         
+        try:
+            with connection.cursor() as cursor:
+                if auth.is_sucess:
+                    # 로그인 성공 시 fail_count를 0으로 초기화
+                    query = f"""
+UPDATE {user_table_name}
+SET last_access = %s, fail_count = 0
+WHERE id = %s;
+                """
+                    cursor.execute(query, (datetime.now(), auth.id))
+                else:
+                    # 로그인 실패 시 fail_count를 1 증가
+                    query = f"""
+UPDATE {user_table_name}
+SET last_access = %s, fail_count = fail_count + 1
+WHERE id = %s;
+                """
+                    cursor.execute(query, (datetime.now(), auth.id))
+                
+                connection.commit()
+            
+            return Ok(None)
+        
+        except Exception as e:
+            return Err(str(e))
+        
+
         
