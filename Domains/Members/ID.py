@@ -14,8 +14,8 @@ class MemberID(metaclass=ABCMeta): ...
 
 @dataclass(frozen=True)
 class MemberUUID(MemberID):
-    sequence: int = -1
     uuid: UUID
+    sequence: int = -1
 
     def get_id(self) -> str:
         return self.uuid.hex
