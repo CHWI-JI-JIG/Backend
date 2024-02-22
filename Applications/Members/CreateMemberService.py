@@ -12,10 +12,10 @@ from Applications.Members.ExtentionMethod import hashing_passwd
 class CreateMemberService:
     def __init__(
         self,
-        read_member_repo: IReadableMember,
+        # read_member_repo: IReadableMember,
         save_member_repo: ISaveableMember,
     ):
-        self.read_repo = read_member_repo
+        # self.read_repo = read_member_repo
         self.save_repo = save_member_repo
 
     def create(
@@ -26,9 +26,10 @@ class CreateMemberService:
         name: str,
         phone: str,
         email: str,
+        address: str,
         company_registration_number: Optional[str] = None,
         pay_account: Optional[str] = None,
-    ) -> Result[Optional[str], str]:
+    ) -> Result[None, str]:
         """_summary_
 
         Returns:
@@ -37,12 +38,14 @@ class CreateMemberService:
                 Err : Reason for failure
                     "AccountAlreadyExists: Fail_CreateMemberService_AccountAlreadyExists"
                     "NotSameRole: There is no such thing as a {role} role."
+                    "NoHaveRegistration: If User is Seller, Then Paramater need Company registration number."
         """
         member_builder = NoFilterMemberBuilder(passwd_converter=hashing_passwd)
         privacy_builder = NoFilterPrivacyBuilder(
             name=name,
             phone=phone,
             email=email,
+            address=address,
         )
 
         if self.read_repo.check_exist_account(account=account):
@@ -54,14 +57,41 @@ class CreateMemberService:
         match role:
             case "seller":
                 if not isinstance(company_registration_number, str):
-                    return Err("")
+                    return Err(
+                        "NoHaveRegistration: If User is Seller, Then Paramater need Company registration number."
+                    )
+                if not isinstance(pay_account, str):
+                    return Err(
+                        "NoHavePayAccount: If User is Seller, Then Paramater need Pay Account."
+                    )
                 member_builder.set_role(role)
-                privacy_builder.set_company_registration_number(
-                    company_registration_number
-                )
+                privacy_builder.set_pay_account(
+                    pay_account
+                ).set_company_registration_number(company_registration_number)
             case "buyer":
+                if company_registration_number is not None:
+                    return Err(
+                        "HaveRegistration: If User is Buyer, Then Paramater don't need Company registration number."
+                    )
+                if pay_account is not None:
+                    return Err(
+                        "HavePayAccount: If User is Buyer, Then Paramater don't need Pay Account."
+                    )
                 member_builder.set_role(role)
-            case "abmin":
-                member_builder.set_account(role)
+            case "admin":
+                assert False, "NotImplementError: admin"
+                if company_registration_number is not None:
+                    return Err(
+                        "NoHaveRegistration: If User is Seller, Then Paramater need Company registration number."
+                    )
+                if pay_account is not None:
+                    return Err(
+                        "NoHavePayAccount: If User is Seller, Then Paramater need Pay Account."
+                    )
+                member_builder.set_role(role)
             case _:
                 return Err(f"NotSameRole: There is no such thing as a {role} role.")
+        return self.save_repo.save_member(
+            member=member_builder.build(),
+            privacy=privacy_builder.build(),
+        )

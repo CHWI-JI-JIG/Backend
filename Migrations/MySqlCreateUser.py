@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS {user_table_name} (
     fail_count INT
 );
                 """
-                print(create_user_table_query)
+                # print(create_user_table_query)
                 # user 생성
                 cursor.execute(create_user_table_query)
                 connection.commit()
@@ -99,6 +99,3 @@ CREATE TABLE IF NOT EXISTS {user_table_name} (
             # 연결 닫기
             connection.close()
             return ret
-        
-        
-    
