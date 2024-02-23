@@ -6,6 +6,7 @@ from result import Result, Err, Ok
 from Domains.Members import *
 from Repositories.Members import *
 from Builders.Members import *
+from uuid import UUID
 
 import pymysql
 
@@ -31,7 +32,7 @@ class MySqlSaveMember(ISaveableMember):
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
 
-    def save_member(self, member: Member, privacy: Privacy) -> Result[None, str]:
+    def save_member(self, member: Member, privacy: Privacy) -> Result[UUID, str]:
         builder = (
             AuthenticationBuilder()
             .set_last_access()
@@ -81,7 +82,7 @@ INSERT INTO {user_table_name} (
                 )
                 # 변경 사항을 커밋
                 connection.commit()
-                return Ok(None)
+                return Ok(member.id.uuid)
         except Exception as e:
             connection.rollback()
             connection.close()
