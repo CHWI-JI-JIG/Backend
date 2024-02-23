@@ -69,7 +69,7 @@ WHERE account = %s;
     def update_access(self, auth: Authentication) -> Result[None, str]:
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
-        
+
         try:
             with connection.cursor() as cursor:
                 if auth.is_sucess:
@@ -79,7 +79,6 @@ UPDATE {user_table_name}
 SET last_access = %s, fail_count = 0
 WHERE id = %s;
                 """
-                    print(query)
                     cursor.execute(query, (datetime.now(), auth.id.get_id()))
                 else:
                     # 로그인 실패 시 fail_count를 1 증가
@@ -88,19 +87,14 @@ UPDATE {user_table_name}
 SET last_access = %s, fail_count = fail_count +1
 WHERE id = %s;
                 """
-                    ic(auth)
-                    print(query)
                     cursor.execute(query, (datetime.now(), auth.id.get_id()))
-                
+
                 connection.commit()
-            
+
             return Ok(None)
-        
+
         except Exception as e:
             return Err(str(e))
-        
+
         finally:
             connection.close()
-        
-
-        
