@@ -79,15 +79,18 @@ UPDATE {user_table_name}
 SET last_access = %s, fail_count = 0
 WHERE id = %s;
                 """
-                    cursor.execute(query, (datetime.now(), auth.id))
+                    print(query)
+                    cursor.execute(query, (datetime.now(), auth.id.get_id()))
                 else:
                     # 로그인 실패 시 fail_count를 1 증가
                     query = f"""
 UPDATE {user_table_name}
-SET last_access = %s, fail_count = fail_count + 1
+SET last_access = %s, fail_count = fail_count +1
 WHERE id = %s;
                 """
-                    cursor.execute(query, (datetime.now(), auth.id))
+                    ic(auth)
+                    print(query)
+                    cursor.execute(query, (datetime.now(), auth.id.get_id()))
                 
                 connection.commit()
             
@@ -95,6 +98,9 @@ WHERE id = %s;
         
         except Exception as e:
             return Err(str(e))
+        
+        finally:
+            connection.close()
         
 
         
