@@ -37,7 +37,9 @@ class AuthenticationMemberService:
 
         """
         
-        ~~~~
+        login_result = self.l_repo.identify_and_authenticate(
+            "seller1", hashing_passwd("123456")
+        )
         
         
         
