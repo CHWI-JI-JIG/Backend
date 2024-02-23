@@ -7,7 +7,6 @@ from Domains.Members import *
 from Builders.Members import *
 from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
-from uuid import UUID
 
 from icecream import ic
 
@@ -36,7 +35,7 @@ class CreateMemberService:
         address: str,
         company_registration_number: Optional[str] = None,
         pay_account: Optional[str] = None,
-    ) -> Result[UUID, str]:
+    ) -> Result[MemberID, str]:
         """_summary_
 
         Assert:
