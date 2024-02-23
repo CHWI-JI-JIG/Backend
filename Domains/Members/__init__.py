@@ -7,7 +7,7 @@ root_path = now_path.parent.parents
 if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
-from Domains.Members.ID import (
+from Domains.Members.MemberID import (
     MemberID,
     IMemberIDBuilder,
 )
