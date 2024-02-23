@@ -4,6 +4,7 @@ import sys
 
 from Domains.Members import *
 from Builders.Members import *
+from Domains.Sessions import *
 from Applications.Members.ExtentionMethod import hashing_passwd
 
 from icecream import ic
@@ -43,6 +44,25 @@ class test_builder(unittest.TestCase):
         builder = NoFilterMemberBuilder(passwd_converter=hashing_passwd).set_passwd(a)
         b = builder.passwd
         self.assertNotEqual(a, b)
+
+    def test_member_session(self):
+        "Hook method for deconstructing the test fixture after testing it."
+        print("\t\t", sys._getframe(0).f_code.co_name)
+        id = "d697b39f733a426f96a13fc40c8bf061"
+        member_id = MemberIDBuilder().set_uuid_hex(id).build()
+        new_session = MemberSessionBuilder().set_key().set_member_id(id).build()
+        self.assertEqual(
+            '{"member_id": "d697b39f733a426f96a13fc40c8bf061"}',
+            new_session.serialize_value(),
+        )
+
+        read_session = (
+            MemberSessionBuilder()
+            .set_deserialize_key(new_session.get_id())
+            .set_deserialize_value(new_session.serialize_value())
+            .build()
+        )
+        self.assertEqual(new_session, read_session)
 
 
 def main():
