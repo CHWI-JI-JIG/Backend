@@ -48,6 +48,7 @@ WHERE account = %s;
                 """
                 cursor.execute(query, (account,))
                 result = cursor.fetchone()
+                
             if not result:
                 return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
             id = MemberIDBuilder().set_uuid_hex(result[1]).set_seqence(1).build()
