@@ -65,15 +65,13 @@ class test_user_migrate(unittest.TestCase):
         ######## MySqlSaveMember.py 테스트코드 자리  #################
         id = MemberIDBuilder().set_uuid4().set_seqence(1).build()
 
-        member = Member(id=id, account="jihee", passwd="jh1234@", role=RoleType.SELLER)
+        member = Member(id=id, account="jihee", passwd="jh1234@", role=RoleType.BUYER)
         privacy = Privacy(
             id=id,
             name="김지희",
             phone="01012345678",
             email="jihee@test.com",
             address="서울시 여러분",
-            pay_account="123-1234-4567",
-            company_registration_number="123-45-12345",
         )
 
         authentication = Authentication(
