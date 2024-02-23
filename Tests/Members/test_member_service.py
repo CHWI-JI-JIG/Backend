@@ -37,7 +37,7 @@ class test_member_service(unittest.TestCase):
         "Hook method for setting up the test fixture before exercising it."
         print("\t", sys._getframe(0).f_code.co_name)
         self.create_service.create(
-            account="Lee Takgyun",
+            account="abrst",
             passwd="123",
             role="buyer",
             name="Lee Takgun",
@@ -46,6 +46,28 @@ class test_member_service(unittest.TestCase):
             address="서울시 구로구",
             company_registration_number="023581466218612",
             pay_account="11255023855641233",
+        )
+        self.create_service.create(
+            account="abrst",
+            passwd="123",
+            role="seller",
+            name="Lee Takgun",
+            phone="01036574774",
+            email="vacst@naver.com",
+            address="서울시 구로구",
+            company_registration_number="023581466218612",
+            pay_account="11255023855641233",
+        )
+        self.create_service.create(
+            account="hohorst",
+            passwd="456",
+            role="seller",
+            name="Lee hohun",
+            phone="010566788874",
+            email="vacst@naver.com",
+            address="서울시 광진구",
+            company_registration_number="115557936219463",
+            pay_account="6795943585566187",
         )
 
     def tearDown(self):
