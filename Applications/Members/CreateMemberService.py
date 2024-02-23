@@ -8,6 +8,8 @@ from Builders.Members import *
 from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
 
+from icecream import ic
+
 
 class CreateMemberService:
     def __init__(
@@ -16,6 +18,10 @@ class CreateMemberService:
         save_member_repo: ISaveableMember,
     ):
         # self.read_repo = read_member_repo
+        assert issubclass(
+            type(save_member_repo), ISaveableMember
+        ), "save_member_repo must be a class that inherits from ISaveableMember."
+
         self.save_repo = save_member_repo
 
     def create(
@@ -32,6 +38,9 @@ class CreateMemberService:
     ) -> Result[None, str]:
         """_summary_
 
+        Assert:
+
+
         Returns:
             Optional[Err]:
                 Ok :Sucess
@@ -39,6 +48,9 @@ class CreateMemberService:
                     "AccountAlreadyExists: Fail_CreateMemberService_AccountAlreadyExists"
                     "NotSameRole: There is no such thing as a {role} role."
                     "NoHaveRegistration: If User is Seller, Then Paramater need Company registration number."
+                    "HavePayAccount: If User is Buyer, Then Paramater don't need Pay Account."
+                    "HavePayAccount: If User is Buyer, Then Paramater don't need Pay Account."
+
         """
         member_builder = NoFilterMemberBuilder(passwd_converter=hashing_passwd)
         privacy_builder = NoFilterPrivacyBuilder(
@@ -91,7 +103,8 @@ class CreateMemberService:
                 member_builder.set_role(role)
             case _:
                 return Err(f"NotSameRole: There is no such thing as a {role} role.")
+        id = MemberIDBuilder().set_uuid4().build()
         return self.save_repo.save_member(
-            member=member_builder.build(),
-            privacy=privacy_builder.build(),
+            member=member_builder.set_id(id).build(),
+            privacy=privacy_builder.set_id(id).build(),
         )
