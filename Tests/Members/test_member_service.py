@@ -55,6 +55,11 @@ class test_member_service(unittest.TestCase):
     def test_pw_builder1(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
+        
+    
+    def test_user_join(self):
+        "Hook method for deconstructing the test fixture after testing it."
+        print("\t\t", sys._getframe(0).f_code.co_name)
 
 
 def main():
