@@ -38,6 +38,9 @@ class CreateMemberService:
     ) -> Result[None, str]:
         """_summary_
 
+        Assert:
+
+
         Returns:
             Optional[Err]:
                 Ok :Sucess
@@ -45,6 +48,9 @@ class CreateMemberService:
                     "AccountAlreadyExists: Fail_CreateMemberService_AccountAlreadyExists"
                     "NotSameRole: There is no such thing as a {role} role."
                     "NoHaveRegistration: If User is Seller, Then Paramater need Company registration number."
+                    "HavePayAccount: If User is Buyer, Then Paramater don't need Pay Account."
+                    "HavePayAccount: If User is Buyer, Then Paramater don't need Pay Account."
+
         """
         member_builder = NoFilterMemberBuilder(passwd_converter=hashing_passwd)
         privacy_builder = NoFilterPrivacyBuilder(
