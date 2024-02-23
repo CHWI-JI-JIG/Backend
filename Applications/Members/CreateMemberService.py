@@ -35,7 +35,7 @@ class CreateMemberService:
         address: str,
         company_registration_number: Optional[str] = None,
         pay_account: Optional[str] = None,
-    ) -> Result[None, str]:
+    ) -> Result[MemberID, str]:
         """_summary_
 
         Assert:
@@ -59,12 +59,6 @@ class CreateMemberService:
             email=email,
             address=address,
         )
-        # check input values when use 'create'
-        ic(account, passwd, role, name, phone, email, address, company_registration_number, pay_account)
-        # if self.read_repo.check_exist_account(account=account):
-        #     return Err(
-        #         "AccountAlreadyExists: Fail_CreateMemberService_AccountAlreadyExists"
-        #     )
         member_builder.set_account(account=account).set_passwd(passwd)
         match role:
             case "seller":

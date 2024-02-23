@@ -4,17 +4,21 @@ from uuid import uuid4, UUID
 from datetime import datetime
 import pytz
 
+from Commons.helpers import check_hex_string
 from Commons.format import KOREA_TIME_FORMAT
 from Domains.Members import *
 
 from icecream import ic
+
+
 class MemberIDBuilder(IMemberIDBuilder):
     def __init__(self):
         self.uuid: Optional[UUID] = None
         self.sequence: Optional[int] = None
 
     def set_seqence(self, seq: int) -> Self:
-        assert isinstance(seq, int), "ValueError"
+        assert isinstance(seq, int), "Type of seq is int."
+        assert self.sequence is None, "The sequence is already set."
         assert seq >= 0, "seq >= 0"
 
         self.sequence = seq
@@ -27,7 +31,6 @@ class MemberIDBuilder(IMemberIDBuilder):
         return self
 
     def set_uuid_hex(self, uuid_hex: str) -> Self:
-        from Commons.helpers import check_hex_string
 
         assert self.uuid is None, "The UUID is already set."
         assert check_hex_string(uuid_hex), "The uuid_hex is not in hex format."
@@ -254,9 +257,7 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         self.is_sucess = is_sucess
         return self
 
-    def set_last_access(
-        self, time: Optional[datetime] = None
-    ) -> Self:
+    def set_last_access(self, time: Optional[datetime] = None) -> Self:
         assert self.last_access is None, "time is already set."
 
         if time is None:
