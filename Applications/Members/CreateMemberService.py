@@ -59,13 +59,13 @@ class CreateMemberService:
             email=email,
             address=address,
         )
-
+        # check input values when use 'create'
+        ic(account, passwd, role, name, phone, email, address, company_registration_number, pay_account)
         # if self.read_repo.check_exist_account(account=account):
         #     return Err(
         #         "AccountAlreadyExists: Fail_CreateMemberService_AccountAlreadyExists"
         #     )
         member_builder.set_account(account=account).set_passwd(passwd)
-
         match role:
             case "seller":
                 if not isinstance(company_registration_number, str):

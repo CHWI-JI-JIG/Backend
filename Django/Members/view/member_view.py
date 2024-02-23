@@ -4,13 +4,14 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from Applications.Members.CreateMemberService import CreateMemberService
 from Domains.Members import Privacy
+from get_config_data import get_db_padding
 from icecream import ic
 import json
 
 # MySqlSaveMember 클래스 import 추가
 from Storages.Members.MySqlSaveMember import MySqlSaveMember
 
-@csrf_exempt
+
 def signup(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST method is required'}, status=405)
@@ -30,12 +31,12 @@ def signup(request):
     # 판매자라면, 사업자 번호 / 계좌번호가 있어야 하고 
 
     # 의존성 주입
-    save_member_repo = MySqlSaveMember()
+    save_member_repo = MySqlSaveMember(get_db_padding())
     member_service = CreateMemberService(save_member_repo)
 
     # 회원 가입 시도
     result = member_service.create(account, passwd, role, name, phone, email, address)
-    ic()
+    ic(result)
     # 결과에 따른 응답 생성
     if result.is_ok():
         return JsonResponse({'success': True})
