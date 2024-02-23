@@ -9,7 +9,7 @@ def get_mysql_dict() -> dict:
     return mysql_db
 
 
-SERVICE_DB_PADDING = "chijijig_"
+SERVICE_DB_PADDING = "cjj_"
 
 
 def set_db_padding(padding: str = "chijijig_"):
