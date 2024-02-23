@@ -1,7 +1,7 @@
 import __init__
 from abc import ABCMeta, abstractmethod
 from typing import Optional
-from result import Result, Err,Ok
+from result import Result, Err, Ok
 
 from Domains.Members import *
 from Repositories.Members import *
@@ -27,12 +27,19 @@ class MySqlSaveMember(ISaveableMember):
             db=sql_config["database"],
             charset=sql_config["charset"],
         )
+
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
 
-    
     def save_member(self, member: Member, privacy: Privacy) -> Result[None, str]:
-        builder = AuthenticationBuilder().set_last_access().set_is_sucess(True).set_fail_count(0).set_id(member.id).build()
+        builder = (
+            AuthenticationBuilder()
+            .set_last_access()
+            .set_is_sucess(True)
+            .set_fail_count(0)
+            .set_id(member.id)
+            .build()
+        )
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
         member.id.get_id()
@@ -69,12 +76,11 @@ INSERT INTO {user_table_name} (
                         privacy.address,
                         privacy.name,
                         builder.str_last_access(),
-                        0,                                           
+                        0,
                     ),
                 )
                 # 변경 사항을 커밋
                 connection.commit()
-                ic(builder.str_last_access())
                 return Ok(None)
         except Exception as e:
             connection.rollback()

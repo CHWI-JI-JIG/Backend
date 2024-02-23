@@ -1,5 +1,5 @@
 import __init__
-from typing import Optional, Self, List, Union
+from typing import Optional, Self, List, Union, Callable
 from uuid import uuid4, UUID
 from datetime import datetime
 import pytz
@@ -56,13 +56,20 @@ class MemberIDBuilder(IMemberIDBuilder):
 class NoFilterMemberBuilder(IMemberBuilder):
     def __init__(
         self,
-        account: Optional[str] = None,
-        passwd: Optional[str] = None,
+        passwd_converter: Callable[[str], str] = (lambda x: x),
     ):
         self.id: Optional[MemberID] = None
-        self.account: Optional[str] = account
-        self.passwd: Optional[str] = passwd
+        self.account: Optional[str] = None
+        self.passwd: Optional[str] = None
         self.role: Optional[RoleType] = None
+
+        assert isinstance(
+            passwd_converter, Callable
+        ), "Type of pw_converter is Callable(str)->str."
+        assert isinstance(
+            passwd_converter("aaa"), str
+        ), "Type of pw_converter is Callable(str)->str."
+        self.pw_converter = passwd_converter
 
     def set_id(self, id: Optional[MemberID] = None) -> Self:
         assert self.id is None, "id is already set."
@@ -87,7 +94,8 @@ class NoFilterMemberBuilder(IMemberBuilder):
     def set_passwd(self, passwd: str) -> Self:
         assert self.passwd is None, "passwd is already set."
         assert isinstance(passwd, str), "Type of account is str"
-        self.passwd = passwd
+
+        self.passwd = self.pw_converter(passwd)
         return self
 
     def set_role(self, role: str) -> Self:
@@ -95,7 +103,9 @@ class NoFilterMemberBuilder(IMemberBuilder):
         assert isinstance(role, str), "Type of rule is str."
 
         self.role = RoleType[role.strip(" \n\t").upper()]
-        assert isinstance(role, RoleType), "Type of rule is RuleType. "
+        assert self.role.name in list(
+            RoleType._member_names_
+        ), "Type of rule is RuleType. "
 
         return self
 
@@ -119,6 +129,7 @@ class NoFilterPrivacyBuilder(IPrivacyBuilder):
         phone: Optional[str] = None,
         email: Optional[str] = None,
         address: Optional[str] = None,
+        pay_account: Optional[str] = None,
         company_registration_number: Optional[str] = None,
     ):
         self.id: Optional[MemberID] = None
@@ -126,6 +137,7 @@ class NoFilterPrivacyBuilder(IPrivacyBuilder):
         self.phone: Optional[str] = phone
         self.email: Optional[str] = email
         self.address: Optional[str] = address
+        self.pay_account: Optional[str] = pay_account
         self.company_registration_number: Optional[str] = company_registration_number
 
     def set_id(self, id: MemberID) -> Self:
@@ -180,6 +192,13 @@ class NoFilterPrivacyBuilder(IPrivacyBuilder):
         self.company_registration_number = company_registration_number
         return self
 
+    def set_pay_account(self, pay_account: str) -> Self:
+        assert self.pay_account is None, "pay_account is already set."
+        assert isinstance(pay_account, str), "Type of pay_account is str"
+
+        self.pay_account = pay_account
+        return self
+
     def build(self) -> Privacy:
         assert isinstance(self.id, MemberID), "You didn't set the id."
         assert isinstance(self.name, str), "You didn't set the name."
@@ -193,6 +212,7 @@ class NoFilterPrivacyBuilder(IPrivacyBuilder):
             phone=self.phone,
             email=self.email,
             address=self.address,
+            pay_account=self.pay_account,
             company_registration_number=self.company_registration_number,
         )
 

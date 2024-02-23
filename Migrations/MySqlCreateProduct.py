@@ -45,7 +45,6 @@ CREATE TABLE IF NOT EXISTS {product_table_name} (
     FOREIGN KEY (user_seq) REFERENCES test_migrate_user(seq)
 );
                 """
-                print(create_product_table_query)
                 # user 생성
                 cursor.execute(create_product_table_query)
                 connection.commit()

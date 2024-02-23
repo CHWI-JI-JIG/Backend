@@ -7,3 +7,15 @@ def get_mysql_url() -> str:
 
 def get_mysql_dict() -> dict:
     return mysql_db
+
+
+SERVICE_DB_PADDING = "cjj_"
+
+
+def set_db_padding(padding: str = "ChiJiJiG_"):
+    global SERVICE_DB_PADDING
+    SERVICE_DB_PADDING = padding
+
+
+def get_db_padding() -> str:
+    return SERVICE_DB_PADDING
