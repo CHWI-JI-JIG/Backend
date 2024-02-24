@@ -49,7 +49,7 @@ class test_builder(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
-        member_id = MemberIDBuilder().set_uuid_hex(id).build()
+        member_id = MemberIDBuilder().set_uuid(id).build()
         new_session = (
             MemberSessionBuilder()
             .set_key()

@@ -119,6 +119,8 @@ class MemberSessionBuilder(ISesseionBuilder):
             case k if isinstance(key, str):
                 assert check_hex_string(k), "The uuid_hex is not in hex format."
                 self.key = UUID(hex=key)
+            case _:
+                assert False, "Type of key is str."
 
         return self
 
@@ -126,9 +128,9 @@ class MemberSessionBuilder(ISesseionBuilder):
         assert self.mid is None, "member id is already set."
 
         if member_id is None:
-            id = MemberIDBuilder().set_uuid4().build()
+            id = MemberIDBuilder().set_uuid().build()
         elif isinstance(member_id, str):
-            id = MemberIDBuilder().set_uuid_hex(member_id).build()
+            id = MemberIDBuilder().set_uuid(member_id).build()
         else:
             assert False, "Type of member_id is str."
 
