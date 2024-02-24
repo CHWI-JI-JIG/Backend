@@ -50,9 +50,17 @@ class test_builder(unittest.TestCase):
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
         member_id = MemberIDBuilder().set_uuid_hex(id).build()
-        new_session = MemberSessionBuilder().set_key().set_member_id(id).build()
+        new_session = (
+            MemberSessionBuilder()
+            .set_key()
+            .set_member_id(id)
+            .set_role("buyer")
+            .set_name("이탁균")
+            .set_seqence(10)
+            .build()
+        )
         self.assertEqual(
-            '{"member_id": "d697b39f733a426f96a13fc40c8bf061"}',
+            '{"seq": "10", "member_id": "d697b39f733a426f96a13fc40c8bf061", "name": "이탁균", "role": "buyer"}',
             new_session.serialize_value(),
         )
 

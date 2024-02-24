@@ -7,11 +7,11 @@ root_path = now_path.parent.parents
 if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
-from Domains.Sessions.ISession import ISesseionBuilder, ISesseionSerializeable
+from Domains.Sessions.ISession import ISesseionBuilder, ISessionSerializeable
 from Domains.Sessions.MemberSession import MemberSession, MemberSessionBuilder
 
 __all__ = [
-    "ISesseionSerializeable",
+    "ISessionSerializeable",
     "ISesseionBuilder",
     "MemberSession",
     "MemberSessionBuilder",

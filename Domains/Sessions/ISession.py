@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Self
 
 
-class ISesseionSerializeable(metaclass=ABCMeta):
+class ISessionSerializeable(metaclass=ABCMeta):
     @abstractmethod
     def serialize_key(self) -> str: ...
 
