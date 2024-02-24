@@ -3,32 +3,32 @@ import unittest  # import IsolatedAsyncioTestCase
 import sys
 from icecream import ic
 
-from Migrations import MySqlCreateUser, MySqlCreateProduct
+from Migrations import MySqlCreateUser, MySqlCreateProduct, MySqlCreateSesssion
 
 from Builders.Members import *
 from Storages.Members import MySqlSaveMember
 from Domains.Members import *
 
 
-class test_user_migrate(unittest.TestCase):
+class test_session_migrate(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.driver = "test"
-        print(sys._getframe(0).f_code.co_name, f"(test_user_migrate)")
+        print(sys._getframe(0).f_code.co_name, f"(test_session_migrate)")
         ## 썼으면 삭제
         test_padding = "test_migrate_"
-        user_migrate = MySqlCreateUser(test_padding)
-        product_migrate = MySqlCreateProduct(test_padding)
-        mysql_save_member = MySqlSaveMember(test_padding)
+        session_migrate = MySqlCreateSesssion(test_padding)
+        # product_migrate = MySqlCreateProduct(test_padding)
+        # mysql_save_member = MySqlSaveMember(test_padding)
 
-        if product_migrate.check_exist_product():
-            product_migrate.delete_product()
-        if user_migrate.check_exist_user():
-            user_migrate.delete_user()
+        # if product_migrate.check_exist_product():
+        #     product_migrate.delete_product()
+        if session_migrate.check_exist_session():
+            session_migrate.delete_session()
 
-        cls.user_migrate = user_migrate
-        cls.product_migrate = product_migrate
-        cls.mysql_save_member = mysql_save_member
+        cls.session_migrate = session_migrate
+        # cls.product_migrate = product_migrate
+        # cls.mysql_save_member = mysql_save_member
 
     @classmethod
     def tearDownClass(cls):
@@ -41,38 +41,30 @@ class test_user_migrate(unittest.TestCase):
         ## 썼으면 삭제
 
         ## 테이블이 없는지 확인
-        self.assertFalse(self.user_migrate.check_exist_user())
-        self.assertFalse(self.product_migrate.check_exist_product())
+        self.assertFalse(self.session_migrate.check_exist_session())
+        # self.assertFalse(self.product_migrate.check_exist_product())
 
     def tearDown(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t", sys._getframe(0).f_code.co_name)
         ## 썼으면 삭제
-        if self.product_migrate.check_exist_product():
-            self.product_migrate.delete_product()
-        if self.user_migrate.check_exist_user():
-            self.user_migrate.delete_user()
+        # if self.product_migrate.check_exist_product():
+        #     self.product_migrate.delete_product()
+        if self.session_migrate.check_exist_session():
+            self.session_migrate.delete_session()
 
-        self.assertFalse(self.user_migrate.check_exist_user())
-        self.assertFalse(self.product_migrate.check_exist_product())
+        self.assertFalse(self.session_migrate.check_exist_session())
+        # self.assertFalse(self.product_migrate.check_exist_product())
 
-    def test_create_user(self):
+    def test_create_session(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
-        self.user_migrate.create_user()
-        self.assertTrue(self.user_migrate.check_exist_user())
+        self.session_migrate.create_session()
+        self.assertTrue(self.session_migrate.check_exist_session())
 
         ######## MySqlSaveMember.py 테스트코드 자리  #################
         id = MemberIDBuilder().set_uuid4().set_seqence(1).build()
 
-        member = Member(id=id, account="jihee", passwd="jh1234@", role=RoleType.BUYER)
-        privacy = Privacy(
-            id=id,
-            name="김지희",
-            phone="01012345678",
-            email="jihee@test.com",
-            address="서울시 여러분",
-        )
 
         authentication = Authentication(
             id=id, last_access="", fail_count=1, is_sucess=""
@@ -86,14 +78,14 @@ class test_user_migrate(unittest.TestCase):
     def test_create_product(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
-        self.user_migrate.create_user()
+        self.session_migrate.create_user()
         self.product_migrate.create_product()
         self.assertTrue(self.product_migrate.check_exist_product())
 
     def test_create_product(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
-        self.user_migrate.create_user()
+        self.session_migrate.create_user()
         self.product_migrate.create_product()
         self.assertTrue(self.product_migrate.check_exist_product())
 
