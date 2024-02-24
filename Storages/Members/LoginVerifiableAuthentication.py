@@ -38,6 +38,9 @@ class LoginVerifiableAuthentication(IVerifiableAuthentication):
 
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
+        
+        ic()
+        ic(account,passwd)
 
         try:
             with connection.cursor() as cursor:
@@ -48,6 +51,7 @@ WHERE account = %s;
                 """
                 cursor.execute(query, (account,))
                 result = cursor.fetchone()
+                ic(result)
                 
             if not result:
                 return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
@@ -62,6 +66,7 @@ WHERE account = %s;
                 b.set_is_sucess(False)
                 return Ok(b.build())
             b.set_is_sucess(True)
+            ic(b.build())
             return Ok(b.build())
 
         except Exception as e:

@@ -8,7 +8,9 @@ if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
 from Applications.Members.CreateMemberService import CreateMemberService
+from Applications.Members.LoginMemberService import AuthenticationMemberService
 
 __all__ = [
     "CreateMemberService",
+    "AuthenticationMemberService",
 ]

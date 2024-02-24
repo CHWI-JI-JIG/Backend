@@ -3,12 +3,16 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple, List
 from result import Result, Ok, Err
 
+from uuid import uuid4, UUID
+
 from Domains.Members import *
 from Domains.Sessions import *
 from Builders.Members import *
 from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
 from datetime import datetime, timedelta
+from Applications.Members.TempMemberSession import TempMemberSession
+from Repositories.Sessions import IUseableSession
 
 from icecream import ic
 
@@ -17,12 +21,15 @@ class AuthenticationMemberService:
     def __init__(
         self,
         auth_member_repo: IVerifiableAuthentication,
+        session_repo : IUseableSession,
     ):
         assert issubclass(
             type(auth_member_repo), IVerifiableAuthentication
         ), "auth_member_repo must be a class that inherits from IverifiableAuthentication."
 
-        self.auto_repo = auth_member_repo
+        self.auth_repo = auth_member_repo
+        self.session_repo = session_repo
+        
     def login(self, account:str, passwd:str) -> Result[MemberSession,str]:
         """_summary_
 
@@ -36,12 +43,45 @@ class AuthenticationMemberService:
                 Err(str):
 
         """
+        ic()
+        login_result = self.auth_repo.identify_and_authenticate(account, hashing_passwd(passwd))
+        ic()
         
-        login_result = self.l_repo.identify_and_authenticate(
-            "seller1", hashing_passwd("123456")
-        )
-        
-        
+
+        match login_result:
+            case Ok(auth):
+                ic()
+                time =self.get_block_time(auth.fail_count)
+                if not self.check_login_able(auth.last_access, time):
+                    ic()
+                    return Err(f"block : {time}")
+                ret = auth
+                
+            case Err(e):
+                ic()
+                return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
+            
+        if ret.is_sucess:
+            ic()
+            session_result = self.session_repo.load_session(ret.id.get_id())
+            ic()
+            ic(session_result)
+            match session_result:
+                case Ok(session):
+                    ic()
+                    # MemberSession 생성
+                    member_session = MemberSessionBuilder().set_deserialize_key(ret.id.get_id()).set_deserialize_value(session).build()
+                    return Ok(member_session)
+                case Err(_):
+                    ic()
+                    return session_result
+                case _:
+                    assert False, "Value Error"
+        else:
+            ic()
+            self.auth_repo.update_access(ret)
+            ic(login_result)
+            return Err("비밀번호가 틀렸습니다.")
         
         
 

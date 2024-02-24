@@ -19,7 +19,7 @@ def parse_opt():
     parser.add_argument("--debug", action="store_true", default=False)
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", default=5000)
-    parser.add_argument("--db_attach", type=str, default="cjj_")
+    parser.add_argument("--db_attach", type=str, default="log_")
     parser.add_argument("--storage_type", default="mysql")
     parser.add_argument(
         "--ver",
