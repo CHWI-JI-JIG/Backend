@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Self
 from datetime import datetime
-import pytz
 
 from Commons.format import KOREA_TIME_FORMAT
 from Domains.Members import MemberID

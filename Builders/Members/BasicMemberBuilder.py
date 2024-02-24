@@ -2,7 +2,6 @@ import __init__
 from typing import Optional, Self, List, Union, Callable
 from uuid import uuid4, UUID
 from datetime import datetime
-import pytz
 
 from Commons.helpers import check_hex_string
 from Commons.format import KOREA_TIME_FORMAT
