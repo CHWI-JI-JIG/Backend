@@ -7,19 +7,21 @@ import json
 
 
 from Commons.helpers import check_hex_string
-from Domains.Sessions import ISesseionSerializeable, ISesseionBuilder
+from Domains.Sessions import ISessionSerializeable, ISesseionBuilder
 from Domains import ID
-from Domains.Members import MemberID
+from Domains.Members import *
 from Builders.Members import *
 
 from icecream import ic
 
 
 @dataclass(frozen=True)
-class MemberSession(ISesseionSerializeable, ID):
-    seq: Optional[int]
+class MemberSession(ISessionSerializeable, ID):
     key: UUID
+    name: str
+    role: RoleType
     member_id: MemberID
+    seq: int = -1
 
     def get_id(self) -> str:
         return self.key.hex
@@ -30,8 +32,12 @@ class MemberSession(ISesseionSerializeable, ID):
     def serialize_value(self) -> str:
         return json.dumps(
             {
+                "seq": str(self.seq),
                 "member_id": self.member_id.get_id(),
-            }
+                "name": self.name,
+                "role": str(self.role),
+            },
+            ensure_ascii=False,
         )
 
 
@@ -40,11 +46,14 @@ class MemberSessionBuilder(ISesseionBuilder):
         self,
         key: Optional[UUID] = None,
         member_id: Optional[MemberID] = None,
-        seq: Optional[int] = None,
+        name: Optional[str] = None,
+        seq: int = -1,
     ):
         self.seq = seq
         self.key = key
         self.mid = member_id
+        self.name: Optional[str] = name
+        self.role: Optional[RoleType] = None
 
     def set_deserialize_key(self, key: str) -> Self:
         self.set_key(key)
@@ -57,15 +66,46 @@ class MemberSessionBuilder(ISesseionBuilder):
         except:
             assert False, "The value is not converted to JSON."
         assert isinstance(to_dict, dict), "Type of convert value is Dict."
-        assert isinstance(
-            to_dict.get("member_id"), str
-        ), "member_id is not exsist dict."
-        self.set_member_id(to_dict.get("member_id"))
+
+        dict_key = "member_id"
+        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
+        self.set_member_id(to_dict.get(dict_key))
+
+        dict_key = "seq"
+        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
+        self.set_seqence(int(to_dict.get(dict_key)))
+
+        dict_key = "name"
+        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
+        self.set_name(to_dict.get(dict_key))
+
+        dict_key = "role"
+        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
+        self.set_role(to_dict.get(dict_key))
+
+        return self
+
+    def set_name(self, name: str) -> Self:
+        assert self.name is None, "name is already set."
+        assert isinstance(name, str), "Type of name is str"
+
+        self.name = name
+        return self
+
+    def set_role(self, role: str) -> Self:
+        assert self.role is None, "rule is already set."
+        assert isinstance(role, str), "Type of rule is str."
+
+        self.role = RoleType[role.strip(" \n\t").upper()]
+        assert self.role.name in list(
+            RoleType._member_names_
+        ), "Type of rule is RuleType. "
+
         return self
 
     def set_seqence(self, seq: int) -> Self:
         assert isinstance(seq, int), "Type of seq is int."
-        assert self.sequence is None, "The sequence is already set."
+        assert self.seq < 0, "The sequence is already set."
         assert seq >= 0, "seq >= 0"
 
         self.seq = seq
@@ -102,9 +142,13 @@ class MemberSessionBuilder(ISesseionBuilder):
     def build(self) -> MemberSession:
         assert isinstance(self.mid, MemberID), "You didn't set the member_id."
         assert isinstance(self.key, UUID), "You didn't set the key."
+        assert isinstance(self.role, RoleType), "You didn't set the rule."
+        assert isinstance(self.name, str), "You didn't set the name."
 
         return MemberSession(
             seq=self.seq,
             key=self.key,
             member_id=self.mid,
+            role=self.role,
+            name=self.name,
         )

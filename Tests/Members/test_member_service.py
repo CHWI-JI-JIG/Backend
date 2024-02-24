@@ -159,6 +159,34 @@ class test_member_service(unittest.TestCase):
     def test_로그인_성공(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
+        
+        login_result = self.l_repo.identify_and_authenticate('qazwsx',hashing_passwd('123'))
+        match login_result:
+            case Ok(auth):
+                self.assertEqual(auth.fail_count, 0)
+                ret = self.l_repo.update_access(auth)
+                self.assertEqual(auth.is_sucess,True)
+                ft=auth.last_access
+                self.assertIsNone(ret.ok())
+            case Err:
+                self.assertFalse(True)
+
+        login_result = self.l_repo.identify_and_authenticate('qazwsx',hashing_passwd('123'))
+        match login_result:
+            case Ok(auth):
+                self.assertEqual(auth.fail_count, 0)
+                ret = self.l_repo.update_access(auth)
+                self.assertEqual(auth.is_sucess,True)
+                st=auth.last_access
+                self.assertIsNone(ret.ok())
+            case Err:
+                self.assertFalse(True)
+                
+        self.assertTrue(ft < st)
+                      
+        
+        
+        
 
     def test_로그인_실패(self):
         "Hook method for deconstructing the test fixture after testing it."

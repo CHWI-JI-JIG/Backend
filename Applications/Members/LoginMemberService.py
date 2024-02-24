@@ -4,9 +4,11 @@ from typing import Optional, Tuple, List
 from result import Result, Ok, Err
 
 from Domains.Members import *
+from Domains.Sessions import *
 from Builders.Members import *
 from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
+from datetime import datetime, timedelta
 
 from icecream import ic
 
@@ -21,8 +23,25 @@ class AuthenticationMemberService:
         ), "auth_member_repo must be a class that inherits from IverifiableAuthentication."
 
         self.auto_repo = auth_member_repo
-    def login(self, account:str, passwd:str) -> Result[,str]:
-        ...
+    def login(self, account:str, passwd:str) -> Result[MemberSession,str]:
+        """_summary_
+
+        Args:
+            account (str): _description_
+            passwd (str): _description_
+
+        Returns:
+            Result[MemberSession,str]:
+                Ok():
+                Err(str):
+
+        """
+        
+        ~~~~
+        
+        
+        
+        
 
     def get_block_time(self, num_of_incorrect_login: int) -> int:
         """_summary_
@@ -56,3 +75,13 @@ class AuthenticationMemberService:
                 return 0
             case up_max:
                 return ((up_max + 1) % self.max_block[1]) * self.max_block[2]
+            
+    def check_login_able(self, last_access:datetime, block_minute: int) -> bool:
+        """
+        로그인 가능 여부를 확인하는 함수
+        """
+        # 잠긴 상태에서 시간이 지난 경우 잠금 해제
+        if last_access < datetime.now() - timedelta(minutes=block_minute):
+            return True
+        else:
+            return False
