@@ -33,16 +33,15 @@ class MySqlCreateProduct:
                 # "users" 테이블 생성 쿼리
                 create_product_table_query = f"""
 CREATE TABLE IF NOT EXISTS {product_table_name} (
-    seq INT AUTO_INCREMENT PRIMARY KEY,
+    seller_id VARCHAR(255) UNIQUE,
     id VARCHAR(255) UNIQUE,
-    user_seq INT,
+    seq INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     img_path VARCHAR(255) NOT NULL,
-    status BOOLEAN NOT NULL,
     price INT NOT NULL,
     description VARCHAR(255) NOT NULL,
     register_day DATE NOT NULL,
-    FOREIGN KEY (user_seq) REFERENCES test_migrate_user(seq)
+    FOREIGN KEY (seller_id) REFERENCES test_migrate_user(id)
 );
                 """
                 # user 생성
