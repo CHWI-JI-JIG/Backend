@@ -11,7 +11,6 @@ from Builders.Members import *
 from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
 from datetime import datetime, timedelta
-from Applications.Members.TempMemberSession import TempMemberSession
 from Repositories.Sessions import IMakeSaveMemberSession
 
 from icecream import ic
