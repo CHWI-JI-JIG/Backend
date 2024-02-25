@@ -10,7 +10,7 @@ from Domains.Sessions import *
 
 class IMakeSaveMemberSession(metaclass=ABCMeta):
     @abstractmethod
-    def make_and_save_session(self) -> Result[MemberSession, str]:
+    def make_and_save_session(self,member_id:MemberID) -> Result[MemberSession, str]:
         """
         Read User table. Make MemberSession. Save MemberSession
 
