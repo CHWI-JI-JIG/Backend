@@ -90,6 +90,13 @@ class test_user_migrate(unittest.TestCase):
         self.product_migrate.create_product()
         self.assertTrue(self.product_migrate.check_exist_product())
 
+    def test_create_product(self):
+        "Hook method for deconstructing the test fixture after testing it."
+        print("\t\t", sys._getframe(0).f_code.co_name)
+        self.user_migrate.create_user()
+        self.product_migrate.create_product()
+        self.assertTrue(self.product_migrate.check_exist_product())
+
 
 def main():
     unittest.main()

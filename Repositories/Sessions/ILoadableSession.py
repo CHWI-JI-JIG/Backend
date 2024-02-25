@@ -10,7 +10,7 @@ from Domains.Sessions import *
 
 class ILoadableSession(metaclass=ABCMeta):
     @abstractmethod
-    def save_session(self, session: ISessionSerializeable) -> Result[None, str]:
+    def save_session(self, session: ISessionSerializeable) -> Result[UUID, str]:
         """_summary_
 
         Args:

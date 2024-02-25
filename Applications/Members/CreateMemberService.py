@@ -52,6 +52,7 @@ class CreateMemberService:
                     "HavePayAccount: If User is Buyer, Then Paramater don't need Pay Account."
 
         """
+        
         member_builder = NoFilterMemberBuilder(passwd_converter=hashing_passwd)
         privacy_builder = NoFilterPrivacyBuilder(
             name=name,
@@ -60,6 +61,7 @@ class CreateMemberService:
             address=address,
         )
         member_builder.set_account(account=account).set_passwd(passwd)
+
         match role:
             case "seller":
                 if not isinstance(company_registration_number, str):
