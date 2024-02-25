@@ -2,7 +2,6 @@ import __init__
 from typing import Optional, Self, List, Union, Callable
 from uuid import uuid4, UUID
 from datetime import datetime
-import pytz
 
 from Commons.helpers import check_hex_string
 from Commons.format import KOREA_TIME_FORMAT
@@ -24,18 +23,17 @@ class MemberIDBuilder(IMemberIDBuilder):
         self.sequence = seq
         return self
 
-    def set_uuid4(self) -> Self:
-        assert self.uuid is None, "The UUID is already set."
+    def set_uuid(self, uuid_hex: Optional[str] = None) -> Self:
+        assert self.uuid is None, "The uuid_hex is already set."
+        match uuid_hex:
+            case None:
+                self.uuid = uuid4()
+            case k if isinstance(uuid_hex, str):
+                assert check_hex_string(k), "The uuid_hex is not in hex format."
+                self.uuid = UUID(hex=uuid_hex)
+            case _:
+                assert False, "Type of uuid_hex is str."
 
-        self.uuid = uuid4()
-        return self
-
-    def set_uuid_hex(self, uuid_hex: str) -> Self:
-
-        assert self.uuid is None, "The UUID is already set."
-        assert check_hex_string(uuid_hex), "The uuid_hex is not in hex format."
-
-        self.uuid = UUID(hex=uuid_hex)
         return self
 
     def build(self) -> MemberID:
@@ -78,7 +76,7 @@ class NoFilterMemberBuilder(IMemberBuilder):
         assert self.id is None, "id is already set."
 
         if id is None:
-            id = MemberIDBuilder().set_uuid4().build()
+            id = MemberIDBuilder().set_uuid2342343234().build()
 
         assert isinstance(
             id, MemberID
@@ -147,7 +145,7 @@ class NoFilterPrivacyBuilder(IPrivacyBuilder):
         assert self.id is None, "id is already set."
 
         if id is None:
-            id = MemberIDBuilder().set_uuid4().build()
+            id = MemberIDBuilder().set_uuid2342343234().build()
 
         assert isinstance(
             id, MemberID
@@ -234,7 +232,7 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         assert self.id is None, "id is already set."
 
         if id is None:
-            id = MemberIDBuilder().set_uuid4().build()
+            id = MemberIDBuilder().set_uuid2342343234().build()
 
         assert isinstance(
             id, MemberID
@@ -294,7 +292,7 @@ class PayDataBuilder(IPayDataBuilder):
         assert self.id is None, "id is already set."
 
         if id is None:
-            id = MemberIDBuilder().set_uuid4().build()
+            id = MemberIDBuilder().set_uuid2342343234().build()
 
         assert isinstance(
             id, MemberID

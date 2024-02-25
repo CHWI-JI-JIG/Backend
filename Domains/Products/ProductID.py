@@ -8,7 +8,7 @@ from Domains import ID
 
 
 @dataclass(frozen=True)
-class MemberID(ID):
+class ProductID(ID):
     uuid: UUID
     sequence: int = -1
 
@@ -16,7 +16,7 @@ class MemberID(ID):
         return self.uuid.hex
 
 
-class IMemberIDBuilder(metaclass=ABCMeta):
+class IProductIDBuilder(metaclass=ABCMeta):
     @abstractmethod
     def set_seqence(self, seq: int) -> Self: ...
 
@@ -24,4 +24,4 @@ class IMemberIDBuilder(metaclass=ABCMeta):
     def set_uuid(self, uuid_hex: Optional[str] = None) -> Self: ...
 
     @abstractmethod
-    def build(self) -> MemberID: ...
+    def build(self) -> ProductID: ...
