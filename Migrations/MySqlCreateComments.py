@@ -4,7 +4,7 @@ import pymysql
 from icecream import ic
 
 
-class MySqlCreateProduct:
+class MySqlCreateComments:
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
@@ -23,29 +23,27 @@ class MySqlCreateProduct:
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
 
-    def create_product(self):
+    def create_comments(self):
         connection = self.connect()
-        product_table_name = self.get_padding_name("product")
+        comments_table_name = self.get_padding_name("comments")
 
         try:
             # 커서 생성
             with connection.cursor() as cursor:
                 # "users" 테이블 생성 쿼리
-                create_product_table_query = f"""
-CREATE TABLE IF NOT EXISTS {product_table_name} (
-    seller_id VARCHAR(255),
+                create_comments_table_query = f"""
+CREATE TABLE IF NOT EXISTS {comments_table_name} (
     id VARCHAR(255) UNIQUE,
-    seq INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    img_path VARCHAR(255) NOT NULL,
-    price INT NOT NULL,
-    description VARCHAR(255) NOT NULL,
-    register_day DATE NOT NULL,
-    FOREIGN KEY (seller_id) REFERENCES log_user(id)
-);
+    contents VARCHAR(255) NOT NULL,
+    recomments VARCHAR(255),
+    writer_id VARCHAR(255),
+    product_id VARCHAR(255),
+    FOREIGN KEY (writer_id) REFERENCES log_user(id),
+    FOREIGN KEY (product_id) REFERENCES log_product(id)
+    );
                 """
                 # user 생성
-                cursor.execute(create_product_table_query)
+                cursor.execute(create_comments_table_query)
                 connection.commit()
 
         except Exception as ex:
@@ -57,14 +55,14 @@ CREATE TABLE IF NOT EXISTS {product_table_name} (
             # 연결 닫기
             connection.close()
 
-    def delete_product(self):
+    def delete_comments(self):
         connection = self.connect()
-        product_table_name = self.get_padding_name("product")
+        comments_table_name = self.get_padding_name("comments")
         try:
             # 커서 생성
             with connection.cursor() as cursor:
                 # "users" 테이블 삭제 쿼리
-                drop_table_query = f"DROP TABLE IF EXISTS {product_table_name};"
+                drop_table_query = f"DROP TABLE IF EXISTS {comments_table_name};"
                 cursor.execute(drop_table_query)
 
                 # 변경 사항을 커밋
@@ -74,9 +72,9 @@ CREATE TABLE IF NOT EXISTS {product_table_name} (
             # 연결 닫기
             connection.close()
 
-    def check_exist_product(self) -> bool:
+    def check_exist_comments(self) -> bool:
         connection = self.connect()
-        table_name = self.get_padding_name("product")
+        table_name = self.get_padding_name("comments")
         ret = False
         try:
             # 커서 생성

@@ -12,7 +12,7 @@ from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
 from datetime import datetime, timedelta
 from Applications.Members.TempMemberSession import TempMemberSession
-from Repositories.Sessions import IUseableSession
+from Repositories.Sessions import IMakeSaveMemberSession
 
 from icecream import ic
 
@@ -21,7 +21,7 @@ class AuthenticationMemberService:
     def __init__(
         self,
         auth_member_repo: IVerifiableAuthentication,
-        session_repo : IUseableSession,
+        session_repo : IMakeSaveMemberSession,
     ):
         assert issubclass(
             type(auth_member_repo), IVerifiableAuthentication
@@ -58,20 +58,19 @@ class AuthenticationMemberService:
                 ret = auth
                 
             case Err(e):
-                ic()
                 return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
             
         if ret.is_sucess:
             ic()
-            session_result = self.session_repo.load_session(ret.id.get_id())
+            session_result = self.session_repo.make_and_save_session(ret.id)
             ic()
             ic(session_result)
             match session_result:
                 case Ok(session):
                     ic()
                     # MemberSession 생성
-                    member_session = MemberSessionBuilder().set_deserialize_key(ret.id.get_id()).set_deserialize_value(session).build()
-                    return Ok(member_session)
+                    # member_session = MemberSessionBuilder().set_deserialize_key(ret.id.get_id()).set_deserialize_value(session).build()
+                    return Ok(session)
                 case Err(_):
                     ic()
                     return session_result
