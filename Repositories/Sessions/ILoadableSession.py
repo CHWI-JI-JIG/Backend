@@ -8,7 +8,7 @@ from Domains.Members import *
 from Domains.Sessions import *
 
 
-class IUseableSession(metaclass=ABCMeta):
+class ILoadableSession(metaclass=ABCMeta):
     @abstractmethod
     def save_session(self, session: ISessionSerializeable) -> Result[None, str]:
         """_summary_
