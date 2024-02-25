@@ -7,44 +7,33 @@ from datetime import datetime
 from Commons.format import KOREA_TIME_FORMAT
 from Domains.Members import MemberID
 from Domains.Products import ProductID
+from Domains.Comments import CommentID
 
 
 @dataclass(frozen=True)
 class Comment:
-    id: ProductID
-    seller_id: MemberID
-    name: str
-    img_path: str
-    price: int
-    description: str
-
-    seq: int = -1
+    id: CommentID
+    product_id: ProductID
+    writer_id: MemberID
+    answer: Optional[str]
+    question: str
 
 
 class ICommentBuilder(metaclass=ABCMeta):
     @abstractmethod
-    def set_id(self, id: ProductID) -> Self: ...
+    def set_id(self, id: CommentID) -> Self: ...
 
     @abstractmethod
-    def set_seller_id(self, id: MemberID) -> Self: ...
+    def set_product_id(self, id: ProductID) -> Self: ...
 
     @abstractmethod
-    def set_name(self, name: str) -> Self: ...
+    def set_writer_id(self, id: MemberID) -> Self: ...
 
     @abstractmethod
-    def set_img_path(self, img_path: str) -> Self: ...
+    def set_question(self, question: str) -> Self: ...
 
     @abstractmethod
-    def set_price(self, price: int) -> Self: ...
-
-    @abstractmethod
-    def set_description(self, description: str) -> Self: ...
-
-    @abstractmethod
-    def set_register_day(self, time: datetime) -> Self: ...
-
-    @abstractmethod
-    def set_seqence(self, seq: int) -> Self: ...
+    def set_answer(self, answer: str) -> Self: ...
 
     @abstractmethod
     def build(self) -> Comment: ...
