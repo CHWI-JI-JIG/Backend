@@ -4,7 +4,7 @@ import pymysql
 from icecream import ic
 
 
-class MySqlCreateSesssion:
+class MySqlCreateSession:
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
@@ -23,7 +23,7 @@ class MySqlCreateSesssion:
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
 
-    def create_user(self):
+    def create_session(self):
         connection = self.connect()
         session_table_name = self.get_padding_name("session")
 
@@ -35,10 +35,10 @@ class MySqlCreateSesssion:
 CREATE TABLE IF NOT EXISTS {session_table_name} (
     seq INT AUTO_INCREMENT PRIMARY KEY,
     id VARCHAR(255) UNIQUE NOT NULL,
-    value VARCHAR(4000) NOT NULL,   
+    value VARCHAR(500) NOT NULL  
 );
                 """
-                # print(create_session_table_query)
+                print(create_session_table_query)
                 # session 생성
                 cursor.execute(create_session_table_query)
                 connection.commit()
