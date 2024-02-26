@@ -3,9 +3,8 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional
 from result import Result, Err, Ok
 
-from Domains.Members import *
-from Repositories.Members import *
-from Builders.Members import *
+from Domains.Products import *
+from Repositories.Products import *
 from uuid import UUID
 
 import pymysql
@@ -13,7 +12,7 @@ import pymysql
 from icecream import ic
 
 
-class MySqlSaveMember(ISaveableMember):
+class MySqlSaveProduct(ISaveProduct):
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
@@ -32,41 +31,37 @@ class MySqlSaveMember(ISaveableMember):
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
 
-    def save_product(self):
+    def save_product(self, product: Product) -> Result[ProductID, str]:
         connection = self.connect()
-        user_table_name = self.get_padding_name("product")
-        member.id.get_id()
+        product_table_name = self.get_padding_name("product")
+        product.id.get_id()
         try:
             # 커서 생성
             with connection.cursor() as cursor:
                 insert_query = f"""
-INSERT INTO {user_table_name} (
+INSERT INTO {product_table_name} (
     id,
     name,
-    last_access,
-    fail_count
-) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+    img_path,
+    price,
+    description,
+    register_day
+) VALUES (%s, %s, %s, %s, %s, %s);
                 """
                 cursor.execute(
                     insert_query,
                     (
-                        member.id.get_id(),
-                        member.account,
-                        privacy.pay_account,
-                        member.passwd,
-                        privacy.email,
-                        str(member.role),
-                        privacy.company_registration_number,
-                        privacy.phone,
-                        privacy.address,
-                        privacy.name,
-                        builder.str_last_access(),
-                        0,
+                        product.id.get_id(),
+                        product.name,
+                        product.img_path,
+                        product.price,
+                        product.description,
+                        product.register_day,
                     ),
                 )
                 # 변경 사항을 커밋
                 connection.commit()
-                return Ok(member.id.uuid)
+                return Ok(product.id.uuid)
         except Exception as e:
             connection.rollback()
             connection.close()
