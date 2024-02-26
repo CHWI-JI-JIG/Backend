@@ -154,7 +154,7 @@ def main(opt):
         # case "git-push":
         #     git_push(opt.test_file, opt.branch)
         case "django":
-            print("Not Impliment Djanpo.")
+            print("Not Impliment Django.")
         case "migrate":
             assert isinstance(
                 opt.clear_db_init, bool

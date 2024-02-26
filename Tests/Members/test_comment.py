@@ -21,7 +21,7 @@ class test_comment(unittest.TestCase):
         cls.comment_migrate = MySqlCreateComments(test_padding)
         # product_migrate = MySqlCreateProduct(test_padding)
         cls.mysql_save_comment = MySqlCreateComments(test_padding)
-        cls.create_comment = CreateMemberService(cls.mysql_save_member)
+        cls.create_comment = MySqlCreateComments(test_padding)
         # cls.l_repo = LoginVerifiableAuthentication(test_padding)
         # if cls.comment_migrate.check_exist_user():
         #     cls.comment_migrate.delete_user()

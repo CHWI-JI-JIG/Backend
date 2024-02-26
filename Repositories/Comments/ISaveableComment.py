@@ -8,6 +8,8 @@ from Domains.Members import *
 from Domains.Comments import *
 
 
-class ISaveComment(mataclass=ABCMeta):
+class ISaveableComment(metaclass=ABCMeta):
     @abstractmethod
-    def save_comment(self, Comment: Comment) -> Result[CommentID, str]: ...
+    def save_comment(
+        self, Comment: Comment
+    ) -> Result[CommentID, str]: ...

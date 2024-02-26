@@ -13,7 +13,7 @@ import pymysql
 from icecream import ic
 
 
-class MySqlSaveSession(ISaveComment):
+class MySqlSaveComment(ISaveableComment):
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
@@ -42,8 +42,6 @@ class MySqlSaveSession(ISaveComment):
                 insert_query = f"""
 INSERT INTO {user_table_name} (
     id,
-    product_id,
-    writer_id,
     writer_account,
     seller_account,
     answer,
@@ -54,8 +52,6 @@ INSERT INTO {user_table_name} (
                     insert_query,
                     (
                         comment.id.get_id(),
-                        comment.product_id,
-                        comment.writer_id,
                         comment.writer_account,
                         comment.seller_account,
                         comment.answer,
@@ -69,8 +65,3 @@ INSERT INTO {user_table_name} (
             connection.rollback()
             connection.close()
             return Err(str(e))
-
-
-# miigrations 보고 추가할것.
-
-# user / product 테이블 join 해서 가져와야 할수도 있다. 
