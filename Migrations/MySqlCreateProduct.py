@@ -34,7 +34,7 @@ class MySqlCreateProduct:
                 # "users" 테이블 생성 쿼리
                 create_product_table_query = f"""
 CREATE TABLE IF NOT EXISTS {product_table_name} (
-    seller_id VARCHAR(255),
+    seller_id VARCHAR(255) NOT NULL,
     id VARCHAR(255) UNIQUE,
     seq INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
