@@ -48,6 +48,7 @@ mysql_db = {
     ```bash
     # clear db and init member
     python manage.py --run migrate --clear_db_init --init
+    # just migrate
     python manage.py --run migrate
     ```
 
