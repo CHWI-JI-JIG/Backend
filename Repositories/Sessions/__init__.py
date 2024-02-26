@@ -14,5 +14,3 @@ __all__ = [
     "ILoadableSession",
     "IMakeSaveMemberSession",
 ]
-
-from Repositories.Sessions.IUseableSession import IUseableSession
