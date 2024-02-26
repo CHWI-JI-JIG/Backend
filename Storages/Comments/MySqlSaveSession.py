@@ -1,0 +1,89 @@
+import __init__
+from abc import ABCMeta, abstractmethod
+from typing import Optional
+from result import Result, Err, Ok
+
+from Domains.Comments import *
+from Repositories.Comments import *
+from Builders.Members import *
+from uuid import UUID
+
+import pymysql
+
+from icecream import ic
+
+
+class MySqlSaveSession(ISaveableComment):
+    def __init__(self, name_padding: str = "log_"):
+        self.name_padding = name_padding
+
+    def connect(self):
+        from get_config_data import get_mysql_dict
+
+        sql_config = get_mysql_dict()
+        return pymysql.connect(
+            host=sql_config["host"],
+            user=sql_config["user"],
+            password=sql_config["password"],
+            db=sql_config["database"],
+            charset=sql_config["charset"],
+        )
+
+    def get_padding_name(self, name: str) -> str:
+        return f"{self.name_padding}{name}"
+
+    def save_comment(self, comment: Comment) -> Result[UUID, str]:
+        builder = (
+            AuthenticationBuilder()
+            .set_last_access()
+            .set_is_sucess(True)
+            .set_fail_count(0)
+            .set_id(member.id)
+            .build()
+        )
+        connection = self.connect()
+        user_table_name = self.get_padding_name("comment")
+        member.id.get_id()
+        try:
+            # 커서 생성
+            with connection.cursor() as cursor:
+                insert_query = f"""
+INSERT INTO {user_table_name} (
+    id,
+    account,
+    pay_account,
+    passwd,
+    email,
+    role,
+    company_registration_number,
+    phone,
+    address,
+    name,
+    last_access,
+    fail_count
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                """
+                cursor.execute(
+                    insert_query,
+                    (
+                        member.id.get_id(),
+                        member.account,
+                        privacy.pay_account,
+                        member.passwd,
+                        privacy.email,
+                        str(member.role),
+                        privacy.company_registration_number,
+                        privacy.phone,
+                        privacy.address,
+                        privacy.name,
+                        builder.str_last_access(),
+                        0,
+                    ),
+                )
+                # 변경 사항을 커밋
+                connection.commit()
+                return Ok(member.id.uuid)
+        except Exception as e:
+            connection.rollback()
+            connection.close()
+            return Err(str(e))
