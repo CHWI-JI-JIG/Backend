@@ -6,9 +6,11 @@ root_path = now_path.parent.parents
 
 if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
-    
+
 from Repositories.Products.ISaveableProduct import ISaveProduct
+from Repositories.Products.IGetableProduct import IGetableProduct
 
 __all__ = [
     "ISaveProduct",
+    "IGetableProduct",
 ]

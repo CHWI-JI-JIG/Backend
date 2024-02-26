@@ -47,7 +47,7 @@ class IGetableProduct(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def get_products_by_buyer_id_order(
+    def get_products_by_buyer_id_from_order(
         self,
         buyer_id: MemberID,
         page=0,
