@@ -175,7 +175,7 @@ class test_member_service(unittest.TestCase):
             case Err:
                 self.assertFalse(True)
 
-        time.sleep(1)
+        time.sleep(1.5)
         login_result = self.l_repo.identify_and_authenticate(
             "qazwsx", hashing_passwd("123")
         )
