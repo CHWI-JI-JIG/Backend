@@ -8,6 +8,6 @@ from Domains.Members import *
 from Domains.Products import *
 
 
-class ISaveProduct(mataclass=ABCMeta):
+class ISaveableProduct(metaclass=ABCMeta):
     @abstractmethod
     def save_product(self, product: Product) -> Result[ProductID, str]: ...
