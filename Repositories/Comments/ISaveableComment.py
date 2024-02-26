@@ -5,9 +5,9 @@ from result import Result
 from uuid import UUID
 
 from Domains.Members import *
-from Domains.Orders import *
+from Domains.Comments import *
 
 
 class ISaveComment(mataclass=ABCMeta):
     @abstractmethod
-    def save_order(self, order: Order) -> Result[OrderID, str]: ...
+    def save_comment(self, Comment: Comment) -> Result[CommentID, str]: ...
