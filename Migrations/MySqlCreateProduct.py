@@ -26,6 +26,7 @@ class MySqlCreateProduct:
     def create_product(self):
         connection = self.connect()
         product_table_name = self.get_padding_name("product")
+        user_table_name = self.get_padding_name("user")
 
         try:
             # 커서 생성
@@ -40,8 +41,8 @@ CREATE TABLE IF NOT EXISTS {product_table_name} (
     img_path VARCHAR(255) NOT NULL,
     price INT NOT NULL,
     description VARCHAR(255) NOT NULL,
-    register_day DATE NOT NULL,
-    FOREIGN KEY (seller_id) REFERENCES log_user(id)
+    register_day DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (seller_id) REFERENCES {user_table_name}(id)
 );
                 """
                 # user 생성

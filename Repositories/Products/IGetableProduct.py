@@ -29,6 +29,7 @@ class IGetableProduct(metaclass=ABCMeta):
                 Ok( int, list ): int=> count of list max, list=> result
                 Err(str): reason of Fail
         """
+        ...
 
     @abstractmethod
     def get_products_by_seller_id(
@@ -45,6 +46,7 @@ class IGetableProduct(metaclass=ABCMeta):
                 Ok( int, list ): int=> count of list max, list=> result
                 Err(str): reason of Fail
         """
+        ...
 
     @abstractmethod
     def get_products_by_buyer_id_from_order(
@@ -61,3 +63,4 @@ class IGetableProduct(metaclass=ABCMeta):
                 Ok( int, list ): int=> count of list max, list=> result
                 Err(str): reason of Fail
         """
+        ...
