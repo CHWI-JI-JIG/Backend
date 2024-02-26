@@ -35,7 +35,6 @@ class MakeSaveMemberSession(IMakeSaveMemberSession):
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
 
-    @abstractmethod
     def make_and_save_session(self, member_id: MemberID) -> Result[MemberSession, str]:
         """
         Read User table. Make MemberSession. Save MemberSession
@@ -47,23 +46,27 @@ class MakeSaveMemberSession(IMakeSaveMemberSession):
         """
 
         connection = self.connect()
-        member_table_name = self.get_padding_name("member")
+        member_table_name = self.get_padding_name("user")
         session_table_name = self.get_padding_name("session")
 
         try:
             with connection.cursor() as cursor:
-                cursor.execute(
-                    f"SELECT name, role FROM {member_table_name} WHERE id = %s",
-                    (str(member_id),)
-                )
+                query = f"""
+SELECT name, role
+FROM {member_table_name}
+WHERE id = %s
+"""
+
+                cursor.execute(query,(member_id.get_id(),))
 
                 result = cursor.fetchone()
 
                 if result is None:
+                    ic(result)
                     return Err("회원정보가 없습니다.")
 
                 name, role = result
-                session = MemberSessionBuilder().set_key().set_member_id(str(member_id)).set_name(name).set_role(role).build()
+                session = MemberSessionBuilder().set_key().set_member_id(str(member_id.get_id())).set_name(name).set_role(role).build()
 
                 # MemberSession
                 serialized_key = session.serialize_key()

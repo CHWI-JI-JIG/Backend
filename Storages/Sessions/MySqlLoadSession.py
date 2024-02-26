@@ -35,7 +35,6 @@ class MySqlSaveSession(ILoadableSession):
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
     
-    @abstractmethod
     def load_session(self, session_key: str) -> Result[str, str]:
         """_summary_
 
@@ -47,32 +46,34 @@ class MySqlSaveSession(ILoadableSession):
                 Ok(str) : session value
                 Err(str) : str is seasion of error
         """
-        
+        connection = self.connect()
+        session_table_name = self.get_padding_name("session")
         try:
-            conn = self.connect()
-            cursor = conn.cursor()
+            with connection.cursor() as cursor:
+                query = f"""
+SELECT value
+FROM {session_table_name}
+WHERE id = %s
+"""
+                # session_key = MemberSessionBuilder().set_key().build()
+                cursor.execute(query,(str(session_key),))
+                
+                result = cursor.fetchone()
 
-            session_table_name = self.get_padding_name("session")
-            cursor.execute(
-                f"SELECT value FROM {session_table_name} WHERE id = %s",
-                (session_key,),
-            )
-            result = cursor.fetchone()
+                if result is None:
+                    return Err("세션 데이터가 존재하지 않습니다.")
 
-            if result is None:
+                session_value = result[0]
+
+                # session_builder = MemberSessionBuilder().set_deserialize_key(str(session_key)).set_deserialize_value(session_value)
+                # member_session = session_builder.build()
+
+                connection.commit()
+                
                 cursor.close()
-                conn.close()
-                return Err("세션 데이터가 존재하지 않습니다.")
+                connection.close()
 
-            session_value = result[0]
-
-            session_builder = MemberSessionBuilder().set_deserialize_key(session_key).set_deserialize_value(session_value)
-            member_session = session_builder.build()
-
-            cursor.close()
-            conn.close()
-
-            return Ok(member_session)
+                return Ok(session_value)
 
         except Exception as e:
             return Err(str(e))
