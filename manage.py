@@ -21,18 +21,20 @@ def parse_opt():
     parser.add_argument("--port", default=5000)
     parser.add_argument("--db_attach", type=str, default="log_")
     parser.add_argument("--storage_type", default="mysql")
+    parser.add_argument("--init", action="store_true")
+    parser.add_argument("--clear_db_init", action="store_true")
     parser.add_argument(
         "--ver",
-        choices=["python"],
+        choices=["python", "python3"],
         default="python",
     )
     parser.add_argument(
         "--test_file",
         nargs="*",
         default=[
-            r"Tests\Members\test_builder.py",
-            r"Tests\Members\test_member_service.py",
-            r"Tests\Members\test_user_migrate.py",
+            r"Tests/Members/test_builder.py",
+            r"Tests/Members/test_member_service.py",
+            r"Tests/Members/test_user_migrate.py",
             # r"",
         ],
     )
@@ -79,13 +81,15 @@ def delete_storage():
         m_m.delete_user()
 
 
-def migrate():
+def migrate(clear_db_init=False):
     from Migrations import MySqlCreateProduct, MySqlCreateUser
 
     m_p = MySqlCreateProduct(get_db_padding())
     m_m = MySqlCreateUser(get_db_padding())
 
-    delete_storage()
+    if clear_db_init:
+        delete_storage()
+
     m_m.create_user()
     # m_p.create_product()
 
@@ -120,7 +124,17 @@ def main(opt):
         case "django":
             print("Not Impliment Djanpo.")
         case "migrate":
-            migrate()
+            assert isinstance(
+                opt.clear_db_init, bool
+            ), "Type of --clear_db_init is bool."
+            migrate(opt.clear_db_init)
+            assert isinstance(opt.init, bool), "Type of --init is bool."
+            from init_data import init_member, init_product
+
+            if opt.init:
+                init_member()
+                init_product()
+
         case "delete-storage":
             delete_storage()
         case _:

@@ -46,6 +46,8 @@ mysql_db = {
    ```
 3. `run` manage.py (DB 테이블 생성과, 초기 계정&일기 생성)
     ```bash
+    # clear db and init member
+    python manage.py --run migrate --clear_db_init --init
     python manage.py --run migrate
     ```
 
