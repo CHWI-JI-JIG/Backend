@@ -42,9 +42,7 @@ class AuthenticationMemberService:
                 Err(str):
 
         """
-        ic()
         login_result = self.auth_repo.identify_and_authenticate(account, hashing_passwd(passwd))
-        ic()
         
 
         match login_result:
@@ -66,17 +64,14 @@ class AuthenticationMemberService:
             ic(session_result)
             match session_result:
                 case Ok(session):
-                    ic()
                     # MemberSession 생성
                     # member_session = MemberSessionBuilder().set_deserialize_key(ret.id.get_id()).set_deserialize_value(session).build()
                     return Ok(session)
                 case Err(_):
-                    ic()
                     return session_result
                 case _:
                     assert False, "Value Error"
         else:
-            ic()
             self.auth_repo.update_access(ret)
             ic(login_result)
             return Err("비밀번호가 틀렸습니다.")

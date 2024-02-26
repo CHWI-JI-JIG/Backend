@@ -17,7 +17,7 @@ from icecream import ic
 
 
 class MakeSaveMemberSession(IMakeSaveMemberSession):
-    def __init__(self, name_padding: str = "test_makesave_"):
+    def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
     def connect(self):
@@ -52,12 +52,10 @@ class MakeSaveMemberSession(IMakeSaveMemberSession):
 
         try:
             with connection.cursor() as cursor:
-                select_query = f"""
-SELECT name, role
-FROM {member_table_name}
-WHERE id = %s
-"""
-                cursor.execute(select_query, (str(member_id),))
+                cursor.execute(
+                    f"SELECT name, role FROM {member_table_name} WHERE id = %s",
+                    (str(member_id),)
+                )
 
                 result = cursor.fetchone()
 
@@ -65,20 +63,16 @@ WHERE id = %s
                     return Err("회원정보가 없습니다.")
 
                 name, role = result
-                session = (MemberSessionBuilder().set_key().set_member_id(str(member_id)).set_name(name).set_role(role).build())
+                session = MemberSessionBuilder().set_key().set_member_id(str(member_id)).set_name(name).set_role(role).build()
 
                 # MemberSession
                 serialized_key = session.serialize_key()
                 serialized_value = session.serialize_value()
 
-                insert_query = f"""
-INSERT INTO {session_table_name} (
-    id,
-    value
-) VALUES (%s, %s);
-"""
-
-                cursor.execute(insert_query, (serialized_key, serialized_value))
+                cursor.execute(
+                    f"INSERT INTO {session_table_name} (id, value) VALUES (%s, %s)",
+                    (serialized_key, serialized_value),
+                )
                 connection.commit()
 
                 cursor.close()

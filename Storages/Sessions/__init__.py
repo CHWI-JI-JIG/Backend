@@ -7,5 +7,8 @@ root_path = now_path.parent.parents
 if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
-# from Storages.Sessions.MySqlSaveSession import MySqlSaveSession
-# from Storages.Sessions.LoginVerifiableAuthentication import LoginVerifiableAuthentication
+from Storages.Sessions.MakeSaveMemberSession import MakeSaveMemberSession
+
+__all__=[
+    "MakeSaveMemberSession",
+]
