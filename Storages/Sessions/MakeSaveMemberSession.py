@@ -56,17 +56,22 @@ SELECT name, role
 FROM {member_table_name}
 WHERE id = %s
 """
-
-                cursor.execute(query,(member_id.get_id(),))
+                cursor.execute(query, (member_id.get_id(),))
 
                 result = cursor.fetchone()
 
                 if result is None:
-                    ic(result)
                     return Err("회원정보가 없습니다.")
 
                 name, role = result
-                session = MemberSessionBuilder().set_key().set_member_id(str(member_id.get_id())).set_name(name).set_role(role).build()
+                session = (
+                    MemberSessionBuilder()
+                    .set_key()
+                    .set_member_id(member_id.get_id())
+                    .set_name(name)
+                    .set_role(role)
+                    .build()
+                )
 
                 # MemberSession
                 serialized_key = session.serialize_key()

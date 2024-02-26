@@ -16,23 +16,25 @@ def parse_opt():
         default="django",
     )
     # parser.add_argument("--branch", default="main")
-    parser.add_argument("--debug", action="store_true", default=False)
+    parser.add_argument("--not_debug", action="store_true")
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", default=5000)
     parser.add_argument("--db_attach", type=str, default="log_")
     parser.add_argument("--storage_type", default="mysql")
+    parser.add_argument("--init", action="store_true")
+    parser.add_argument("--clear_db_init", action="store_true")
     parser.add_argument(
         "--ver",
-        choices=["python"],
+        choices=["python", "python3"],
         default="python",
     )
     parser.add_argument(
         "--test_file",
         nargs="*",
         default=[
-            r"Tests\Members\test_builder.py",
-            r"Tests\Members\test_member_service.py",
-            r"Tests\Members\test_user_migrate.py",
+            r"Tests/Members/test_builder.py",
+            r"Tests/Members/test_member_service.py",
+            r"Tests/Members/test_user_migrate.py",
             # r"",
         ],
     )
@@ -69,25 +71,59 @@ def git_push(test_list: list, branch="main"):
 
 
 def delete_storage():
-    from Migrations import MySqlCreateProduct, MySqlCreateUser
+    from Migrations import (
+        MySqlCreateProduct,
+        MySqlCreateUser,
+        MySqlCreateComments,
+        MySqlCreateSession,
+        MySqlCreateOrder,
+    )
 
-    m_p = MySqlCreateProduct(get_db_padding())
-    m_m = MySqlCreateUser(get_db_padding())
-    if m_p.check_exist_product():
-        m_p.delete_product()
-    if m_m.check_exist_user():
-        m_m.delete_user()
+    p = MySqlCreateProduct(get_db_padding())
+    m = MySqlCreateUser(get_db_padding())
+    c = MySqlCreateComments(get_db_padding())
+    s = MySqlCreateSession(get_db_padding())
+    o = MySqlCreateOrder(get_db_padding())
+    if s.check_exist_session():
+        s.delete_session()
+    if c.check_exist_comments():
+        c.delete_comments()
+    if o.check_exist_order():
+        o.delete_order()
+    if p.check_exist_product():
+        p.delete_product()
+    if m.check_exist_user():
+        m.delete_user()
 
 
-def migrate():
-    from Migrations import MySqlCreateProduct, MySqlCreateUser
+def migrate(clear_db_init=False):
+    from Migrations import (
+        MySqlCreateProduct,
+        MySqlCreateUser,
+        MySqlCreateComments,
+        MySqlCreateSession,
+        MySqlCreateOrder,
+    )
 
-    m_p = MySqlCreateProduct(get_db_padding())
-    m_m = MySqlCreateUser(get_db_padding())
+    p = MySqlCreateProduct(get_db_padding())
+    m = MySqlCreateUser(get_db_padding())
+    c = MySqlCreateComments(get_db_padding())
+    s = MySqlCreateSession(get_db_padding())
+    o = MySqlCreateOrder(get_db_padding())
 
-    delete_storage()
-    m_m.create_user()
-    # m_p.create_product()
+    if clear_db_init:
+        delete_storage()
+
+    m.create_user()
+    assert m.check_exist_user(), "Dont't exsist User Table."
+    p.create_product()
+    assert p.check_exist_product(), "Dont't exsist Product Table."
+    c.create_comments()
+    assert c.check_exist_comments(), "Dont't exsist Comments Table."
+    o.create_order()
+    assert o.check_exist_order(), "Dont't exsist Orders Table."
+    s.create_session()
+    assert s.check_exist_session(), "Dont't exsist Session Table."
 
 
 # def set_storage(storage_type: str):
@@ -101,7 +137,7 @@ def main(opt):
     from get_config_data import set_db_padding
 
     global db_name
-    debug = opt.debug
+    debug = not opt.not_debug
 
     if debug:
         ic.enable()
@@ -120,7 +156,17 @@ def main(opt):
         case "django":
             print("Not Impliment Djanpo.")
         case "migrate":
-            migrate()
+            assert isinstance(
+                opt.clear_db_init, bool
+            ), "Type of --clear_db_init is bool."
+            migrate(opt.clear_db_init)
+            assert isinstance(opt.init, bool), "Type of --init is bool."
+            from init_data import init_member, init_product
+
+            if opt.init:
+                init_member()
+                init_product()
+
         case "delete-storage":
             delete_storage()
         case _:

@@ -26,6 +26,8 @@ class MySqlCreateOrder:
     def create_order(self):
         connection = self.connect()
         order_table_name = self.get_padding_name("order")
+        user_table_name = self.get_padding_name("user")
+        product_table_name = self.get_padding_name("product")
 
         try:
             # 커서 생성
@@ -39,10 +41,10 @@ CREATE TABLE IF NOT EXISTS {order_table_name} (
     buyer_id VARCHAR(255),
     product_id VARCHAR(255),
     total_price INT NOT NULL,
-    order_date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP(),
-    FOREIGN KEY (buyer_id) REFERENCES log_user(id),
-    FOREIGN KEY (product_id) REFERENCES log_product(id)
-    ;
+    order_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (buyer_id) REFERENCES {user_table_name}(id),
+    FOREIGN KEY (product_id) REFERENCES {product_table_name}(id)
+    );
                 """
                 # user 생성
                 cursor.execute(create_order_table_query)

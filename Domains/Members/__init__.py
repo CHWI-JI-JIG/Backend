@@ -28,10 +28,6 @@ from Domains.Members.Authentication import (
     IAuthenticationBuilder,
 )
 
-from Domains.Members.PayData import (
-    PayData,
-    IPayDataBuilder,
-)
 
 __all__ = [
     "MemberID",
@@ -43,6 +39,4 @@ __all__ = [
     "Authentication",
     "IAuthenticationBuilder",
     "RoleType",
-    "PayData",
-    "IPayDataBuilder",
 ]

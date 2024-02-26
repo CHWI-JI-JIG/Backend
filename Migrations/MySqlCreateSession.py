@@ -38,7 +38,6 @@ CREATE TABLE IF NOT EXISTS {session_table_name} (
     value VARCHAR(500) NOT NULL  
 );
                 """
-                print(create_session_table_query)
                 # session 생성
                 cursor.execute(create_session_table_query)
                 connection.commit()

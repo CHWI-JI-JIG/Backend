@@ -18,7 +18,6 @@ class Product:
     price: int
     description: str
     register_day: datetime
-    seq: int = -1
 
 
 class IProductBuilder(metaclass=ABCMeta):
@@ -42,9 +41,6 @@ class IProductBuilder(metaclass=ABCMeta):
 
     @abstractmethod
     def set_register_day(self, time: datetime) -> Self: ...
-
-    @abstractmethod
-    def set_seqence(self, seq: int) -> Self: ...
 
     @abstractmethod
     def build(self) -> Product: ...

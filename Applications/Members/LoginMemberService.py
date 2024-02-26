@@ -20,7 +20,7 @@ class AuthenticationMemberService:
     def __init__(
         self,
         auth_member_repo: IVerifiableAuthentication,
-        session_repo : IMakeSaveMemberSession,
+        session_repo: IMakeSaveMemberSession,
     ):
         assert issubclass(
             type(auth_member_repo), IVerifiableAuthentication
@@ -28,8 +28,8 @@ class AuthenticationMemberService:
 
         self.auth_repo = auth_member_repo
         self.session_repo = session_repo
-        
-    def login(self, account:str, passwd:str) -> Result[MemberSession,str]:
+
+    def login(self, account: str, passwd: str) -> Result[MemberSession, str]:
         """_summary_
 
         Args:
@@ -42,25 +42,24 @@ class AuthenticationMemberService:
                 Err(str):
 
         """
-        login_result = self.auth_repo.identify_and_authenticate(account, hashing_passwd(passwd))
-        
+        login_result = self.auth_repo.identify_and_authenticate(
+            account, hashing_passwd(passwd)
+        )
 
         match login_result:
             case Ok(auth):
-                time =self.get_block_time(auth.fail_count)
-                if not self.check_login_able(auth.last_access, time):
-                    return Err(f"block : {time}")
+                block_time = self.get_block_time(auth.fail_count)
+                if not self.check_login_able(auth.last_access, block_time):
+                    return Err(f"block : {block_time}")
                 ret = auth
-                
+
             case Err(e):
                 return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
-            
+
         if ret.is_sucess:
             session_result = self.session_repo.make_and_save_session(ret.id)
             match session_result:
                 case Ok(session):
-                    # MemberSession 생성
-                    # member_session = MemberSessionBuilder().set_deserialize_key(ret.id.get_id()).set_deserialize_value(session).build()
                     return Ok(session)
                 case Err(_):
                     return session_result
@@ -70,8 +69,6 @@ class AuthenticationMemberService:
             self.auth_repo.update_access(ret)
             ic(login_result)
             return Err("비밀번호가 틀렸습니다.")
-        
-        
 
     def get_block_time(self, num_of_incorrect_login: int) -> int:
         """_summary_
@@ -105,8 +102,8 @@ class AuthenticationMemberService:
                 return 0
             case up_max:
                 return ((up_max + 1) % self.max_block[1]) * self.max_block[2]
-            
-    def check_login_able(self, last_access:datetime, block_minute: int) -> bool:
+
+    def check_login_able(self, last_access: datetime, block_minute: int) -> bool:
         """
         로그인 가능 여부를 확인하는 함수
         """

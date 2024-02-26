@@ -10,9 +10,13 @@ if not (str(root_path) in sys.path):
 from Migrations.MySqlCreateProduct import MySqlCreateProduct
 from Migrations.MySqlCreateUser import MySqlCreateUser
 from Migrations.MySqlCreateSession import MySqlCreateSession
+from Migrations.MySqlCreateComments import MySqlCreateComments
+from Migrations.MySqlCreateOrder import MySqlCreateOrder
 
 __all__ = [
     "MySqlCreateProduct",
     "MySqlCreateUser",
     "MySqlCreateSession",
+    "MySqlCreateOrder",
+    "MySqlCreateComments",
 ]
