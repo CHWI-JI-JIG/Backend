@@ -46,19 +46,23 @@ class MakeSaveMemberSession(IMakeSaveMemberSession):
         """
 
         connection = self.connect()
-        member_table_name = self.get_padding_name("member")
+        member_table_name = self.get_padding_name("user")
         session_table_name = self.get_padding_name("session")
 
         try:
             with connection.cursor() as cursor:
-                cursor.execute(
-                    f"SELECT name, role FROM {member_table_name} WHERE id = %s",
-                    (str(member_id),),
-                )
+                query = f"""
+SELECT name, role
+FROM {member_table_name}
+WHERE id = %s
+"""
+
+                cursor.execute(query, (member_id.get_id(),))
 
                 result = cursor.fetchone()
 
                 if result is None:
+                    ic(result)
                     return Err("회원정보가 없습니다.")
 
                 name, role = result

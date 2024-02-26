@@ -50,8 +50,8 @@ class AuthenticationMemberService:
             case Ok(auth):
                 ic()
                 time = self.get_block_time(auth.fail_count)
+                time = self.get_block_time(auth.fail_count)
                 if not self.check_login_able(auth.last_access, time):
-                    ic()
                     return Err(f"block : {time}")
                 ret = auth
 
@@ -59,10 +59,7 @@ class AuthenticationMemberService:
                 return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
 
         if ret.is_sucess:
-            ic()
             session_result = self.session_repo.make_and_save_session(ret.id)
-            ic()
-            ic(session_result)
             match session_result:
                 case Ok(session):
                     # MemberSession 생성
