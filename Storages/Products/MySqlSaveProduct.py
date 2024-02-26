@@ -12,7 +12,7 @@ import pymysql
 from icecream import ic
 
 
-class MySqlSaveProduct(ISaveProduct):
+class MySqlSaveProduct(ISaveableProduct):
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
