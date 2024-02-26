@@ -5,10 +5,9 @@ from result import Result
 from uuid import UUID
 
 from Domains.Members import *
-from Domains.Products import *
 from Domains.Comments import *
 
 
-class ISaveableComment(mataclass=ABCMeta):
+class ISaveComment(mataclass=ABCMeta):
     @abstractmethod
-    def save_comment(self, comment: Comment) -> Result[CommentID, str]: ...
+    def save_comment(self, Comment: Comment) -> Result[CommentID, str]: ...

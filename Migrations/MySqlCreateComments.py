@@ -26,6 +26,8 @@ class MySqlCreateComments:
     def create_comments(self):
         connection = self.connect()
         comments_table_name = self.get_padding_name("comments")
+        user_table_name = self.get_padding_name("user")
+        product_table_name = self.get_padding_name("product")
 
         try:
             # 커서 생성
@@ -38,8 +40,8 @@ CREATE TABLE IF NOT EXISTS {comments_table_name} (
     recomments VARCHAR(255),
     writer_id VARCHAR(255),
     product_id VARCHAR(255),
-    FOREIGN KEY (writer_id) REFERENCES log_user(id),
-    FOREIGN KEY (product_id) REFERENCES log_product(id)
+    FOREIGN KEY (writer_id) REFERENCES {user_table_name}(id),
+    FOREIGN KEY (product_id) REFERENCES {product_table_name}(id)
     );
                 """
                 # user 생성

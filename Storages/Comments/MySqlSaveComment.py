@@ -13,7 +13,7 @@ import pymysql
 from icecream import ic
 
 
-class MySqlSaveSession(ISaveableComment):
+class MySqlSaveSession(ISaveComment):
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
@@ -33,57 +33,44 @@ class MySqlSaveSession(ISaveableComment):
         return f"{self.name_padding}{name}"
 
     def save_comment(self, comment: Comment) -> Result[UUID, str]:
-        builder = (
-            AuthenticationBuilder()
-            .set_last_access()
-            .set_is_sucess(True)
-            .set_fail_count(0)
-            .set_id(member.id)
-            .build()
-        )
         connection = self.connect()
         user_table_name = self.get_padding_name("comment")
-        member.id.get_id()
+        comment.id.get_id()
         try:
             # 커서 생성
             with connection.cursor() as cursor:
                 insert_query = f"""
 INSERT INTO {user_table_name} (
     id,
-    account,
-    pay_account,
-    passwd,
-    email,
-    role,
-    company_registration_number,
-    phone,
-    address,
-    name,
-    last_access,
-    fail_count
-) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+    product_id,
+    writer_id,
+    writer_account,
+    seller_account,
+    answer,
+    question,
+) VALUES (%s, %s, %s, %s, %s, %s, %s);
                 """
                 cursor.execute(
                     insert_query,
                     (
-                        member.id.get_id(),
-                        member.account,
-                        privacy.pay_account,
-                        member.passwd,
-                        privacy.email,
-                        str(member.role),
-                        privacy.company_registration_number,
-                        privacy.phone,
-                        privacy.address,
-                        privacy.name,
-                        builder.str_last_access(),
-                        0,
+                        comment.id.get_id(),
+                        comment.product_id,
+                        comment.writer_id,
+                        comment.writer_account,
+                        comment.seller_account,
+                        comment.answer,
+                        comment.question,
                     ),
                 )
                 # 변경 사항을 커밋
                 connection.commit()
-                return Ok(member.id.uuid)
+                return Ok(comment.id.uuid)
         except Exception as e:
             connection.rollback()
             connection.close()
             return Err(str(e))
+
+
+# miigrations 보고 추가할것.
+
+# user / product 테이블 join 해서 가져와야 할수도 있다. 

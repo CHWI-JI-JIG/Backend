@@ -7,5 +7,10 @@ root_path = now_path.parent.parents
 if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
-from Storages.Comments.MySqlSaveComment import MySqlSaveSession
-from Storages.Members.LoginVerifiableAuthentication import LoginVerifiableAuthentication
+from Repositories.Orders.ISaveableOrder import ISaveOrder
+from Repositories.Orders.IGetableOrder import IGetableOrder
+
+__all__ = [
+    "ISaveOrder",
+    "IGetableOrder",
+]

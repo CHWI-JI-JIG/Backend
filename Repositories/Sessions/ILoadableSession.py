@@ -10,20 +10,6 @@ from Domains.Sessions import *
 
 class ILoadableSession(metaclass=ABCMeta):
     @abstractmethod
-    def save_session(self, session: ISessionSerializeable) -> Result[UUID, str]:
-        """_summary_
-
-        Args:
-            session (ISesseionSerializeable):
-
-        Returns:
-            Result[None, str]:
-                Ok(None): Seccess
-                Err(str): str is reason of error
-        """
-        ...
-
-    @abstractmethod
     def load_session(self, session_key: str) -> Result[str, str]:
         """_summary_
 
