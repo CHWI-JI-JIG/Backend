@@ -36,7 +36,7 @@ class MakeSaveMemberSession(IMakeSaveMemberSession):
         return f"{self.name_padding}{name}"
 
     @abstractmethod
-    def make_and_save_session(self,member_id:MemberID) -> Result[MemberSession, str]:
+    def make_and_save_session(self, member_id: MemberID) -> Result[MemberSession, str]:
         """
         Read User table. Make MemberSession. Save MemberSession
 
@@ -49,7 +49,7 @@ class MakeSaveMemberSession(IMakeSaveMemberSession):
         connection = self.connect()
         member_table_name = self.get_padding_name("member")
         session_table_name = self.get_padding_name("session")
-        
+
         try:
             with connection.cursor() as cursor:
                 select_query = f"""
@@ -57,19 +57,16 @@ SELECT name, role
 FROM {member_table_name}
 WHERE id = %s
 """
-                cursor.execute(
-                    select_query,
-                    (str(member_id),)
-                )
-            
+                cursor.execute(select_query, (str(member_id),))
+
                 result = cursor.fetchone()
-            
+
                 if result is None:
                     return Err("회원정보가 없습니다.")
-                
+
                 name, role = result
-                session = MemberSessionBuilder().set_key().set_member_id(str(member_id)).set_name(name).set_role(role).build()
-                
+                session = (MemberSessionBuilder().set_key().set_member_id(str(member_id)).set_name(name).set_role(role).build())
+
                 # MemberSession
                 serialized_key = session.serialize_key()
                 serialized_value = session.serialize_value()
@@ -80,17 +77,14 @@ INSERT INTO {session_table_name} (
     value
 ) VALUES (%s, %s);
 """
-            
-                cursor.execute(
-                    insert_query,
-                    (serialized_key, serialized_value)
-                )
+
+                cursor.execute(insert_query, (serialized_key, serialized_value))
                 connection.commit()
-                
+
                 cursor.close()
                 connection.close()
-                
+
                 return Ok(session)
-        
+
         except Exception as e:
             return Err(str(e))
