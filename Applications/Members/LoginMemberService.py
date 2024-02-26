@@ -48,11 +48,9 @@ class AuthenticationMemberService:
 
         match login_result:
             case Ok(auth):
-                ic()
-                time = self.get_block_time(auth.fail_count)
-                time = self.get_block_time(auth.fail_count)
-                if not self.check_login_able(auth.last_access, time):
-                    return Err(f"block : {time}")
+                block_time = self.get_block_time(auth.fail_count)
+                if not self.check_login_able(auth.last_access, block_time):
+                    return Err(f"block : {block_time}")
                 ret = auth
 
             case Err(e):
@@ -62,8 +60,6 @@ class AuthenticationMemberService:
             session_result = self.session_repo.make_and_save_session(ret.id)
             match session_result:
                 case Ok(session):
-                    # MemberSession 생성
-                    # member_session = MemberSessionBuilder().set_deserialize_key(ret.id.get_id()).set_deserialize_value(session).build()
                     return Ok(session)
                 case Err(_):
                     return session_result
