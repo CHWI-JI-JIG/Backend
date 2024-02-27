@@ -45,7 +45,7 @@ class MySqlSaveComment(ISaveableComment):
         id,
         answer,
         question,
-        writer_account,
+        writer_id,
         product_id
     ) VALUES (%s, %s, %s, %s, %s)
                     """
@@ -55,7 +55,7 @@ class MySqlSaveComment(ISaveableComment):
                             comment.id,
                             comment.answer,
                             comment.question,
-                            comment.writer_account, 
+                            comment.writer_id, 
                             comment.product_id,
                         ),
                     )
