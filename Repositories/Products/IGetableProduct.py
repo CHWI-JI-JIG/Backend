@@ -48,19 +48,3 @@ class IGetableProduct(metaclass=ABCMeta):
         """
         ...
 
-    @abstractmethod
-    def get_products_by_buyer_id_from_order(
-        self,
-        buyer_id: MemberID,
-        page=0,
-        size=10,
-    ) -> Result[Tuple[int, List[Product]], str]:
-        """_summary_
-        Get Products with the same buyer_id from an order.
-
-        Returns:
-            Result[Tuple[int,List[Product]], str]:
-                Ok( int, list ): int=> count of list max, list=> result
-                Err(str): reason of Fail
-        """
-        ...
