@@ -23,7 +23,8 @@ class CreateProductService:
         ), "save_member_repo must be a class that inherits from ISaveableMember."
 
         self.save_repo = save_member_repo
-    def publish_temp_product_id(self, member_session_key:str)->
+
+    # def publish_temp_product_id(self, member_session_key:str)->
 
     def create(
         self,

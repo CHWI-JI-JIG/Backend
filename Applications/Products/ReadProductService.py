@@ -64,7 +64,7 @@ class ReadProductService:
                 Ok( int, list ): int=> count of list max, list=> result
                 Err(str): reason of Fail
         """
-        return self.get_product_by_create_date(
+        return self.product_repo.get_products_by_create_date(
             page=page,
             size=size,
         )

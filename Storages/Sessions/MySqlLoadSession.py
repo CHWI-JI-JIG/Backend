@@ -16,7 +16,7 @@ import pymysql
 from icecream import ic
 
 
-class MySqlSaveSession(ILoadableSession):
+class MySqlLoadSession(ILoadableSession):
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
@@ -34,7 +34,7 @@ class MySqlSaveSession(ILoadableSession):
 
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
-    
+
     def load_session(self, session_key: str) -> Result[str, str]:
         """_summary_
 
@@ -56,8 +56,8 @@ FROM {session_table_name}
 WHERE id = %s
 """
                 # session_key = MemberSessionBuilder().set_key().build()
-                cursor.execute(query,(str(session_key),))
-                
+                cursor.execute(query, (str(session_key),))
+
                 result = cursor.fetchone()
 
                 if result is None:
@@ -69,7 +69,7 @@ WHERE id = %s
                 # member_session = session_builder.build()
 
                 connection.commit()
-                
+
                 cursor.close()
                 connection.close()
 
