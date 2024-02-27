@@ -10,7 +10,7 @@ if not (str(root_path) in sys.path):
 from Storages.Members.MySqlSaveMember import MySqlSaveMember
 from Storages.Members.LoginVerifiableAuthentication import LoginVerifiableAuthentication
 
-__all__=[
+__all__ = [
     "MySqlSaveMember",
     "LoginVerifiableAuthentication",
 ]

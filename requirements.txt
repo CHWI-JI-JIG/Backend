@@ -6,8 +6,3 @@ cryptography==41.0.7
 # sqlite                    3.41.2
 # pip                       23.3.1
 # colorama                  0.4.6 
-
-#### for Django test list
-Django==4.1
-djangorestframework==3.14.0
-django-filter==23.5
