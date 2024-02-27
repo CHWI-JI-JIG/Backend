@@ -79,7 +79,7 @@ class ProductTempSession(ID, ISessionSerializeable):
                 )
 
 
-class MemberSessionBuilder(ISesseionBuilder):
+class ProductSessionBuilder(ISesseionBuilder):
     def __init__(
         self,
         key: Optional[UUID] = None,
@@ -202,15 +202,15 @@ class MemberSessionBuilder(ISesseionBuilder):
         import os.path
 
         assert self.img_path is None, "img path is already set."
-        assert os.path.isfile(
-            IMG_PATH / img_path
-        ), f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path."
+        # assert os.path.isfile(
+        #     IMG_PATH / img_path
+        # ), f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path."
 
         if not os.path.isfile(IMG_PATH / img_path):
             ic()
             print("Not Implement")
             print(f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path.")
-            # return Err("not exsist")
+            # return Err(f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path.")
 
         self.img_path = img_path
         return Ok(self)
