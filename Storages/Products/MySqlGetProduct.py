@@ -35,7 +35,6 @@ class MySqlGetProduct(IGetableProduct):
         return f"{self.name_padding}{name}"
     
     
-    
     # 상품 상세페이지
     def get_product_by_product_id(self, product_id: ProductID) -> Optional[Product]:
         connection = self.connect()
@@ -76,7 +75,6 @@ WHERE id = %s
             return None
     
     
-    
     # 메인 페이지
     def get_products_by_create_date(
         self,
@@ -95,7 +93,45 @@ WHERE id = %s
                 Err(str): reason of Fail
         """
         
-        
+        connection = self.connect()
+        product_table_name = self.get_padding_name("product")
+        try:
+            with connection.cursor() as cursor:
+                offset = page * size
+                query = f"""
+SELECT id, seller_id, name, img_path, price, description, register_day
+FROM {product_table_name}
+ORDER BY register_day DESC
+LIMIT %s, %s
+"""
+                cursor.execute(query, (offset, size))
+                result = cursor.fetchall()
+
+                products = []
+                for row in result:
+                    id, seller_id, name, img_path, price, description, register_day = row
+                    product = Product(
+                        id=ProductIDBuilder().set_uuid(id).build(),
+                        seller_id=MemberIDBuilder().set_uuid(seller_id).build(),
+                        name=name,
+                        img_path=img_path,
+                        price=price,
+                        description=description,
+                        register_day=register_day,
+                    )
+                    products.append(product)
+
+                cursor.execute(f"SELECT COUNT(*) FROM {product_table_name}")
+                total_count = cursor.fetchone()[0]
+
+                connection.commit()
+
+                return Ok((total_count, products))
+
+        except Exception as e:
+            print(e)
+            connection.close()  
+            return Err(str(e))   
         
         
     # 판매자 페이지
@@ -113,7 +149,46 @@ WHERE id = %s
                 Ok( int, list ): int=> count of list max, list=> result
                 Err(str): reason of Fail
         """
-        ...
+        connection = self.connect()
+        product_table_name = self.get_padding_name("product")
+        try:
+            with connection.cursor() as cursor:
+                offset = page * size
+                query = f"""
+SELECT id, seller_id, name, img_path, price, description, register_day
+FROM {product_table_name}
+WHERE seller_id = %s
+ORDER BY register_day DESC
+LIMIT %s, %s
+"""
+                cursor.execute(query, (seller_id.get_id(), offset, size))
+                result = cursor.fetchall()
+
+                products = []
+                for row in result:
+                    id, seller_id, name, img_path, price, description, register_day = row
+                    product = Product(
+                        id=ProductIDBuilder().set_uuid(id).build(),
+                        seller_id=MemberIDBuilder().set_uuid(seller_id).build(),
+                        name=name,
+                        img_path=img_path,
+                        price=price,
+                        description=description,
+                        register_day=register_day,
+                    )
+                    products.append(product)
+
+                cursor.execute(f"SELECT COUNT(*) FROM {product_table_name} WHERE seller_id = %s", (seller_id.get_id(),))
+                total_count = cursor.fetchone()[0]
+
+                connection.commit()
+
+                return Ok((total_count, products))
+
+        except Exception as e:
+            print(e)
+            connection.close()  
+            return Err(str(e))
         
     
     ##    
