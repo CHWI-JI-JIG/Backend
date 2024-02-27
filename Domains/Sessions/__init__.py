@@ -9,7 +9,6 @@ if not (str(root_path) in sys.path):
 
 from Domains.Sessions.ISession import ISesseionBuilder, ISessionSerializeable
 from Domains.Sessions.MemberSession import MemberSession, MemberSessionBuilder
-from Domains.Pro
 
 __all__ = [
     "ISessionSerializeable",
