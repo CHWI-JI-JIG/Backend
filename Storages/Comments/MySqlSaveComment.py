@@ -34,55 +34,36 @@ class MySqlSaveComment(ISaveableComment):
         return f"{self.name_padding}{name}"
 
     def save_comment(self, comment: Comment) -> Result[UUID, str]:
-        connection = self.connect()
-        user_table_name = self.get_padding_name("comments")
-        member_table_name = self.get_padding_name("user") # log_user
-        comment.id.get_id()
-        try:
-            # 커서 생성
-            with connection.cursor() as cursor:
-                insert_query = f"""
-INSERT INTO {user_table_name} (
-    id,
-    writer_id,
-    writer_account,
-    product_id,
-    seller_account,
-    answer,
-    question
-) 
-SELECT 
-    %s,
-    %s,
-    m.account,
-    %s,
-    %s,
-    %s,
-    %s
-FROM 
-    log_user m
-JOIN
-    {member_table_name} u ON m.id = u.writer_id
-WHERE 
-    u.id = %s;
-
-                """
-                cursor.execute(
-                    insert_query,
-                    (
-                        comment.id,
-                        comment.writer_id,
-                        comment.product_id,
-                        comment.seller_account,
-                        comment.answer,
-                        comment.question,
-                        comment.writer_id, 
-                    ),
-                )
-                # 변경 사항을 커밋
-                connection.commit()
-                return Ok(comment.id.uuid)
-        except Exception as e:
-            connection.rollback()
-            connection.close()
-            return Err(str(e))
+            connection = self.connect()
+            comment_table_name = self.get_padding_name("comments")
+            member_table_name = self.get_padding_name("user")
+            try:
+                # 커서 생성
+                with connection.cursor() as cursor:
+                    insert_query = f"""
+    INSERT INTO {comment_table_name} (
+        id,
+        answer,
+        question,
+        writer_account,
+        product_id
+    ) VALUES (%s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(
+                        insert_query,
+                        (
+                            comment.id,
+                            comment.answer,
+                            comment.question,
+                            comment.writer_account, 
+                            comment.product_id,
+                        ),
+                    )
+                    # 변경 사항을 커밋
+                    connection.commit()
+                    return Ok(comment.id.uuid)
+            except Exception as e:
+                connection.rollback()
+                return Err(str(e))
+            finally:
+                connection.close()
