@@ -34,8 +34,6 @@ class MySqlSaveProduct(ISaveableProduct):
     def save_product(self, product: Product) -> Result[ProductID, str]:
         connection = self.connect()
         product_table_name = self.get_padding_name("product")
-        product.id.get_id()
-        product.seller_id.get_id()
         try:
             # 커서 생성
             with connection.cursor() as cursor:

@@ -4,8 +4,12 @@ from typing import List
 from get_config_data import get_db_padding
 from result import Result, Ok, Err
 from Domains.Members import MemberID
+from Domains.Products import ProductID, Product
+from datetime import datetime
+from icecream import ic
 
 member_list: List[MemberID] = []
+product_list: List[ProductID] = []
 
 
 def init_member():
@@ -30,7 +34,7 @@ def init_member():
         pay_account="6795943585566187",
     ):
         case Ok(member):
-            member_list.append(member_list)
+            member_list.append(member)
         case a:
             assert False, f"Fail Create Member:{a}"
 
@@ -46,7 +50,7 @@ def init_member():
         pay_account="7952944925564628",
     ):
         case Ok(member):
-            member_list.append(member_list)
+            member_list.append(member)
         case a:
             assert False, f"Fail Create Member:{a}"
 
@@ -60,7 +64,7 @@ def init_member():
         address="서울시 구로구",
     ):
         case Ok(member):
-            member_list.append(member_list)
+            member_list.append(member)
         case a:
             assert False, f"Fail Create Member:{a}"
 
@@ -74,9 +78,27 @@ def init_member():
         address="전라북도 익산",
     ):
         case Ok(member):
-            member_list.append(member_list)
+            member_list.append(member)
         case a:
             assert False, f"Fail Create Member:{a}"
 
 
-def init_product(): ...
+def init_product():
+    from Storages.Products import MySqlGetProduct, MySqlSaveProduct
+    from Builders.Products import ProductIDBuilder
+
+    create = MySqlSaveProduct(get_db_padding())
+
+    id = ProductIDBuilder().set_uuid().set_seqence(1).build()
+
+    product = Product(
+        id=id,
+        seller_id=member_list[0],
+        name="쿠쿠밥솥",
+        img_path="img.jpg",
+        price="170000",
+        description="쿠쿠하세요~ 쿠쿠.",
+        register_day=datetime.now(),
+    )
+
+    product_list.append(create.save_product(product))
