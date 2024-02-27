@@ -91,7 +91,7 @@ def init_product():
 
     id = ProductIDBuilder().set_uuid().set_seqence(1).build()
 
-    product = Product(
+    match create.save_product(Product(
         id=id,
         seller_id=member_list[0],
         name="쿠쿠밥솥",
@@ -99,6 +99,8 @@ def init_product():
         price="170000",
         description="쿠쿠하세요~ 쿠쿠.",
         register_day=datetime.now(),
-    )
-
-    product_list.append(create.save_product(product))
+    )):
+        case Ok(product):
+            product_list.append(product)
+        case a:
+            assert False, f"Fail Create Member:{a}"

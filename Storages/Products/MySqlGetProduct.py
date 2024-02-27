@@ -166,10 +166,10 @@ LIMIT %s, %s
 
                 products = []
                 for row in result:
-                    id, seller_id, name, img_path, price, description, register_day = row
+                    id, _, name, img_path, price, description, register_day = row
                     product = Product(
                         id=ProductIDBuilder().set_uuid(id).build(),
-                        seller_id=MemberIDBuilder().set_uuid(seller_id).build(),
+                        seller_id=seller_id,
                         name=name,
                         img_path=img_path,
                         price=price,
@@ -190,23 +190,7 @@ LIMIT %s, %s
             connection.close()  
             return Err(str(e))
         
-    
-    ##    
-    def get_products_by_buyer_id_from_order(
-        self,
-        buyer_id: MemberID,
-        page=0,
-        size=10,
-    ) -> Result[Tuple[int, List[Product]], str]:
-        """_summary_
-        Get Products with the same buyer_id from an order.
 
-        Returns:
-            Result[Tuple[int,List[Product]], str]:
-                Ok( int, list ): int=> count of list max, list=> result
-                Err(str): reason of Fail
-        """
-        ...
         
         
         
