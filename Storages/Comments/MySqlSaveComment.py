@@ -37,6 +37,7 @@ class MySqlSaveComment(ISaveableComment):
             connection = self.connect()
             comment_table_name = self.get_padding_name("comments")
             member_table_name = self.get_padding_name("user")
+            
             try:
                 # 커서 생성
                 with connection.cursor() as cursor:
@@ -55,8 +56,8 @@ class MySqlSaveComment(ISaveableComment):
                             comment.id.get_id(),
                             comment.answer,
                             comment.question,
-                            comment.writer_id, 
-                            comment.product_id,
+                            comment.writer_id.get_id(), 
+                            comment.product_id.get_id(),
                         ),
                     )
                     # 변경 사항을 커밋
