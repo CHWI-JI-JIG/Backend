@@ -22,6 +22,8 @@ class IReadableComment(metaclass=ABCMeta):
         self, member_id: MemberID
     ) -> Result[Tuple[Member, Privacy], str]: ...
 
+
+
 # GETABLE에 ID를 넣으면 COMMENT가 나오게 수정하려고 함. 
     # join을 해야 한다. 
     # comment 조회 시, 상품조회에 관련된 qna를 가져와야 한다. 

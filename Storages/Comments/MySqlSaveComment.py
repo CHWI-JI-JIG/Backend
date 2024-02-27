@@ -16,6 +16,7 @@ from icecream import ic
 class MySqlSaveComment(ISaveableComment):
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
+   
 
     def connect(self):
         from get_config_data import get_mysql_dict
@@ -34,7 +35,8 @@ class MySqlSaveComment(ISaveableComment):
 
     def save_comment(self, comment: Comment) -> Result[UUID, str]:
         connection = self.connect()
-        user_table_name = self.get_padding_name("comment")
+        user_table_name = self.get_padding_name("comments")
+        member_table_name = self.get_padding_name("user") # log_user
         comment.id.get_id()
         try:
             # 커서 생성
@@ -42,20 +44,39 @@ class MySqlSaveComment(ISaveableComment):
                 insert_query = f"""
 INSERT INTO {user_table_name} (
     id,
+    writer_id,
     writer_account,
+    product_id,
     seller_account,
     answer,
-    question,
-) VALUES (%s, %s, %s, %s, %s, %s, %s);
+    question
+) 
+SELECT 
+    %s,
+    %s,
+    m.account,
+    %s,
+    %s,
+    %s,
+    %s
+FROM 
+    log_user m
+JOIN
+    {member_table_name} u ON m.id = u.writer_id
+WHERE 
+    u.id = %s;
+
                 """
                 cursor.execute(
                     insert_query,
                     (
-                        comment.id.get_id(),
-                        comment.writer_account,
+                        comment.id,
+                        comment.writer_id,
+                        comment.product_id,
                         comment.seller_account,
                         comment.answer,
                         comment.question,
+                        comment.writer_id, 
                     ),
                 )
                 # 변경 사항을 커밋

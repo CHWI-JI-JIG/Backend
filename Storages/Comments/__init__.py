@@ -9,7 +9,7 @@ if not (str(root_path) in sys.path):
 
 from Storages.Comments.MySqlSaveComment import MySqlSaveComment
 from Storages.Members.LoginVerifiableAuthentication import LoginVerifiableAuthentication
-
+from Storages.Members import MySqlSaveMember
 __all__=[
     "MySqlSaveComment",
 ]
