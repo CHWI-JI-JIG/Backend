@@ -52,7 +52,7 @@ class MySqlSaveComment(ISaveableComment):
                     cursor.execute(
                         insert_query,
                         (
-                            comment.id,
+                            comment.id.get_id(),
                             comment.answer,
                             comment.question,
                             comment.writer_id, 
