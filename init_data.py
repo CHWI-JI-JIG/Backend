@@ -5,11 +5,14 @@ from get_config_data import get_db_padding
 from result import Result, Ok, Err
 from Domains.Members import MemberID
 from Domains.Products import ProductID, Product
+from Domains.Comments import Comment, CommentID
 from datetime import datetime
 from icecream import ic
 
 member_list: List[MemberID] = []
 product_list: List[ProductID] = []
+comment_list: List[CommentID] = []
+
 
 
 def init_member():
@@ -271,4 +274,193 @@ def init_product():
             assert False, f"Fail Create Member:{a}"              
 
 
+def init_comment():
+    from Storages.Comments import MySqlGetComment, MySqlSaveComment
+    from Builders.Comments import CommentIDBuilder
+    from Domains.Comments import CommentID
+    from uuid import uuid4
 
+    create = MySqlSaveComment(get_db_padding())
+
+    id = CommentIDBuilder().set_uuid().set_seqence(1).build()
+
+    match create.save_comment(Comment(
+        id=id,
+        answer=None, # 목아프다...춥다..아프다..
+        question="요즘 어떤가요?",
+        writer_id=member_list[2],
+        product_id=product_list[0],
+        writer_account="",
+        seller_account="",
+    )):
+        case Ok(comment):
+            comment_list.append(comment)
+        case a:
+            assert False, f"Fail Create Comment:{a}"
+
+    id = CommentIDBuilder().set_uuid().set_seqence(2).build()
+
+    match create.save_comment(Comment(
+        id=id,
+        answer=None, # 목아프다...춥다..아프다..
+        question="한강 위에 고양이가 걸어갈 수 있을까요?",
+        writer_id=member_list[2],
+        product_id=product_list[1],
+        writer_account="",
+        seller_account="",
+    )):
+        case Ok(comment):
+            comment_list.append(comment)
+        case a:
+            assert False, f"Fail Create Comment:{a}"
+
+    id = CommentIDBuilder().set_uuid().set_seqence(3).build()
+
+    match create.save_comment(Comment(
+        id=id,
+        answer=None, # 목아프다...춥다..아프다..
+        question="노란 우산을 주문했는데, 노란 우비가 왔네요?",
+        writer_id=member_list[2],
+        product_id=product_list[2],
+        writer_account="",
+        seller_account="",
+    )):
+        case Ok(comment):
+            comment_list.append(comment)
+        case a:
+            assert False, f"Fail Create Comment:{a}"
+
+    id = CommentIDBuilder().set_uuid().set_seqence(4).build()
+
+    match create.save_comment(Comment(
+        id=id,
+        answer=None, # 목아프다...춥다..아프다..
+        question="그때는 맞고, 지금은 틀리다.",
+        writer_id=member_list[2],
+        product_id=product_list[3],
+        writer_account="",
+        seller_account="",
+    )):
+        case Ok(comment):
+            comment_list.append(comment)
+        case a:
+            assert False, f"Fail Create Comment:{a}"
+
+
+    id = CommentIDBuilder().set_uuid().set_seqence(5).build()
+
+    match create.save_comment(Comment(
+        id=id,
+        answer=None, # 목아프다...춥다..아프다..
+        question="밥은 먹고 다니냐?",
+        writer_id=member_list[2],
+        product_id=product_list[4],
+        writer_account="",
+        seller_account="",
+    )):
+        case Ok(comment):
+            comment_list.append(comment)
+        case a:
+            assert False, f"Fail Create Comment:{a}"
+
+
+    id = CommentIDBuilder().set_uuid().set_seqence(6).build()
+
+    match create.save_comment(Comment(
+        id=id,
+        answer=None, # 목아프다...춥다..아프다..
+        question="오잉, 나랑드, 썬칩 레츠고!",
+        writer_id=member_list[2],
+        product_id=product_list[5],
+        writer_account="",
+        seller_account="",
+    )):
+        case Ok(comment):
+            comment_list.append(comment)
+        case a:
+            assert False, f"Fail Create Comment:{a}"
+
+
+    id = CommentIDBuilder().set_uuid().set_seqence(7).build()
+
+    match create.save_comment(Comment(
+        id=id,
+        answer=None, # 목아프다...춥다..아프다..
+        question="지금 우리 학교는 따뜻할까요?",
+        writer_id=member_list[2],
+        product_id=product_list[6],
+        writer_account="",
+        seller_account="",
+    )):
+        case Ok(comment):
+            comment_list.append(comment)
+        case a:
+            assert False, f"Fail Create Comment:{a}"          
+
+    id = CommentIDBuilder().set_uuid().set_seqence(8).build()
+
+    match create.save_comment(Comment(
+        id=id,
+        answer=None, # 목아프다...춥다..아프다..
+        question="작은 터널을 지나, 설국에 도착했을까요?",
+        writer_id=member_list[2],
+        product_id=product_list[7],
+        writer_account="",
+        seller_account="",
+    )):
+        case Ok(comment):
+            comment_list.append(comment)
+        case a:
+            assert False, f"Fail Create Comment:{a}"        
+
+
+
+    id = CommentIDBuilder().set_uuid().set_seqence(9).build()
+
+    match create.save_comment(Comment(
+        id=id,
+        answer=None, # 목아프다...춥다..아프다..
+        question="이웃집 토토로와 이웃집 인어공주는 어디서 살까요?",
+        writer_id=member_list[2],
+        product_id=product_list[8],
+        writer_account="",
+        seller_account="",
+    )):
+        case Ok(comment):
+            comment_list.append(comment)
+        case a:
+            assert False, f"Fail Create Comment:{a}"     
+
+
+    id = CommentIDBuilder().set_uuid().set_seqence(10).build()
+
+    match create.save_comment(Comment(
+        id=id,
+        answer=None, # 목아프다...춥다..아프다..
+        question="고래밥, 바이러스, 기러기, 우영우, 별똥별?",
+        writer_id=member_list[2],
+        product_id=product_list[9],
+        writer_account="",
+        seller_account="",
+    )):
+        case Ok(comment):
+            comment_list.append(comment)
+        case a:
+            assert False, f"Fail Create Comment:{a}"     
+
+
+    id = CommentIDBuilder().set_uuid().set_seqence(11).build()
+
+    match create.save_comment(Comment(
+        id=id,
+        answer=None, # 목아프다...춥다..아프다..
+        question="어데서 흰 당나귀도 오늘밤이 좋아서 응앙응앙 울을 것이다 ",
+        writer_id=member_list[2],
+        product_id=product_list[10],
+        writer_account="",
+        seller_account="",
+    )):
+        case Ok(comment):
+            comment_list.append(comment)
+        case a:
+            assert False, f"Fail Create Comment:{a}"     
