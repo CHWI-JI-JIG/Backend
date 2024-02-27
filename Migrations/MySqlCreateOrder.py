@@ -37,9 +37,9 @@ class MySqlCreateOrder:
 CREATE TABLE IF NOT EXISTS {order_table_name} (
     id VARCHAR(255) UNIQUE,
     seq INT AUTO_INCREMENT PRIMARY KEY,
-    count INT NOT NULL,
-    buyer_id VARCHAR(255),
-    product_id VARCHAR(255),
+    buy_count INT NOT NULL,
+    buyer_id VARCHAR(255) NOT NULL,
+    product_id VARCHAR(255) NOT NULL,
     total_price INT NOT NULL,
     order_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (buyer_id) REFERENCES {user_table_name}(id),
