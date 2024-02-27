@@ -21,7 +21,6 @@ class MemberSession(ISessionSerializeable, ID):
     name: str
     role: RoleType
     member_id: MemberID
-    seq: int = -1
 
     def get_id(self) -> str:
         return self.key.hex
@@ -32,7 +31,6 @@ class MemberSession(ISessionSerializeable, ID):
     def serialize_value(self) -> str:
         return json.dumps(
             {
-                "seq": str(self.seq),
                 "member_id": self.member_id.get_id(),
                 "name": self.name,
                 "role": str(self.role),
@@ -47,9 +45,7 @@ class MemberSessionBuilder(ISesseionBuilder):
         key: Optional[UUID] = None,
         member_id: Optional[MemberID] = None,
         name: Optional[str] = None,
-        seq: int = -1,
     ):
-        self.seq = seq
         self.key = key
         self.mid = member_id
         self.name: Optional[str] = name
@@ -70,10 +66,6 @@ class MemberSessionBuilder(ISesseionBuilder):
         dict_key = "member_id"
         assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
         self.set_member_id(to_dict.get(dict_key))
-
-        dict_key = "seq"
-        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
-        self.set_seqence(int(to_dict.get(dict_key)))
 
         dict_key = "name"
         assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
@@ -101,14 +93,6 @@ class MemberSessionBuilder(ISesseionBuilder):
             RoleType._member_names_
         ), "Type of rule is RuleType. "
 
-        return self
-
-    def set_seqence(self, seq: int) -> Self:
-        assert isinstance(seq, int), "Type of seq is int."
-        assert self.seq < 0, "The sequence is already set."
-        assert seq >= 0, "seq >= 0"
-
-        self.seq = seq
         return self
 
     def set_key(self, key: Optional[str] = None) -> Self:
@@ -148,7 +132,6 @@ class MemberSessionBuilder(ISesseionBuilder):
         assert isinstance(self.name, str), "You didn't set the name."
 
         return MemberSession(
-            seq=self.seq,
             key=self.key,
             member_id=self.mid,
             role=self.role,
