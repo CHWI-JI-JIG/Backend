@@ -56,11 +56,10 @@ class test_builder(unittest.TestCase):
             .set_member_id(id)
             .set_role("buyer")
             .set_name("이탁균")
-            .set_seqence(10)
             .build()
         )
         self.assertEqual(
-            '{"seq": "10", "member_id": "d697b39f733a426f96a13fc40c8bf061", "name": "이탁균", "role": "buyer"}',
+            '{"member_id": "d697b39f733a426f96a13fc40c8bf061", "name": "이탁균", "role": "buyer"}',
             new_session.serialize_value(),
         )
 
