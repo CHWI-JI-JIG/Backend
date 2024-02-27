@@ -34,24 +34,25 @@ class MySqlSaveProduct(ISaveableProduct):
     def save_product(self, product: Product) -> Result[ProductID, str]:
         connection = self.connect()
         product_table_name = self.get_padding_name("product")
-        product.id.get_id()
         try:
             # 커서 생성
             with connection.cursor() as cursor:
                 insert_query = f"""
 INSERT INTO {product_table_name} (
     id,
+    seller_id,
     name,
     img_path,
     price,
     description,
     register_day
-) VALUES (%s, %s, %s, %s, %s, %s);
+) VALUES (%s, %s, %s, %s, %s, %s, %s);
                 """
                 cursor.execute(
                     insert_query,
                     (
                         product.id.get_id(),
+                        product.seller_id.get_id(),
                         product.name,
                         product.img_path,
                         product.price,

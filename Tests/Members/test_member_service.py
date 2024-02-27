@@ -162,6 +162,7 @@ class test_member_service(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
 
+        time.sleep(1.5)
         login_result = self.l_repo.identify_and_authenticate(
             "qazwsx", hashing_passwd("123")
         )
@@ -175,7 +176,6 @@ class test_member_service(unittest.TestCase):
             case Err:
                 self.assertFalse(True)
 
-        time.sleep(1.5)
         login_result = self.l_repo.identify_and_authenticate(
             "qazwsx", hashing_passwd("123")
         )

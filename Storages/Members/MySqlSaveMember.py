@@ -32,7 +32,7 @@ class MySqlSaveMember(ISaveableMember):
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
 
-    def save_member(self, member: Member, privacy: Privacy) -> Result[UUID, str]:
+    def save_member(self, member: Member, privacy: Privacy) -> Result[MemberID, str]:
         builder = (
             AuthenticationBuilder()
             .set_last_access()
@@ -82,7 +82,7 @@ INSERT INTO {user_table_name} (
                 )
                 # 변경 사항을 커밋
                 connection.commit()
-                return Ok(member.id.uuid)
+                return Ok(member.id)
         except Exception as e:
             connection.rollback()
             connection.close()

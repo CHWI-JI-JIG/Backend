@@ -12,8 +12,8 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--run",
-        choices=["test", "django", "migrate", "delete-storage"],  # "git-push",
-        default="django",
+        choices=["test", "flask", "migrate", "delete-storage"],  # "git-push",
+        default="flask",
     )
     # parser.add_argument("--branch", default="main")
     parser.add_argument("--not_debug", action="store_true")
@@ -129,7 +129,12 @@ def migrate(clear_db_init=False):
 # def set_storage(storage_type: str):
 #     from Infrastructures.IOC import select_strage
 
+
 #     select_strage(storage_type)
+def flask(debug=True, host="127.0.0.1", port=5000):
+    from Flask.main import app
+
+    app.run(debug=debug, host=host, port=int(port))
 
 
 def main(opt):
@@ -153,8 +158,6 @@ def main(opt):
             test(opt.test_file, opt.ver)
         # case "git-push":
         #     git_push(opt.test_file, opt.branch)
-        case "django":
-            print("Not Impliment Django.")
         case "migrate":
             assert isinstance(
                 opt.clear_db_init, bool
@@ -166,7 +169,8 @@ def main(opt):
             if opt.init:
                 init_member()
                 init_product()
-
+        case "flask":
+            flask(debug, opt.host, opt.port)
         case "delete-storage":
             delete_storage()
         case _:
