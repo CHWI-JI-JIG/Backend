@@ -62,3 +62,8 @@ python Django/manage.py --runserver
 ```bash
 python manage.py --run test
 ```
+### service mode
+```bash
+python manage.py --host x.x.x.x --port 5000
+python3.11 manage.py --host x.x.x.x --port 5000
+```
