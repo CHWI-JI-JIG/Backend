@@ -32,12 +32,12 @@ class MySqlCreateComments:
         try:
             # 커서 생성
             with connection.cursor() as cursor:
-                # "users" 테이블 생성 쿼리
+                # "comments" 테이블 생성 쿼리
                 create_comments_table_query = f"""
 CREATE TABLE IF NOT EXISTS {comments_table_name} (
     id VARCHAR(255) UNIQUE,
-    contents VARCHAR(255) NOT NULL,
-    recomments VARCHAR(255),
+    question VARCHAR(255) NOT NULL,
+    answer VARCHAR(255),
     writer_id VARCHAR(255),
     product_id VARCHAR(255),
     FOREIGN KEY (writer_id) REFERENCES {user_table_name}(id),

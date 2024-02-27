@@ -6,7 +6,6 @@ from datetime import datetime
 from Commons.helpers import check_hex_string
 from Commons.format import KOREA_TIME_FORMAT
 
-# from Domains.Members import *
 from Domains.Comments import *
 
 from icecream import ic

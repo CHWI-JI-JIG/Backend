@@ -7,10 +7,11 @@ root_path = now_path.parent.parent
 if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
-from Repositories.Comments.ISaveableComment import ISaveComment
+from Repositories.Comments.ISaveableComment import ISaveableComment
 from Repositories.Comments.IGetableComment import IGetableComment
 
 __all__ = [
-    "ISaveComment",
+    "ISaveableComment",
     "IGetableComment",
+    "IReadableComment",
 ]
