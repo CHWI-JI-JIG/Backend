@@ -6,13 +6,13 @@ from datetime import datetime
 from Commons.helpers import check_hex_string
 from Commons.format import KOREA_TIME_FORMAT
 
-# from Domains.Members import *
+from Domains.Orders import *
 from Domains.Products import *
 
 from icecream import ic
 
 
-class OrderIDBuilder(IProductIDBuilder):
+class OrderIDBuilder(IOrderIDBuilder):
     def __init__(self):
         self.uuid: Optional[UUID] = None
         self.sequence: Optional[int] = None
@@ -38,13 +38,13 @@ class OrderIDBuilder(IProductIDBuilder):
 
         return self
 
-    def build(self) -> ProductID:
+    def build(self) -> OrderID:
         match (self.uuid, self.sequence):
             case (uuid, seq) if isinstance(uuid, UUID):
                 if seq is None:
                     seq = -1
 
-                return ProductID(
+                return OrderID(
                     uuid=uuid,
                     sequence=seq,
                 )

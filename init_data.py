@@ -104,3 +104,4 @@ def init_product():
             product_list.append(product)
         case a:
             assert False, f"Fail Create Member:{a}"
+            

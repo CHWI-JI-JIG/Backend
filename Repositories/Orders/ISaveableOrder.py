@@ -8,6 +8,6 @@ from Domains.Members import *
 from Domains.Orders import *
 
 
-class ISaveOrder(mataclass=ABCMeta):
+class ISaveableOrder(metaclass=ABCMeta):
     @abstractmethod
     def save_order(self, order: Order) -> Result[OrderID, str]: ...
