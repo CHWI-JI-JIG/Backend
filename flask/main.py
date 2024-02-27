@@ -14,11 +14,12 @@ from Domains.Sessions import MemberSession
 
 import sys
 from pathlib import Path
+import json
 
 SECRETSPATH = __init__.root_path/"secrets.json"
 
 with SECRETSPATH.open('r') as f:
-    secrets = jsonify.load(f)
+    secrets = json.load(f)
 
 app = Flask(__name__)
 app.secret_key = secrets['SECRET_KEY']
@@ -42,7 +43,7 @@ def login():
             ic(member_session)
             session['key'] = member_session.get_id()
             session['auth'] = member_session.role.name
-            return jsonify({'success': True, 'certification' : 'true','key': member_session.get_id(), 'auth' : str(member_session.role.name), 'name': str(member_session.name)}), 200
+            return jsonify({'success': True, 'certification' : True,'key': member_session.get_id(), 'auth' : str(member_session.role.name), 'name': str(member_session.name)}), 200
         case Err(e):
             return jsonify({'success': False}), 401
 
