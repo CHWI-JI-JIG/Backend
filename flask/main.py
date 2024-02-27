@@ -15,6 +15,7 @@ from Domains.Sessions import MemberSession
 import sys
 from pathlib import Path
 import json
+from flask_cors import CORS
 
 SECRETSPATH = __init__.root_path/"secrets.json"
 
@@ -22,6 +23,7 @@ with SECRETSPATH.open('r') as f:
     secrets = json.load(f)
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = secrets['SECRET_KEY']
 
 @app.route('/api/login', methods=['POST'])
