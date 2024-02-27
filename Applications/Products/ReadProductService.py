@@ -5,10 +5,12 @@ from result import Result, Ok, Err
 
 from uuid import uuid4, UUID
 
+from Commons.helpers import check_hex_string
 from Domains.Members import *
 from Domains.Sessions import *
 from Domains.Products import *
 from Builders.Members import *
+from Builders.Products import *
 from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
 from datetime import datetime, timedelta
@@ -28,7 +30,18 @@ class ReadProductService:
 
         self.product_repo = get_product_repo
 
-    def get_product_by_create_date(
+    def get_product_for_detail_page(
+        self,
+        product_id: str,
+    ) -> Optional[Product]:
+        assert check_hex_string(product_id), "The product_id is not in hex format."
+        id = ProductIDBuilder().set_uuid(product_id).build()
+
+        assert isinstance(id, MemberID), "Type of product_id is ProductID."
+
+        return self.product_repo.get_product_by_product_id(seller_id=id)
+
+    def get_product_data_for_main_page(
         self,
         page=0,
         size=10,
@@ -44,9 +57,12 @@ class ReadProductService:
                 Ok( int, list ): int=> count of list max, list=> result
                 Err(str): reason of Fail
         """
-        ...
+        return self.get_product_by_create_date(
+            page=page,
+            size=size,
+        )
 
-    def get_product_by_seller_id(
+    def get_product_data_for_seller_page(
         self,
         seller_id: str,
         page=0,
@@ -60,4 +76,13 @@ class ReadProductService:
                 Ok( int, list ): int=> count of list max, list=> result
                 Err(str): reason of Fail
         """
-        ...
+        assert check_hex_string(seller_id), "The seller_id is not in hex format."
+        member_id = MemberIDBuilder().set_uuid(seller_id).build()
+
+        assert isinstance(member_id, MemberID), "Type of seller_id is MemberID."
+
+        return self.product_repo.get_products_by_seller_id(
+            seller_id=member_id,
+            page=page,
+            size=size,
+        )
