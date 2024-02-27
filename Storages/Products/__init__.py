@@ -8,9 +8,9 @@ if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
 from Storages.Products.MySqlSaveProduct import MySqlSaveProduct
-from Storages.Products.GetableProduct import GetableProduct
+from Storages.Products.MySqlGetProduct import MySqlGetProduct
 
 __all__=[
     "MySqlSaveProduct",
-    "GetableProduct",
+    "MySqlGetProduct",
 ]
