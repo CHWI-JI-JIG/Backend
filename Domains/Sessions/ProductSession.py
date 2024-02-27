@@ -5,6 +5,8 @@ from typing import Optional, Self
 from uuid import uuid4, UUID
 import json
 from pathlib import Path
+from result import Result, Err, Ok
+from datetime import datetime
 
 
 from Commons.helpers import check_hex_string
@@ -12,32 +14,17 @@ from Domains.Sessions import ISessionSerializeable, ISesseionBuilder
 from Domains import ID
 from Domains.Members import *
 from Builders.Members import *
+from Builders.Products import *
 from Domains.Products import *
 
 from icecream import ic
 
 
-class ProductSession(Product, ISessionSerializeable):
-
-    def serialize_key(self) -> str:
-        return self.id.get_id()
-
-    def serialize_value(self) -> str:
-        return json.dumps(
-            {
-                "seller_id": self.seller_id,
-                "name": self.name,
-                "price": self.price,
-                "description": self.description,
-            }
-        )
-
-
 @dataclass(frozen=True)
-class ProductTempSession:
+class ProductTempSession(ID, ISessionSerializeable):
     key: UUID
-    product: Product
-    img_id: Optional[Path]
+    product: Optional[Product]
+    img: str = ""
 
     def get_id(self) -> str:
         return self.key.hex
@@ -46,30 +33,67 @@ class ProductTempSession:
         return self.get_id()
 
     def serialize_value(self) -> str:
-        return json.dumps(
-            {
-                "seq": str(self.seq),
-                "member_id": self.member_id.get_id(),
-                "name": self.name,
-                "role": str(self.role),
-            },
-            ensure_ascii=False,
-        )
+        match (self.product, self.img):
+            case (p, i) if isinstance(p, Product) and len(i) > 0:
+                return json.dumps(
+                    {
+                        "check_product": True,
+                        "check_img": True,
+                        "seller_id": p.seller_id,
+                        "name": p.name,
+                        "price": p.price,
+                        "description": p.description,
+                        "img": i,
+                    },
+                    ensure_ascii=False,
+                )
+
+            case (none, i) if len(i) > 0 and none is None:
+                return json.dumps(
+                    {
+                        "check_product": False,
+                        "check_img": True,
+                        "img": i,
+                    },
+                    ensure_ascii=False,
+                )
+            case (p, none) if len(none) <= 0 and isinstance(p):
+                return json.dumps(
+                    {
+                        "check_product": True,
+                        "check_img": False,
+                        "seller_id": p.seller_id,
+                        "name": p.name,
+                        "price": p.price,
+                        "description": p.description,
+                    },
+                    ensure_ascii=False,
+                )
+            case _:
+                return json.dumps(
+                    {
+                        "check_product": False,
+                        "check_img": False,
+                    },
+                    ensure_ascii=False,
+                )
 
 
-class MemberSessionBuilder(ISesseionBuilder):
+class ProductSessionBuilder(ISesseionBuilder):
     def __init__(
         self,
         key: Optional[UUID] = None,
-        member_id: Optional[MemberID] = None,
         name: Optional[str] = None,
-        seq: int = -1,
+        price: Optional[int] = None,
+        description: Optional[str] = None,
+        img_path: Optional[str] = None,
     ):
-        self.seq = seq
         self.key = key
-        self.mid = member_id
-        self.name: Optional[str] = name
-        self.role: Optional[RoleType] = None
+        self.seller_id: Optional[MemberID] = None
+        self.name: Optional[name] = name
+        self.price = price
+        self.description = description
+        self.img_path = img_path
 
     def set_deserialize_key(self, key: str) -> Self:
         self.set_key(key)
@@ -83,21 +107,41 @@ class MemberSessionBuilder(ISesseionBuilder):
             assert False, "The value is not converted to JSON."
         assert isinstance(to_dict, dict), "Type of convert value is Dict."
 
-        dict_key = "member_id"
+        dict_key = "check_product"
         assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
-        self.set_member_id(to_dict.get(dict_key))
+        if to_dict.get(dict_key):
+            dict_key = "seller_id"
+            assert isinstance(
+                to_dict.get(dict_key), str
+            ), f"{dict_key} is not exsist dict."
+            self.set_seller_id(to_dict.get(dict_key))
 
-        dict_key = "seq"
-        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
-        self.set_seqence(int(to_dict.get(dict_key)))
+            dict_key = "name"
+            assert isinstance(
+                to_dict.get(dict_key), str
+            ), f"{dict_key} is not exsist dict."
+            self.set_name(to_dict.get(dict_key))
 
-        dict_key = "name"
-        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
-        self.set_name(to_dict.get(dict_key))
+            dict_key = "description"
+            assert isinstance(
+                to_dict.get(dict_key), str
+            ), f"{dict_key} is not exsist dict."
+            self.set_description(to_dict.get(dict_key))
 
-        dict_key = "role"
+            dict_key = "price"
+            assert isinstance(
+                to_dict.get(dict_key), str
+            ), f"{dict_key} is not exsist dict."
+            self.set_price(int(to_dict.get(dict_key)))
+
+        dict_key = "check_img"
         assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
-        self.set_role(to_dict.get(dict_key))
+        if to_dict.get(dict_key):
+            dict_key = "img"
+            assert isinstance(
+                to_dict.get(dict_key), str
+            ), f"{dict_key} is not exsist dict."
+            self.set_img_path(to_dict.get(dict_key))
 
         return self
 
@@ -108,23 +152,19 @@ class MemberSessionBuilder(ISesseionBuilder):
         self.name = name
         return self
 
-    def set_role(self, role: str) -> Self:
-        assert self.role is None, "rule is already set."
-        assert isinstance(role, str), "Type of rule is str."
+    def set_description(self, description: str) -> Self:
+        assert self.description is None, "rule is already set."
+        assert isinstance(description, str), "Type of rule is str."
 
-        self.role = RoleType[role.strip(" \n\t").upper()]
-        assert self.role.name in list(
-            RoleType._member_names_
-        ), "Type of rule is RuleType. "
-
+        self.description = description
         return self
 
-    def set_seqence(self, seq: int) -> Self:
-        assert isinstance(seq, int), "Type of seq is int."
-        assert self.seq < 0, "The sequence is already set."
-        assert seq >= 0, "seq >= 0"
+    def set_price(self, price: int) -> Self:
+        assert isinstance(price, int), "Type of price is int."
+        assert self.price < 0, "The priceuence is already set."
+        assert price >= 100, "price >= 0"
 
-        self.seq = seq
+        self.price = price
         return self
 
     def set_key(self, key: Optional[str] = None) -> Self:
@@ -140,33 +180,74 @@ class MemberSessionBuilder(ISesseionBuilder):
 
         return self
 
-    def set_member_id(self, member_id: Optional[str] = None) -> Self:
-        assert self.mid is None, "member id is already set."
+    def set_seller_id(self, seller_id: Optional[str] = None) -> Self:
+        assert self.seller_id is None, "seller id is already set."
 
-        if member_id is None:
+        if seller_id is None:
             id = MemberIDBuilder().set_uuid().build()
-        elif isinstance(member_id, str):
-            id = MemberIDBuilder().set_uuid(member_id).build()
+        elif isinstance(seller_id, str):
+            id = MemberIDBuilder().set_uuid(seller_id).build()
         else:
-            assert False, "Type of member_id is str."
+            assert False, "Type of seller_id is str."
 
         assert isinstance(
-            id, MemberID
+            seller_id, MemberID
         ), "ValueType Error: Initialize the id via MemberIDBuilder."
 
-        self.mid = id
+        self.seller_id = id
         return self
 
-    def build(self) -> MemberSession:
-        assert isinstance(self.mid, MemberID), "You didn't set the member_id."
-        assert isinstance(self.key, UUID), "You didn't set the key."
-        assert isinstance(self.role, RoleType), "You didn't set the rule."
-        assert isinstance(self.name, str), "You didn't set the name."
+    def set_img_path(self, img_path: str) -> Result[Self, str]:
+        from Commons.format import IMG_PATH
+        import os.path
 
-        return MemberSession(
-            seq=self.seq,
+        assert self.img_path is None, "img path is already set."
+        # assert os.path.isfile(
+        #     IMG_PATH / img_path
+        # ), f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path."
+
+        if not os.path.isfile(IMG_PATH / img_path):
+            ic()
+            print("Not Implement")
+            print(f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path.")
+            # return Err(f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path.")
+
+        self.img_path = img_path
+        return Ok(self)
+
+    def build(self) -> ProductTempSession:
+        match (self.name, self.price, self.description, self.seller_id):
+            case (None, None, None, None):
+                product = None
+            case (name, price, description, seller_id) if (
+                isinstance(name, str)
+                and isinstance(price, int)
+                and isinstance(description, str)
+                and isinstance(seller_id, MemberID)
+            ):
+                id = ProductIDBuilder().set_uuid().build()
+                product = Product(
+                    id=id,
+                    seller_id=seller_id,
+                    name=name,
+                    description=description,
+                    img_path="Dump",
+                    register_day=datetime.now(),
+                    price=price,
+                )
+            case _:
+                assert False, "Not Set name, price, description, seller_id."
+
+        match self.img_path:
+            case None:
+                img = ""
+            case img if isinstance(img, str):
+                img = img
+            case _:
+                assert False, "img path don't set."
+
+        return ProductTempSession(
             key=self.key,
-            member_id=self.mid,
-            role=self.role,
-            name=self.name,
+            product=product,
+            img_path=img,
         )

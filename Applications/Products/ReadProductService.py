@@ -5,13 +5,17 @@ from result import Result, Ok, Err
 
 from uuid import uuid4, UUID
 
+from Commons.helpers import check_hex_string
 from Domains.Members import *
 from Domains.Sessions import *
+from Domains.Products import *
 from Builders.Members import *
+from Builders.Products import *
 from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
 from datetime import datetime, timedelta
-from Repositories.Sessions import IMakeSaveMemberSession
+from Repositories.Products import IGetableProduct
+from Repositories.Sessions import ILoadableSession
 
 from icecream import ic
 
@@ -19,96 +23,90 @@ from icecream import ic
 class ReadProductService:
     def __init__(
         self,
-        auth_member_repo: IVerifiableAuthentication,
-        session_repo: IMakeSaveMemberSession,
+        get_product_repo: IGetableProduct,
+        load_session_repo: ILoadableSession,
     ):
         assert issubclass(
-            type(auth_member_repo), IVerifiableAuthentication
-        ), "auth_member_repo must be a class that inherits from IverifiableAuthentication."
+            type(get_product_repo), IGetableProduct
+        ), "get_product_repo must be a class that inherits from IGetableProduct."
 
-        self.auth_repo = auth_member_repo
-        self.session_repo = session_repo
+        self.product_repo = get_product_repo
 
-    def login(self, account: str, passwd: str) -> Result[MemberSession, str]:
+        assert issubclass(
+            type(load_session_repo), ILoadableSession
+        ), "load_session_repo must be a class that inherits from ILoadableSession."
+        self.session_repo = load_session_repo
+
+    def get_product_for_detail_page(
+        self,
+        product_id: str,
+    ) -> Optional[Product]:
+        assert check_hex_string(product_id), "The product_id is not in hex format."
+        id = ProductIDBuilder().set_uuid(product_id).build()
+
+        assert isinstance(id, MemberID), "Type of product_id is ProductID."
+
+        return self.product_repo.get_product_by_product_id(seller_id=id)
+
+    def get_product_data_for_main_page(
+        self,
+        page=0,
+        size=10,
+    ) -> Result[Tuple[int, List[Product]], str]:
         """_summary_
 
         Args:
-            account (str): _description_
-            passwd (str): _description_
+            page (int, optional): _description_. Defaults to 0.
+            size (int, optional): _description_. Defaults to 10.
 
         Returns:
-            Result[MemberSession,str]:
-                Ok():
-                Err(str):
-
+            Result[Tuple[int,List[Product]], str]:
+                Ok( int, list ): int=> count of list max, list=> result
+                Err(str): reason of Fail
         """
-        login_result = self.auth_repo.identify_and_authenticate(
-            account, hashing_passwd(passwd)
+        return self.get_product_by_create_date(
+            page=page,
+            size=size,
         )
 
-        match login_result:
-            case Ok(auth):
-                block_time = self.get_block_time(auth.fail_count)
-                if not self.check_login_able(auth.last_access, block_time):
-                    return Err(f"block : {block_time}")
-                ret = auth
-
-            case Err(e):
-                return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
-
-        if ret.is_sucess:
-            session_result = self.session_repo.make_and_save_session(ret.id)
-            match session_result:
-                case Ok(session):
-                    return Ok(session)
-                case Err(_):
-                    return session_result
-                case _:
-                    assert False, "Value Error"
-        else:
-            self.auth_repo.update_access(ret)
-            ic(login_result)
-            return Err("비밀번호가 틀렸습니다.")
-
-    def get_block_time(self, num_of_incorrect_login: int) -> int:
+    def get_product_data_for_seller_page(
+        self,
+        seller_id: str,
+        user_key: str,
+        page=0,
+        size=10,
+    ) -> Result[Tuple[int, List[Product]], str]:
         """_summary_
-        틀린 횟수에 따른 정지시간을 관리한다.
-        Args:
-            num_of_incorrect (int): _description_
+        Product to look up Products with the same seller_id.
 
         Returns:
-            int: 제한 하는 분 반환 / 제한을 하지 않으면 0반환
+            Result[Tuple[int,List[Product]], str]:
+                Ok( int, list ): int=> count of list max, list=> result
+                Err(str): reason of Fail
+                    'NotExsistKey'
+                    'NotOnwer'
         """
-        #
-        self.block_rule_list: List[Tuple[int, int]] = [
-            (3, 5),  # 3회 틀리면, 5분
-            (5, 30),  # 5회 틀리면 30분
-            (7, 60),  # 7회 틀리면 1시간
-            (9, 1440),  # 9회 틀리면 하루
-            (11, 4320),  # 11회 틀리면 3일
-        ]
-        self.max_block: Tuple[int, int, int] = (
-            13,
-            2,
-            10080,
-        )  # 13회 이후부터는 2번 틀릴때마다 일주일씩 블락
-        for threshold, block_time in self.block_rule_list:
-            if num_of_incorrect_login == threshold:
-                return block_time
+        match self.session_repo.load_session(user_key):
+            case Ok(json):
+                session = (
+                    MemberSessionBuilder()
+                    .set_deserialize_value(json)
+                    .set_deserialize_key(user_key)
+                    .build()
+                )
+            case _:
+                return Err("NotExsistKey")
 
-        # 횟수가 최대 횟수를 초과하는 경우 최대 정지 시간 적용
-        match num_of_incorrect_login - self.max_block[0]:
-            case minus if minus < 0:  # not max
-                return 0
-            case up_max:
-                return ((up_max + 1) % self.max_block[1]) * self.max_block[2]
+        assert check_hex_string(seller_id), "The seller_id is not in hex format."
+        member_id = MemberIDBuilder().set_uuid(seller_id).build()
 
-    def check_login_able(self, last_access: datetime, block_minute: int) -> bool:
-        """
-        로그인 가능 여부를 확인하는 함수
-        """
-        # 잠긴 상태에서 시간이 지난 경우 잠금 해제
-        if last_access < datetime.now() - timedelta(minutes=block_minute):
-            return True
-        else:
-            return False
+        assert isinstance(member_id, MemberID), "Type of seller_id is MemberID."
+
+        if session.member_id.get_id() == member_id.get_id():
+            return self.product_repo.get_products_by_seller_id(
+                seller_id=member_id,
+                page=page,
+                size=size,
+            )
+
+        return Err("NotOnwer")

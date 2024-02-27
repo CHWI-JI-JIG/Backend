@@ -11,10 +11,14 @@ from Storages.Members.LoginVerifiableAuthentication import LoginVerifiableAuthen
 from Storages.Sessions.MakeSaveMemberSession import MakeSaveMemberSession
 from result import Result, Ok, Err
 from Domains.Sessions import MemberSession
+from mysql_config import mysql_db
 
 import sys
 from pathlib import Path
 import json
+from flask_cors import CORS
+
+import pymysql
 
 SECRETSPATH = __init__.root_path/"secrets.json"
 
@@ -22,7 +26,26 @@ with SECRETSPATH.open('r') as f:
     secrets = json.load(f)
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = secrets['SECRET_KEY']
+
+def check_id_duplicate(account):
+    db = pymysql.connect(**mysql_db)
+    
+    try:
+        with db.cursor() as cursor:
+            sql = f"SELECT account FROM {get_db_padding()}user WHERE account = %s"
+            cursor.execute(sql, (account,))
+            result = cursor.fetchone()
+    finally:
+        db.close()
+        
+    if result:
+        return True
+    else:
+        return False    
+        
+
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -46,6 +69,12 @@ def login():
             return jsonify({'success': True, 'certification' : True,'key': member_session.get_id(), 'auth' : str(member_session.role.name), 'name': str(member_session.name)}), 200
         case Err(e):
             return jsonify({'success': False}), 401
+
+@app.route('/api/check-id', methods=['GET'])
+def check_id():
+    id = request.args.get('id', default='', type=str)
+    duplicated = check_id_duplicate(id)
+    return jsonify({'duplicated': duplicated})
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
