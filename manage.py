@@ -36,6 +36,7 @@ def parse_opt():
             r"Tests/Members/test_member_service.py",
             r"Tests/Members/test_user_migrate.py",
             r"Tests/Products/test_product_builder.py",
+            r"Tests/Products/test_product_service.py",
             # r"",
         ],
     )
