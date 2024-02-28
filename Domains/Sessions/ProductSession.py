@@ -24,7 +24,7 @@ from icecream import ic
 class ProductTempSession(ID, ISessionSerializeable):
     key: UUID
     product: Optional[Product]
-    img: str = ""
+    img_path: str = ""
 
     def get_id(self) -> str:
         return self.key.hex
@@ -33,17 +33,17 @@ class ProductTempSession(ID, ISessionSerializeable):
         return self.get_id()
 
     def serialize_value(self) -> str:
-        match (self.product, self.img):
+        match (self.product, self.img_path):
             case (p, i) if isinstance(p, Product) and len(i) > 0:
                 return json.dumps(
                     {
                         "check_product": True,
                         "check_img": True,
-                        "seller_id": p.seller_id,
+                        "seller_id": p.seller_id.get_id(),
                         "name": p.name,
                         "price": p.price,
                         "description": p.description,
-                        "img": i,
+                        "img_path": i,
                     },
                     ensure_ascii=False,
                 )
@@ -53,16 +53,16 @@ class ProductTempSession(ID, ISessionSerializeable):
                     {
                         "check_product": False,
                         "check_img": True,
-                        "img": i,
+                        "img_path": i,
                     },
                     ensure_ascii=False,
                 )
-            case (p, none) if len(none) <= 0 and isinstance(p):
+            case (p, none) if len(none) <= 0 and isinstance(p, Product):
                 return json.dumps(
                     {
                         "check_product": True,
                         "check_img": False,
-                        "seller_id": p.seller_id,
+                        "seller_id": p.seller_id.get_id(),
                         "name": p.name,
                         "price": p.price,
                         "description": p.description,
@@ -108,7 +108,9 @@ class ProductSessionBuilder(ISesseionBuilder):
         assert isinstance(to_dict, dict), "Type of convert value is Dict."
 
         dict_key = "check_product"
-        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
+        assert isinstance(
+            to_dict.get(dict_key), bool
+        ), f"{dict_key} is not exsist dict."
         if to_dict.get(dict_key):
             dict_key = "seller_id"
             assert isinstance(
@@ -130,14 +132,16 @@ class ProductSessionBuilder(ISesseionBuilder):
 
             dict_key = "price"
             assert isinstance(
-                to_dict.get(dict_key), str
+                to_dict.get(dict_key), int
             ), f"{dict_key} is not exsist dict."
             self.set_price(int(to_dict.get(dict_key)))
 
         dict_key = "check_img"
-        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
+        assert isinstance(
+            to_dict.get(dict_key), bool
+        ), f"{dict_key} is not exsist dict."
         if to_dict.get(dict_key):
-            dict_key = "img"
+            dict_key = "img_path"
             assert isinstance(
                 to_dict.get(dict_key), str
             ), f"{dict_key} is not exsist dict."
@@ -161,7 +165,7 @@ class ProductSessionBuilder(ISesseionBuilder):
 
     def set_price(self, price: int) -> Self:
         assert isinstance(price, int), "Type of price is int."
-        assert self.price < 0, "The priceuence is already set."
+        assert self.price is None, "The priceuence is already set."
         assert price >= 100, "price >= 0"
 
         self.price = price
@@ -180,18 +184,16 @@ class ProductSessionBuilder(ISesseionBuilder):
 
         return self
 
-    def set_seller_id(self, seller_id: Optional[str] = None) -> Self:
+    def set_seller_id(self, seller_id: str) -> Self:
         assert self.seller_id is None, "seller id is already set."
 
-        if seller_id is None:
-            id = MemberIDBuilder().set_uuid().build()
-        elif isinstance(seller_id, str):
+        if isinstance(seller_id, str):
             id = MemberIDBuilder().set_uuid(seller_id).build()
         else:
             assert False, "Type of seller_id is str."
 
         assert isinstance(
-            seller_id, MemberID
+            id, MemberID
         ), "ValueType Error: Initialize the id via MemberIDBuilder."
 
         self.seller_id = id
@@ -240,14 +242,14 @@ class ProductSessionBuilder(ISesseionBuilder):
 
         match self.img_path:
             case None:
-                img = ""
-            case img if isinstance(img, str):
-                img = img
+                img_path = ""
+            case img_path if isinstance(img_path, str):
+                img_path = img_path
             case _:
                 assert False, "img path don't set."
 
         return ProductTempSession(
             key=self.key,
             product=product,
-            img_path=img,
+            img_path=img_path,
         )
