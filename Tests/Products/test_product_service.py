@@ -210,7 +210,6 @@ class test_product_service(unittest.TestCase):
                 self.assertEqual(len(reversed_products), max)
                 f, l = (page * size, page * size + size)
                 l = l if l < max else -1
-                ic(products)
 
                 for v, i in zip(reversed_products[f:l], products):
                     self.assertEqual(v.get_id(), i.id.get_id())
