@@ -305,7 +305,7 @@ def init_comment():
     from Domains.Comments import CommentID
     from uuid import uuid4
 
-    product_list.clear()
+    comment_list.clear()
     create = MySqlSaveComment(get_db_padding())
 
     id = CommentIDBuilder().set_uuid().set_seqence(1).build()
