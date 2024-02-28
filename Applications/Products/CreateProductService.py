@@ -46,4 +46,9 @@ class CreateProductService:
     def create(
         self,
         product_key: str,
-    ) -> Result[ProductID, str]: ...
+    ) -> Result[ProductID, str]:
+        from uuid import uuid4
+
+        return Ok(ProductID(uuid=uuid4(), sequence=1))
+
+        return Err("11")

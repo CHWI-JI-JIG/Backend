@@ -1,21 +1,24 @@
 import __init__
 
-from flask import Flask, session, jsonify, request
+from flask import Flask, session, jsonify, request, redirect, url_for
+from werkzeug.utils import secure_filename
+
 from Applications.Members.CreateMemberService import CreateMemberService
 from Applications.Members.LoginMemberService import AuthenticationMemberService
 from Applications.Products.ReadProductService import ReadProductService
+from Applications.Products.CreateProductService import CreateProductService
 from get_config_data import get_db_padding
 from icecream import ic
 
 from Storages.Members.MySqlSaveMember import  MySqlSaveMember
 from Storages.Members.LoginVerifiableAuthentication import LoginVerifiableAuthentication
-from Storages.Sessions.MakeSaveMemberSession import MakeSaveMemberSession
-from Storages.Sessions.MySqlLoadSession import MySqlSaveSession
+from Storages.Sessions import *
 from Storages.Products.MySqlGetProduct import MySqlGetProduct
 from result import Result, Ok, Err
 from Domains.Sessions import MemberSession
 from mysql_config import mysql_db
 
+import os
 import sys
 import math
 from pathlib import Path
@@ -25,6 +28,9 @@ from flask_cors import CORS
 import pymysql
 
 SECRETSPATH = __init__.root_path/"secrets.json"
+IMG_PATH = __init__.root_path/"Images"
+#ALLOWED_EXTENSIONS = {'png', 'jpeg', 'jpg', 'gif'}
+
 
 with SECRETSPATH.open('r') as f:
     secrets = json.load(f)
@@ -32,6 +38,11 @@ with SECRETSPATH.open('r') as f:
 app = Flask(__name__)
 CORS(app)
 app.secret_key = secrets['SECRET_KEY']
+app.config['UPLOAD_FOLDER'] = IMG_PATH
+
+#def allowed_file(filename):
+#    return '.' in filename and \
+#           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def check_id_duplicate(account):
     db = pymysql.connect(**mysql_db)
@@ -60,7 +71,7 @@ def search():
     page -= 1
     totalCount = 0
     totalPage = 0
-    size = 20
+    size = 3
     
     
     try:
@@ -105,11 +116,65 @@ def search():
     
     return jsonify(response)
 
+@app.route('/api/product-registration', methods = ['POST'])
+def productRegistration():
+    
+    if 'file' not in request.files:
+            return jsonify({"error": "Invalid image file."}), 400
+    
+    data = request.get_json()
+    memberAuth = data.get('key')
+    tempProductId = data.get('tempProductId')
+    productImagePath = data.get("productImagePath")
+    productName = data.get('productName')
+    productPrice = data.get('productPrice')
+    productDescription = data.get('productDescription')
+    #productRegistrationData = data.get('productRegistrationData')
+    #sellerId = data.get('sellerId')
+    
+    file = request.files['file']
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    
+    member_save_repo = MySqlSaveMember(get_db_padding())
+    regi = CreateProductService(member_save_repo)
+    check = regi.publish_temp_product_id(memberAuth)
+    match check:
+        case Ok(member_session):
+            check = member_session
+        case _:
+            return jsonify({'success' : False})
+            
+    regiImg = regi.check_upload_image_path(productImagePath, check.get_id())
+    match regiImg:
+        case Ok(member_session):
+            pass
+            # regiImg = member_session
+        case _:
+            return jsonify({'success': False})
+    
+    productInfo = regi.upload_product_data(productName, productPrice, productDescription, check.get_id())
+    match productInfo:
+        case Ok(member_session):
+            pass
+            # productInfo = member_session
+        case _:
+            return jsonify({'success': False})
+        
+    result = regi.create(check.get_id())
+    match result:
+        case Ok(member_session):
+            return jsonify({'success': True})
+        case Err(e):
+            return jsonify({'success': False})
+            
+
+
 @app.route('/api/products', methods=['get'])
 def product():
     
     get_product_repo = MySqlGetProduct(get_db_padding())
-    load_session_repo = MySqlSaveSession(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
     
     get_product_info = ReadProductService(get_product_repo, load_session_repo)
     
