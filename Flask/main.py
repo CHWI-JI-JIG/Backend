@@ -62,7 +62,6 @@ def search():
     totalPage = 0
     size = 20
     
-    data = []
     
     try:
         with db.cursor() as cursor:
@@ -78,16 +77,29 @@ def search():
             offset = page * size
             sql = f"SELECT * FROM {get_db_padding()}product WHERE name LIKE %s LIMIT %s, %s"
             cursor.execute(sql, (keyword,offset, size))
-            data = cursor.fetchall()
+            rows = cursor.fetchall()
+            data = []
+            for row in rows:
+                temp_data = {
+                    "sellerId": row[0],
+                    "productId": row[1],
+                    "seq": row[2],
+                    "productName": row[3],
+                    "productImgUrl": row[4],
+                    "productPrice": row[5],
+                    "productDescription": row[6],
+                    "date": row[7]
+                }
+                data.append(temp_data)
     finally:
         db.close()
         
     response = {
-        'page': page+1,
-        'totalPage' : totalPage,
-        'totalCount' : totalCount,
-        'size' : size,
-        'data' : data
+        "page": page+1,
+        "totalPage" : totalPage,
+        "totalCount" : totalCount,
+        "size" : size,
+        "data" : data
         
     }
     
