@@ -44,11 +44,15 @@ class CreateProductService:
         self, member_session_key: str
     ) -> Result[ProductTempSession, str]:
         # check member session
-        match self.load_repo.load_session(member_session_key).unwrap():
+        match self.load_repo.load_session(member_session_key):
             case Ok(json):
-                MemberSessionBuilder().set_deserialize_key(
-                    member_session_key
-                ).set_deserialize_value(json).unwrap().build()
+                user_session = (
+                    MemberSessionBuilder()
+                    .set_deserialize_key(member_session_key)
+                    .set_deserialize_value(json)
+                    .unwrap()
+                    .build()
+                )
             case _:
                 return Err("plz login")
 
@@ -71,4 +75,9 @@ class CreateProductService:
     def create(
         self,
         product_key: str,
-    ) -> Result[ProductID, str]: ...
+    ) -> Result[ProductID, str]:
+        from uuid import uuid4
+
+        return Ok(ProductID(uuid=uuid4(), sequence=1))
+
+        return Err("11")
