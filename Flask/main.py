@@ -112,7 +112,7 @@ def search():
 def product():
 
     get_product_repo = MySqlGetProduct(get_db_padding())
-    load_session_repo = MySqlSaveSession(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
 
     get_product_info = ReadProductService(get_product_repo, load_session_repo)
 
