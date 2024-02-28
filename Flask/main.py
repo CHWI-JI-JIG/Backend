@@ -119,8 +119,8 @@ def search():
 @app.route('/api/product-registration', methods = ['POST'])
 def productRegistration():
     
-    if 'file' not in request.files:
-            return jsonify({"error": "Invalid image file."}), 400
+    #if 'file' not in request.files:
+    #        return jsonify({"error": "Invalid image file."}), 400
     
     data = request.get_json()
     memberAuth = data.get('key')
@@ -129,12 +129,12 @@ def productRegistration():
     productName = data.get('productName')
     productPrice = data.get('productPrice')
     productDescription = data.get('productDescription')
-    #productRegistrationData = data.get('productRegistrationData')
-    #sellerId = data.get('sellerId')
+    productRegistrationData = data.get('productRegistrationData')
+    sellerId = data.get('sellerId')
     
-    file = request.files['file']
-    filename = secure_filename(file.filename)
-    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    #file = request.files['file']
+    #filename = secure_filename(file.filename)
+    #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     
     member_save_repo = MySqlSaveMember(get_db_padding())
     regi = CreateProductService(member_save_repo)

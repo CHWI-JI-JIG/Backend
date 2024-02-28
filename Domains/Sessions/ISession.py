@@ -1,6 +1,7 @@
 import __init__
 from abc import ABCMeta, abstractmethod
 from typing import Self
+from result import Result
 
 
 class ISessionSerializeable(metaclass=ABCMeta):
@@ -16,4 +17,4 @@ class ISesseionBuilder(metaclass=ABCMeta):
     def set_deserialize_key(self, key: str) -> Self: ...
 
     @abstractmethod
-    def set_deserialize_value(self, value: str) -> Self: ...
+    def set_deserialize_value(self, value: str) -> Result[Self, str]: ...
