@@ -35,132 +35,121 @@ class test_product_builder(unittest.TestCase):
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
         product_id = ProductIDBuilder().set_uuid(id).build()
-        new_session = ProductSessionBuilder().set_img_path("img.jpg").unwrap().build()
-        ic(new_session)
+        new_session = (
+            ProductSessionBuilder().set_img_path("img.jpg").unwrap().set_key().build()
+        )
         self.assertEqual(
-            '{"seq": "10", "member_id": "d697b39f733a426f96a13fc40c8bf061", "name": "이탁균", "role": "buyer"}',
+            '{"check_product": false, "check_img": true, "img_path": "img.jpg"}',
             new_session.serialize_value(),
         )
 
         read_session = (
-            MemberSessionBuilder()
+            ProductSessionBuilder()
             .set_deserialize_key(new_session.get_id())
             .set_deserialize_value(new_session.serialize_value())
             .build()
         )
         self.assertEqual(new_session, read_session)
 
-    @unittest.skip("Must skip")
     def test_product_session_상품만(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
+
         product_id = ProductIDBuilder().set_uuid(id).build()
         new_session = (
             ProductSessionBuilder()
+            .set_description("이 오븐은 효율적이고 안전한 방식으로 음식을 구워줍니다.")
+            .set_seller_id("82090bfba6d04a84a669c2a97c0ef283")
+            .set_name("오븐")
+            .set_price(9513)
             .set_key()
-            .set_member_id(id)
-            .set_role("buyer")
-            .set_name("이탁균")
-            .set_seqence(10)
             .build()
         )
         self.assertEqual(
-            '{"seq": "10", "member_id": "d697b39f733a426f96a13fc40c8bf061", "name": "이탁균", "role": "buyer"}',
+            r'{"check_product": true, "check_img": false, "seller_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "오븐", "price": 9513, "description": "이 오븐은 효율적이고 안전한 방식으로 음식을 구워줍니다."}',
             new_session.serialize_value(),
         )
 
         read_session = (
-            MemberSessionBuilder()
+            ProductSessionBuilder()
             .set_deserialize_key(new_session.get_id())
             .set_deserialize_value(new_session.serialize_value())
             .build()
         )
-        self.assertEqual(new_session, read_session)
+        self.assertEqual(new_session.serialize_value(), read_session.serialize_value())
 
-    @unittest.skip("Must skip")
     def test_product_session_둘다(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
+
         product_id = ProductIDBuilder().set_uuid(id).build()
         new_session = (
             ProductSessionBuilder()
+            .set_description("이 오븐은 효율적이고 안전한 방식으로 음식을 구워줍니다.")
+            .set_seller_id("82090bfba6d04a84a669c2a97c0ef283")
+            .set_name("오븐")
+            .set_price(9513)
+            .set_img_path("img.jpg")
+            .unwrap()
             .set_key()
-            .set_member_id(id)
-            .set_role("buyer")
-            .set_name("이탁균")
-            .set_seqence(10)
             .build()
         )
         self.assertEqual(
-            '{"seq": "10", "member_id": "d697b39f733a426f96a13fc40c8bf061", "name": "이탁균", "role": "buyer"}',
+            r'{"check_product": true, "check_img": true, "seller_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "오븐", "price": 9513, "description": "이 오븐은 효율적이고 안전한 방식으로 음식을 구워줍니다.", "img_path": "img.jpg"}',
             new_session.serialize_value(),
         )
 
         read_session = (
-            MemberSessionBuilder()
-            .set_deserialize_key(new_session.get_id())
-            .set_deserialize_value(new_session.serialize_value())
-            .build()
-        )
-        self.assertEqual(new_session, read_session)
-
-    @unittest.skip("Must skip")
-    def test_product_session_이미지_후_상품(self):
-        "Hook method for deconstructing the test fixture after testing it."
-        print("\t\t", sys._getframe(0).f_code.co_name)
-        id = "d697b39f733a426f96a13fc40c8bf061"
-        product_id = ProductIDBuilder().set_uuid(id).build()
-        new_session = (
             ProductSessionBuilder()
-            .set_key()
-            .set_member_id(id)
-            .set_role("buyer")
-            .set_name("이탁균")
-            .set_seqence(10)
-            .build()
-        )
-        self.assertEqual(
-            '{"seq": "10", "member_id": "d697b39f733a426f96a13fc40c8bf061", "name": "이탁균", "role": "buyer"}',
-            new_session.serialize_value(),
-        )
-
-        read_session = (
-            MemberSessionBuilder()
             .set_deserialize_key(new_session.get_id())
             .set_deserialize_value(new_session.serialize_value())
             .build()
         )
-        self.assertEqual(new_session, read_session)
+        self.assertEqual(new_session.serialize_value(), read_session.serialize_value())
 
-    @unittest.skip("Must skip")
     def test_product_session_상품_후_이미지(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
+
         product_id = ProductIDBuilder().set_uuid(id).build()
         new_session = (
             ProductSessionBuilder()
+            .set_description("이 오븐은 효율적이고 안전한 방식으로 음식을 구워줍니다.")
+            .set_seller_id("82090bfba6d04a84a669c2a97c0ef283")
+            .set_name("오븐")
+            .set_price(9513)
             .set_key()
-            .set_member_id(id)
-            .set_role("buyer")
-            .set_name("이탁균")
-            .set_seqence(10)
             .build()
         )
         self.assertEqual(
-            '{"seq": "10", "member_id": "d697b39f733a426f96a13fc40c8bf061", "name": "이탁균", "role": "buyer"}',
+            r'{"check_product": true, "check_img": false, "seller_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "오븐", "price": 9513, "description": "이 오븐은 효율적이고 안전한 방식으로 음식을 구워줍니다."}',
             new_session.serialize_value(),
         )
 
         read_session = (
-            MemberSessionBuilder()
+            ProductSessionBuilder()
             .set_deserialize_key(new_session.get_id())
             .set_deserialize_value(new_session.serialize_value())
             .build()
         )
-        self.assertEqual(new_session, read_session)
+        self.assertEqual(new_session.serialize_value(), read_session.serialize_value())
+
+        read_read_session = (
+            ProductSessionBuilder()
+            .set_deserialize_key(read_session.get_id())
+            .set_deserialize_value(read_session.serialize_value())
+            .set_img_path("img.jpg")
+            .unwrap()
+            .build()
+        )
+
+        self.assertEqual(
+            '{"check_product": true, "check_img": true, "seller_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "오븐", "price": 9513, "description": "이 오븐은 효율적이고 안전한 방식으로 음식을 구워줍니다.", "img_path": "img.jpg"}',
+            read_read_session.serialize_value(),
+        )
 
 
 def main():

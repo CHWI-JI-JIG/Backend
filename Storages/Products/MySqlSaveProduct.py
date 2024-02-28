@@ -62,7 +62,7 @@ INSERT INTO {product_table_name} (
                 )
                 # 변경 사항을 커밋
                 connection.commit()
-                return Ok(product.id.uuid)
+                return Ok(product.id)
         except Exception as e:
             connection.rollback()
             connection.close()
