@@ -4,9 +4,9 @@ from typing import Optional
 from result import Result, Ok, Err
 
 from Domains.Members import *
+from Domains.Sessions import * 
 from Builders.Members import *
 from Repositories.Members import *
-from Applications.Members.ExtentionMethod import hashing_passwd
 
 from icecream import ic
 
@@ -24,7 +24,7 @@ class CreateProductService:
 
         self.save_repo = save_member_repo
 
-    # def publish_temp_product_id(self, member_session_key:str)->
+    def publish_temp_product_id(self, member_session_key:str)-> Result[]
 
     def create(
         self,
