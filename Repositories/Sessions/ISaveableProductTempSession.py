@@ -10,7 +10,7 @@ from Domains.Sessions import *
 
 class ISaveableProductTempSession(metaclass=ABCMeta):
     @abstractmethod
-    def save_product_temp_session(
+    def upload_or_save_product_temp_session(
         self, session: ProductTempSession
     ) -> Result[ProductTempSession, str]:
         """
