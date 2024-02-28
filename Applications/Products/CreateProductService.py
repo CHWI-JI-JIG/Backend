@@ -8,6 +8,8 @@ from Domains.Products import *
 from Domains.Sessions import *
 from Builders.Members import *
 from Repositories.Members import *
+from Repositories.Products import *
+from Repositories.Sessions import *
 
 from icecream import ic
 
@@ -16,14 +18,16 @@ class CreateProductService:
     def __init__(
         self,
         # read_member_repo: IReadableMember,
-        save_member_repo: ISaveableMember,
+        save_product: ISaveableProduct,
+        save_product_session: ISaveableProductTempSession,
+        load_Product_session: ILoadableSession,
     ):
         # self.read_repo = read_member_repo
         assert issubclass(
-            type(save_member_repo), ISaveableMember
+            type(save_product), ISaveableMember
         ), "save_member_repo must be a class that inherits from ISaveableMember."
 
-        self.save_repo = save_member_repo
+        self.product_repo = save_product
 
     def publish_temp_product_id(
         self, member_session_key: str
