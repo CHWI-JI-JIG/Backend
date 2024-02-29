@@ -166,12 +166,14 @@ def main(opt):
             ), "Type of --clear_db_init is bool."
             migrate(opt.clear_db_init)
             assert isinstance(opt.init, bool), "Type of --init is bool."
-            from init_data import init_member, init_product,init_comment
+            from init_data import init_member, init_product,init_comment,init_order
 
             if opt.init:
                 init_member()
                 init_product()
                 init_comment()
+                init_order()
+                
         case "flask":
             flask(debug, opt.host, opt.port)
         case "delete-storage":
