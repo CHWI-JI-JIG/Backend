@@ -16,7 +16,6 @@ class Comment:
     product_id: ProductID
     writer_id: MemberID
     writer_account: str
-    seller_account: str
     answer: Optional[str]
     question: str
 
@@ -33,9 +32,6 @@ class ICommentBuilder(metaclass=ABCMeta):
 
     @abstractmethod
     def set_writer_account(self, writer_account: str) -> Self: ...
-
-    @abstractmethod
-    def set_seller_account(self, seller_account: str) -> Self: ...
 
     @abstractmethod
     def set_question(self, question: str) -> Self: ...

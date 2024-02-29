@@ -89,10 +89,15 @@ def init_member():
 def init_product():
     from Storages.Products import MySqlGetProduct, MySqlSaveProduct
     from Builders.Products import ProductIDBuilder
+    import init_product_data
 
     product_list.clear()
     create = MySqlSaveProduct(get_db_padding())
 
+    init_product_data.init_product()
+
+    return
+#
     id = ProductIDBuilder().set_uuid().set_seqence(1).build()
 
     match create.save_product(
@@ -110,7 +115,7 @@ def init_product():
             product_list.append(product)
         case a:
             assert False, f"Fail Create Member:{a}"
-
+#
     id = ProductIDBuilder().set_uuid().set_seqence(2).build()
     match create.save_product(
         Product(
@@ -305,7 +310,7 @@ def init_comment():
     from Domains.Comments import CommentID
     from uuid import uuid4
 
-    product_list.clear()
+    comment_list.clear()
     create = MySqlSaveComment(get_db_padding())
 
     id = CommentIDBuilder().set_uuid().set_seqence(1).build()
@@ -318,7 +323,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[0],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -336,7 +340,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[1],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -354,7 +357,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[2],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -372,7 +374,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[3],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -390,7 +391,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[4],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -408,7 +408,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[5],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -426,7 +425,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[6],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -444,7 +442,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[7],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -462,7 +459,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[8],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -480,7 +476,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[9],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -498,7 +493,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[10],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
