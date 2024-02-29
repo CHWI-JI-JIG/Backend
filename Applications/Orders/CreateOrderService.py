@@ -34,15 +34,5 @@ class CreateOrderService:
         ), "save_member_repo must be a class that inherits from ILoadableSession."
 
         self.load_repo = load_session
-
-    def create_question(
-        self,
-        product_id: str,
-        user_key: str,
-    ) -> Result[CommentID, str]: ...
-
-    def Add_Answer(
-        self,
-        comment_id: str,
-        user_key: str,
-    ) -> Result[CommentID, str]: ...
+        
+    def 
