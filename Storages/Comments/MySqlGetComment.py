@@ -70,7 +70,7 @@ LIMIT %s, %s;
                         writer_id=writer_id,
                         writer_account=writer_account,
                         answer=answer,
-                        question=question,
+                        question=question, 
                         product_id=product_id
                     )
                     comments.append(comment)
