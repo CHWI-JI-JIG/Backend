@@ -103,7 +103,7 @@ class test_product_service(unittest.TestCase):
         if self.product_migrate.check_exist_product():
             self.product_migrate.delete_product()
 
-    def test_아이디발급_이미지등록후_상품정보_올리고_상품등록(self):
+    def test_아이디발급_이미지등록후_실패한번하고_상품정보_올리고_상품등록(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         service = self.product_create_service
@@ -112,6 +112,7 @@ class test_product_service(unittest.TestCase):
 
         match login.login("1q2w", "123"):
             case Ok(auth):
+                user_id = auth.member_id
                 key = auth.get_id()
             case _:
                 assert False, "fail"
@@ -130,20 +131,39 @@ class test_product_service(unittest.TestCase):
                 assert False, "False"
 
         match service.create(key_session.get_id()):
+            case Err("Not Set Data"):
+                pass
+            case e:
+                ic(e)
+                assert False, "False"
+
+        match service.upload_product_data(
+            product_name="쿠첸",
+            price=12341234,
+            description="쿠쿠하세요. 쿠쿠",
+            product_key=key_session.get_id(),
+        ):
+            case Ok(_):
+                ...
+            case e:
+                ic(e)
+                assert False, "False"
+
+        match service.create(key_session.get_id()):
             case Ok(id):
                 id = id
-            case _:
+            case e:
+                ic(e)
                 assert False, "False"
 
         match self.product_read_service.get_product_for_detail_page(id.get_id()):
             case product if isinstance(product, Product):
-                pass
+                self.assertEqual(product.name, "쿠첸")
+                self.assertEqual(product.description, "쿠쿠하세요. 쿠쿠")
+                self.assertEqual(product.price, 12341234)
+                self.assertEqual(product.seller_id.get_id(), user_id.get_id())
             case _:
                 assert False, "False"
-
-    def test_아이디발급_상품정보_올리고_상품등록(self):
-        "Hook method for deconstructing the test fixture after testing it."
-        print("\t\t", sys._getframe(0).f_code.co_name)
 
     def test_product_main_page(self):
         "Hook method for deconstructing the test fixture after testing it."

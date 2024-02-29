@@ -36,10 +36,15 @@ class test_product_builder(unittest.TestCase):
         id = "d697b39f733a426f96a13fc40c8bf061"
         product_id = ProductIDBuilder().set_uuid(id).build()
         new_session = (
-            ProductSessionBuilder().set_img_path("img.jpg").unwrap().set_key().build()
+            ProductSessionBuilder()
+            .set_img_path("img.jpg")
+            .unwrap()
+            .set_key()
+            .set_seller_id(id)
+            .build()
         )
         self.assertEqual(
-            '{"check_product": false, "check_img": true, "img_path": "img.jpg"}',
+            '{"check_product": false, "check_img": true, "seller_id": "d697b39f733a426f96a13fc40c8bf061", "img_path": "img.jpg"}',
             new_session.serialize_value(),
         )
 
@@ -47,6 +52,7 @@ class test_product_builder(unittest.TestCase):
             ProductSessionBuilder()
             .set_deserialize_key(new_session.get_id())
             .set_deserialize_value(new_session.serialize_value())
+            .unwrap()
             .build()
         )
         self.assertEqual(new_session, read_session)
@@ -75,6 +81,7 @@ class test_product_builder(unittest.TestCase):
             ProductSessionBuilder()
             .set_deserialize_key(new_session.get_id())
             .set_deserialize_value(new_session.serialize_value())
+            .unwrap()
             .build()
         )
         self.assertEqual(new_session.serialize_value(), read_session.serialize_value())
@@ -105,6 +112,7 @@ class test_product_builder(unittest.TestCase):
             ProductSessionBuilder()
             .set_deserialize_key(new_session.get_id())
             .set_deserialize_value(new_session.serialize_value())
+            .unwrap()
             .build()
         )
         self.assertEqual(new_session.serialize_value(), read_session.serialize_value())
@@ -133,6 +141,7 @@ class test_product_builder(unittest.TestCase):
             ProductSessionBuilder()
             .set_deserialize_key(new_session.get_id())
             .set_deserialize_value(new_session.serialize_value())
+            .unwrap()
             .build()
         )
         self.assertEqual(new_session.serialize_value(), read_session.serialize_value())
@@ -141,6 +150,7 @@ class test_product_builder(unittest.TestCase):
             ProductSessionBuilder()
             .set_deserialize_key(read_session.get_id())
             .set_deserialize_value(read_session.serialize_value())
+            .unwrap()
             .set_img_path("img.jpg")
             .unwrap()
             .build()
