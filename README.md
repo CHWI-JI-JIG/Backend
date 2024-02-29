@@ -30,7 +30,7 @@ mysql_db = {
     "user": "USER_NAME",
     "password": "DB_PASSWORD",
     "host": "localhost",
-    "port": "3306",
+    "port": 3306,
     "database": "DATABASE_NAME",
     "charset": "utf8",
 }
