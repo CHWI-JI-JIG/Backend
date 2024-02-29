@@ -91,6 +91,7 @@ class ReadProductService:
                 session = (
                     MemberSessionBuilder()
                     .set_deserialize_value(json)
+                    .unwrap()
                     .set_deserialize_key(user_key)
                     .build()
                 )

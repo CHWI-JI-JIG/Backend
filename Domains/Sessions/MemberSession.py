@@ -11,7 +11,7 @@ from Domains.Sessions import ISessionSerializeable, ISesseionBuilder
 from Domains import ID
 from Domains.Members import *
 from Builders.Members import *
-
+from result import Result, Ok, Err
 from icecream import ic
 
 
@@ -55,27 +55,33 @@ class MemberSessionBuilder(ISesseionBuilder):
         self.set_key(key)
         return self
 
-    def set_deserialize_value(self, value: str) -> Self:
+    def set_deserialize_value(self, value: str) -> Result[Self, str]:
         assert isinstance(value, str), "Type of value is str."
         try:
             to_dict = json.loads(value)
         except:
-            assert False, "The value is not converted to JSON."
+            return Err("fali read json")
         assert isinstance(to_dict, dict), "Type of convert value is Dict."
 
         dict_key = "member_id"
         assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
+        if not isinstance(to_dict.get(dict_key), str):
+            return Err(f"Not Exists {dict_key}")
         self.set_member_id(to_dict.get(dict_key))
 
         dict_key = "name"
         assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
+        if not isinstance(to_dict.get(dict_key), str):
+            return Err(f"Not Exists {dict_key}")
         self.set_name(to_dict.get(dict_key))
 
         dict_key = "role"
         assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
+        if not isinstance(to_dict.get(dict_key), str):
+            return Err(f"Not Exists {dict_key}")
         self.set_role(to_dict.get(dict_key))
 
-        return self
+        return Ok(self)
 
     def set_name(self, name: str) -> Self:
         assert self.name is None, "name is already set."
