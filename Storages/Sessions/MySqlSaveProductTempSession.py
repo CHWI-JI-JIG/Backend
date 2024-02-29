@@ -35,7 +35,7 @@ class MySqlSaveProductTempSession(ISaveableProductTempSession):
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
 
-    def upload_or_save_product_temp_session(
+    def update_or_save_product_temp_session(
         self, session: ProductTempSession
     ) -> Result[ProductTempSession, str]:
         """
