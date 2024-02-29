@@ -38,3 +38,15 @@ class AdminService:
         self.read_repo = edit_repo
         self.edit_repo = edit_repo
         self.load_session_repo = load_session
+
+    def read_members(
+        self,
+        page=0,
+        size=10,
+    ) -> Result[Tuple[int, List[Member]], str]: ...
+
+    def change_role(
+        self,
+        role: str,
+        user_id: str,
+    ) -> Result[MemberID, str]: ...
