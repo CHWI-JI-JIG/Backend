@@ -102,11 +102,8 @@ class ReadProductService:
 
         assert isinstance(member_id, MemberID), "Type of seller_id is MemberID."
 
-        if user_session.member_id.get_id() == member_id.get_id():
-            return self.product_repo.get_products_by_seller_id(
-                seller_id=member_id,
-                page=page,
-                size=size,
-            )
-
-        return Err("NotOnwer")
+        return self.product_repo.get_products_by_seller_id(
+            seller_id=member_id,
+            page=page,
+            size=size,
+        )

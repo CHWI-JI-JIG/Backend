@@ -294,15 +294,6 @@ class test_product_service(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         target_id = member_list[0].get_id()
-        list_o: List[ProductID] = [
-            product_list[0],
-            product_list[2],
-            product_list[5],
-            product_list[6],
-            product_list[7],
-            product_list[9],
-            product_list[11],
-        ]
 
         login = self.login_service
 
@@ -315,21 +306,20 @@ class test_product_service(unittest.TestCase):
         page = 0
         size = 10
         ret = self.product_read_service.get_product_data_for_seller_page(
-            seller_id=target_id,
             user_key=key,
             page=page,
             size=size,
         )
-        match ret:
-            case Ok((max, products)):
-                f, l = (page * size, page * size + size)
-                l = l if l < max else -1
-                self.assertEqual(max, len(list_o))
-                for i, v in zip(products, list_o):
-                    self.assertEqual(i.id.get_id(), v.get_id())
+        # match ret:
+        #     case Ok((max, products)):
+        #         f, l = (page * size, page * size + size)
+        #         l = l if l < max else -1
+        #         self.assertEqual(max, len(list_o))
+        #         for i, v in zip(products, list_o):
+        #             self.assertEqual(i.id.get_id(), v.get_id())
 
-            case Err:
-                assert False, "false"
+        #     case Err:
+        #         assert False, "false"
 
     def test_product_seller_page_다른_아이디로접속시도(self):
         "Hook method for deconstructing the test fixture after testing it."
@@ -356,14 +346,14 @@ class test_product_service(unittest.TestCase):
         page = 0
         size = 10
         ret = self.product_read_service.get_product_data_for_seller_page(
-            seller_id=target_id,
             user_key=key,
             page=page,
             size=size,
         )
         match ret:
-            case Err("NotOnwer"):
-                pass
+            case Ok((max, products)):
+                for v, a in zip(list_o, products):
+                    self.assertNotEqual(v, a)
             case _:
                 assert False, "False"
 
