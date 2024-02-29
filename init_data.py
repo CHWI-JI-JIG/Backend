@@ -89,10 +89,15 @@ def init_member():
 def init_product():
     from Storages.Products import MySqlGetProduct, MySqlSaveProduct
     from Builders.Products import ProductIDBuilder
+    import init_product_data
 
     product_list.clear()
     create = MySqlSaveProduct(get_db_padding())
 
+    init_product_data.init_product()
+
+    return
+#
     id = ProductIDBuilder().set_uuid().set_seqence(1).build()
 
     match create.save_product(
@@ -110,7 +115,7 @@ def init_product():
             product_list.append(product)
         case a:
             assert False, f"Fail Create Member:{a}"
-
+#
     id = ProductIDBuilder().set_uuid().set_seqence(2).build()
     match create.save_product(
         Product(
