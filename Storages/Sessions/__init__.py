@@ -8,9 +8,11 @@ if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
 from Storages.Sessions.MakeSaveMemberSession import MakeSaveMemberSession
+from Storages.Sessions.MySqlSaveProductTempSession import MySqlSaveProductTempSession
 from Storages.Sessions.MySqlLoadSession import MySqlLoadSession
 
 __all__ = [
     "MakeSaveMemberSession",
     "MySqlLoadSession",
+    "MySqlSaveProductTempSession",
 ]
