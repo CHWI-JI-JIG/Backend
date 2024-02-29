@@ -7,10 +7,12 @@ from Domains.Members import *
 from Domains.Products import *
 from Domains.Sessions import *
 from Builders.Members import *
+from Builders.Products import *
 from Repositories.Members import *
 from Repositories.Products import *
 from Repositories.Sessions import *
 
+from datetime import datetime
 from icecream import ic
 
 
@@ -22,9 +24,10 @@ class CreateProductService:
         save_product_session: ISaveableProductTempSession,
         load_session: ILoadableSession,
     ):
+
         assert issubclass(
-            type(save_product), ISaveableMember
-        ), "save_member_repo must be a class that inherits from ISaveableMember."
+            type(save_product), ISaveableProduct
+        ), "save_member_repo must be a class that inherits from  ISaveableProduct."
 
         self.product_repo = save_product
 
@@ -56,7 +59,12 @@ class CreateProductService:
                 return Err("plz login")
 
         # publish
-        product_session = ProductSessionBuilder().set_key().build()
+        product_session = (
+            ProductSessionBuilder()
+            .set_key()
+            .set_seller_id(user_session.member_id.get_id())
+            .build()
+        )
         return self.save_session_repo.update_or_save_product_temp_session(
             product_session
         )
@@ -73,7 +81,8 @@ class CreateProductService:
                 match builder.set_deserialize_value(json):
                     case Ok(session):
                         product_builder = session
-                    case _:
+                    case e:
+                        ic(e)
                         return Err("Invalid Product Session")
             case _:
                 return Err("Not Exist Session")
@@ -130,3 +139,25 @@ class CreateProductService:
                         return Err("Invalid Product Session")
             case _:
                 return Err("Not Exist Session")
+
+        if not (
+            product_builder.check_set_img() and product_builder.check_set_product()
+        ):
+            return Err("Not Set Data")
+        product = product_builder.build()
+        img_path = product.img_path
+        seller_id = product.seller_id
+        product = product.product
+        id = ProductIDBuilder().set_uuid().build()
+
+        return self.product_repo.save_product(
+            Product(
+                id=id,
+                seller_id=seller_id,
+                name=product.name,
+                img_path=img_path,
+                price=product.price,
+                description=product.description,
+                register_day=datetime.now(),
+            )
+        )
