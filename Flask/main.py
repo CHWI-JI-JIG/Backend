@@ -1,6 +1,6 @@
 import __init__
 
-from flask import Flask, session, jsonify, request, redirect, url_for
+from flask import Flask, session, jsonify, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 
 from Applications.Members.CreateMemberService import CreateMemberService
@@ -59,6 +59,10 @@ def check_id_duplicate(account):
         return True
     else:
         return False    
+
+@app.route('/Images/<path:filename')
+def send_image(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/api/search', methods=['GET'])
 def search():
@@ -167,8 +171,6 @@ def productRegistration():
             return jsonify({'success': True})
         case Err(e):
             return jsonify({'success': False})
-            
-
 
 @app.route('/api/products', methods=['get'])
 def product():
@@ -193,8 +195,42 @@ def product():
                     "productId" : str (v.id.uuid),
                     "sellerId" : str(v.seller_id.uuid),
                     "productName" : v.name,
-                    "productImgUrl" : v.img_path,
+                    "productImgUrl" : url_for('static', filename='Images' + v.img_path), # /Image/image1.jpg
                     "productPrice" : v.price
+                }
+                response_data["data"].append(product_data)
+            return jsonify(response_data)
+            
+        case Err(e):
+            return jsonify({'success': False})     
+
+@app.route('/api/seller-products', method=['POST'])
+def sellerProduct():
+    get_product_repo = MySqlGetProduct(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
+    
+    get_product_info = ReadProductService(get_product_repo, load_session_repo)
+    
+    data = request.get_json()
+    seller_id = data.get('sellerId')
+    user_key = data.get('key')
+    page = data.get('page')
+    page -= 1
+    size = 3
+    result = get_product_info.get_product_data_for_seller_page(seller_id, user_key, page, size)
+    response_data = {"page":page+1, "size": size,"data": []}
+    
+    match result:
+        case Ok((max, products)):
+            
+            response_data["totalPage"] = math.ceil(max/size)
+            for v in products:
+                product_data = {
+                    "productId" : str (v.id.uuid),
+                    "productName" : v.name,
+                    "productImgUrl" : v.img_path,
+                    "productPrice" : v.price,
+                    "regDate" : v.register_day
                 }
                 response_data["data"].append(product_data)
             return jsonify(response_data)
