@@ -98,12 +98,9 @@ class ReadProductService:
                 return Err("plz login")
 
         assert check_hex_string(seller_id), "The seller_id is not in hex format."
-        member_id = MemberIDBuilder().set_uuid(seller_id).build()
-
-        assert isinstance(member_id, MemberID), "Type of seller_id is MemberID."
 
         return self.product_repo.get_products_by_seller_id(
-            seller_id=member_id,
+            seller_id=seller_id,
             page=page,
             size=size,
         )
