@@ -5,8 +5,7 @@ from result import Result
 
 from Domains.Members import *
 
-
-class IReadableMember(metaclass=ABCMeta):
+class IReadableMemberList(metaclass=ABCMeta):
     @abstractmethod
     def get_members(
         self,

@@ -30,7 +30,7 @@ mysql_db = {
     "user": "USER_NAME",
     "password": "DB_PASSWORD",
     "host": "localhost",
-    "port": "3306",
+    "port": 3306,
     "database": "DATABASE_NAME",
     "charset": "utf8",
 }
@@ -40,9 +40,9 @@ mysql_db = {
 1. `download` mysql and base setting
 2. `create` mysql user and database (root로 만들면, 유저관련은 생략가능)
    ```sql
-    create database "DATABASE_NAME";
-    create user "USER_NAME"@localhost identified by 'DB_PASSWORD';
-    grant all privilege on "DATABASE_NAME".* to 'USER_NAME'@'localhost';
+    CREATE DATABASE "DATABASE_NAME" DEFAULT character SET UTF8 COLLATE utf8_general_ci;
+    CREATE user "USER_NAME"@localhost identified by 'DB_PASSWORD';
+    GRANT all privilege on "DATABASE_NAME".* to 'USER_NAME'@'localhost';
    ```
 3. `run` manage.py (DB 테이블 생성과, 초기 계정&일기 생성)
     ```bash
@@ -56,7 +56,7 @@ mysql_db = {
 ## How to Run Flask
 ```bash
 python manage.py --host x.x.x.x --port 5000
-python3.11 manage.py --host x.x.x.x --port 5000
+python3 manage.py --host x.x.x.x --port 5000
 ```
 
 ## How to Test
