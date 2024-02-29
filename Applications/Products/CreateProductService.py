@@ -38,45 +38,54 @@ class CreateProductService:
             type(load_session), ILoadableSession
         ), "save_member_repo must be a class that inherits from ILoadableSession."
 
-        self.load_repo = load_session
+        self.load_session_repo = load_session
 
     def publish_temp_product_id(
         self, member_session_key: str
     ) -> Result[ProductTempSession, str]:
         # check member session
-        match self.load_repo.load_session(member_session_key):
+        builder = MemberSessionBuilder().set_deserialize_key(member_session_key)
+        match self.load_session_repo.load_session(member_session_key):
             case Ok(json):
-                user_session = (
-                    MemberSessionBuilder()
-                    .set_deserialize_key(member_session_key)
-                    .set_deserialize_value(json)
-                    .unwrap()
-                    .build()
-                )
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        user_session = session.build()
+                    case _:
+                        return Err("Invalid Member Session")
             case _:
                 return Err("plz login")
 
         # publish
+        product_session = ProductSessionBuilder().set_key().build()
+        return self.save_session_repo.update_or_save_product_temp_session(
+            product_session
+        )
 
     def check_upload_image_path(
         self,
         img_path: str,
         product_key: str,
     ) -> Result[ProductTempSession, str]:
-        from uuid import uuid4
-        IMG_PATH = __init__.root_path/"Images"
-        import os
-        
-        product_id = ProductID(uuid=uuid4(), sequence=1)
-        seller_id = MemberID(uuid=uuid4(), sequence=1)
-        product = Product(id=product_id, seller_id=seller_id)
-        key = uuid4() 
-        img_path = IMG_PATH
-        
-        ic(ProductTempSession(key, product, img_path))
-        return Ok(ProductTempSession(key, product, img_path))
-            
-        return Err("11")
+        # check product session
+        match self.load_session_repo.load_session(product_key):
+            case Ok(json):
+                builder = ProductSessionBuilder().set_deserialize_key(product_key)
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        product_builder = session
+                    case _:
+                        return Err("Invalid Product Session")
+            case _:
+                return Err("Not Exist Session")
+
+        # set product Session
+        match product_builder.set_img_path(img_path):
+            case Ok(session):
+                product = session.build()
+            case _:
+                return Err("Not Exist Image")
+
+        return self.save_session_repo.update_or_save_product_temp_session(product)
 
     def upload_product_data(
         self,
@@ -85,25 +94,39 @@ class CreateProductService:
         description: str,
         product_key: str,
     ) -> Result[ProductTempSession, str]:
-        from uuid import uuid4
-        IMG_PATH = __init__.root_path/"Images"
-        import os
-        from icecream import ic
-        
-        product_id = ProductID(uuid=uuid4(), sequence=1)
-        seller_id = MemberID(uuid=uuid4(), sequence=1)
-        product = Product(id=product_id, seller_id=seller_id, name='쿠첸밥솥', price=2000000, description='쿠첸하세요~ 쿠첸.')
-        key = uuid4() 
-        
-        return Ok(ProductTempSession(key, product))
-        return Err("11")
+        # check product session
+        match self.load_session_repo.load_session(product_key):
+            case Ok(json):
+                builder = ProductSessionBuilder().set_deserialize_key(product_key)
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        product_builder = session
+                    case _:
+                        return Err("Invalid Product Session")
+            case _:
+                return Err("Not Exist Session")
+
+        # set product Session
+        product = (
+            product_builder.set_name(product_name)
+            .set_price(price)
+            .set_description(description)
+            .build()
+        )
+
+        return self.save_session_repo.update_or_save_product_temp_session(product)
 
     def create(
         self,
         product_key: str,
     ) -> Result[ProductID, str]:
-        from uuid import uuid4
-
-        return Ok(ProductID(uuid=uuid4(), sequence=1))
-
-        return Err("11")
+        match self.load_session_repo.load_session(product_key):
+            case Ok(json):
+                builder = ProductSessionBuilder().set_deserialize_key(product_key)
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        product_builder = session
+                    case _:
+                        return Err("Invalid Product Session")
+            case _:
+                return Err("Not Exist Session")
