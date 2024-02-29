@@ -24,9 +24,10 @@ class CreateProductService:
         save_product_session: ISaveableProductTempSession,
         load_session: ILoadableSession,
     ):
+
         assert issubclass(
-            type(save_product), ISaveableMember
-        ), "save_member_repo must be a class that inherits from ISaveableMember."
+            type(save_product), ISaveableProduct
+        ), "save_member_repo must be a class that inherits from  ISaveableProduct."
 
         self.product_repo = save_product
 

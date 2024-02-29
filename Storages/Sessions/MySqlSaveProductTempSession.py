@@ -57,7 +57,6 @@ class MySqlSaveProductTempSession(ISaveableProductTempSession):
                     (session.serialize_key()),
                 )
                 count = cursor.fetchone()[0]
-                ic()
                 if count > 0:
                     cursor.execute(
                         f"UPDATE {session_table_name} SET value = %s WHERE id = %s",
@@ -69,7 +68,6 @@ class MySqlSaveProductTempSession(ISaveableProductTempSession):
                         f"INSERT INTO {session_table_name} (id, value) VALUES (%s, %s)",
                         (session.serialize_key(), session.serialize_value()),
                     )
-                    ic()
 
                 connection.commit()
                 ic()

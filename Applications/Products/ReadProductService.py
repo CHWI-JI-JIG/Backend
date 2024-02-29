@@ -87,7 +87,7 @@ class ReadProductService:
                     'NotOnwer'
         """
         builder = MemberSessionBuilder().set_deserialize_key(user_key)
-        match self.load_session_repo.load_session(user_key):
+        match self.session_repo.load_session(user_key):
             case Ok(json):
                 match builder.set_deserialize_value(json):
                     case Ok(session):

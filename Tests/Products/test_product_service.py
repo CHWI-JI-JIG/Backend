@@ -17,7 +17,7 @@ from Builders.Products import *
 
 from Applications.Members.ExtentionMethod import hashing_passwd
 from Applications.Members import CreateMemberService
-from Applications.Products import ReadProductService  # , CreateProductService
+from Applications.Products import *
 from Applications.Members import *
 
 from Storages.Members import *
@@ -56,11 +56,23 @@ class test_product_service(unittest.TestCase):
         service = CreateMemberService(MySqlSaveMember(get_db_padding()))
         cls.member_create_service = service
 
+        login = AuthenticationMemberService(
+            auth_member_repo=LoginVerifiableAuthentication(get_db_padding()),
+            session_repo=MakeSaveMemberSession(get_db_padding()),
+        )
+        cls.login_service = login
+
         service = ReadProductService(
             get_product_repo=MySqlGetProduct(get_db_padding()),
             load_session_repo=MySqlLoadSession(get_db_padding()),
         )
-        cls.product_service = service
+        cls.product_read_service = service
+        service = CreateProductService(
+            save_product=MySqlSaveProduct(get_db_padding()),
+            save_product_session=MySqlSaveProductTempSession(get_db_padding()),
+            load_session=MySqlLoadSession(get_db_padding()),
+        )
+        cls.product_create_service = service
 
         m_m.create_user()
         init_member()
@@ -91,6 +103,48 @@ class test_product_service(unittest.TestCase):
         if self.product_migrate.check_exist_product():
             self.product_migrate.delete_product()
 
+    def test_아이디발급_이미지등록후_상품정보_올리고_상품등록(self):
+        "Hook method for deconstructing the test fixture after testing it."
+        print("\t\t", sys._getframe(0).f_code.co_name)
+        service = self.product_create_service
+
+        login = self.login_service
+
+        match login.login("1q2w", "123"):
+            case Ok(auth):
+                key = auth.get_id()
+            case _:
+                assert False, "fail"
+
+        match service.publish_temp_product_id(key):
+            case Ok(session):
+                key_session = session
+            case _:
+                assert False, "False"
+
+        match service.check_upload_image_path("img.jpg", key_session.get_id()):
+            case Ok(_):
+                ...
+            case e:
+                ic(e)
+                assert False, "False"
+
+        match service.create(key_session.get_id()):
+            case Ok(id):
+                id = id
+            case _:
+                assert False, "False"
+
+        match self.product_read_service.get_product_for_detail_page(id.get_id()):
+            case product if isinstance(product, Product):
+                pass
+            case _:
+                assert False, "False"
+
+    def test_아이디발급_상품정보_올리고_상품등록(self):
+        "Hook method for deconstructing the test fixture after testing it."
+        print("\t\t", sys._getframe(0).f_code.co_name)
+
     def test_product_main_page(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
@@ -99,7 +153,7 @@ class test_product_service(unittest.TestCase):
 
         page = 0
         size = 3
-        ret = self.product_service.get_product_data_for_main_page(
+        ret = self.product_read_service.get_product_data_for_main_page(
             page=page,
             size=size,
         )
@@ -116,7 +170,7 @@ class test_product_service(unittest.TestCase):
 
         page = 1
         size = 3
-        ret = self.product_service.get_product_data_for_main_page(
+        ret = self.product_read_service.get_product_data_for_main_page(
             page=page,
             size=size,
         )
@@ -133,7 +187,7 @@ class test_product_service(unittest.TestCase):
 
         page = 1
         size = 3
-        ret = self.product_service.get_product_data_for_main_page(
+        ret = self.product_read_service.get_product_data_for_main_page(
             page=page,
             size=size,
         )
@@ -150,7 +204,7 @@ class test_product_service(unittest.TestCase):
 
         page = 2
         size = 3
-        ret = self.product_service.get_product_data_for_main_page(
+        ret = self.product_read_service.get_product_data_for_main_page(
             page=page,
             size=size,
         )
@@ -167,7 +221,7 @@ class test_product_service(unittest.TestCase):
 
         page = 3
         size = 3
-        ret = self.product_service.get_product_data_for_main_page(
+        ret = self.product_read_service.get_product_data_for_main_page(
             page=page,
             size=size,
         )
@@ -184,7 +238,7 @@ class test_product_service(unittest.TestCase):
 
         page = 4
         size = 3
-        ret = self.product_service.get_product_data_for_main_page(
+        ret = self.product_read_service.get_product_data_for_main_page(
             page=page,
             size=size,
         )
@@ -201,7 +255,7 @@ class test_product_service(unittest.TestCase):
 
         page = 5
         size = 3
-        ret = self.product_service.get_product_data_for_main_page(
+        ret = self.product_read_service.get_product_data_for_main_page(
             page=page,
             size=size,
         )
@@ -230,10 +284,8 @@ class test_product_service(unittest.TestCase):
             product_list[11],
         ]
 
-        login = AuthenticationMemberService(
-            auth_member_repo=LoginVerifiableAuthentication(get_db_padding()),
-            session_repo=MakeSaveMemberSession(get_db_padding()),
-        )
+        login = self.login_service
+
         match login.login("1q2w", "123"):
             case Ok(auth):
                 key = auth.get_id()
@@ -242,7 +294,7 @@ class test_product_service(unittest.TestCase):
 
         page = 0
         size = 10
-        ret = self.product_service.get_product_data_for_seller_page(
+        ret = self.product_read_service.get_product_data_for_seller_page(
             seller_id=target_id,
             user_key=key,
             page=page,
@@ -258,6 +310,42 @@ class test_product_service(unittest.TestCase):
 
             case Err:
                 assert False, "false"
+
+    def test_product_seller_page_다른_아이디로접속시도(self):
+        "Hook method for deconstructing the test fixture after testing it."
+        print("\t\t", sys._getframe(0).f_code.co_name)
+        target_id = member_list[0].get_id()
+        list_o: List[ProductID] = [
+            product_list[0],
+            product_list[2],
+            product_list[5],
+            product_list[6],
+            product_list[7],
+            product_list[9],
+            product_list[11],
+        ]
+
+        login = self.login_service
+
+        match login.login("vbvb", "12"):
+            case Ok(auth):
+                key = auth.get_id()
+            case _:
+                assert False, "fail"
+
+        page = 0
+        size = 10
+        ret = self.product_read_service.get_product_data_for_seller_page(
+            seller_id=target_id,
+            user_key=key,
+            page=page,
+            size=size,
+        )
+        match ret:
+            case Err("NotOnwer"):
+                pass
+            case _:
+                assert False, "False"
 
 
 def main():
