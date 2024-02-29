@@ -56,11 +56,12 @@ SELECT comment.id, comment.writer_id, user.account, comment.question, comment.an
 FROM {comment_table_name} AS comment
     INNER JOIN {member_table_name} AS user
     ON comment.writer_id = user.id
-WHERE comment.product_id = %s;
-LIMIT %s, %s
-"""               
+WHERE comment.product_id = %s
+LIMIT %s, %s;
+"""             
                 cursor.execute(query, (product_id, offset, size))
                 result = cursor.fetchall()
+                ic()
 
                 comments = []
                 for row in result:
@@ -74,12 +75,12 @@ LIMIT %s, %s
                         product_id=product_id
                     )
                     comments.append(comment)
-
+                ic()
                 cursor.execute(f"SELECT COUNT(*) FROM {comment_table_name}")
                 total_count = cursor.fetchone()[0]
 
                 connection.commit()
-
+                ic()    
                 return Ok((total_count, comments))
 
         except Exception as e:
