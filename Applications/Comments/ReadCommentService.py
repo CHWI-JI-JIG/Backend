@@ -27,13 +27,14 @@ from icecream import ic
 class ReadOrderService:
     def __init__(
         self,
-        get_product_repo: IGetableComment,
+        get_comment_repo: IGetableComment,
     ):
         assert issubclass(
-            type(get_product_repo), IGetableProduct
+            type(get_comment_repo), IGetableProduct
         ), "get_product_repo must be a class that inherits from IGetableProduct."
 
-        self.comment_repo = get_product_repo
+        self.comment_repo = get_comment_repo
+        
 
     def get_comment_data_for_product_page(
         self,
@@ -53,10 +54,10 @@ class ReadOrderService:
                 Err(str): reason of Fail
         """
         ic()
-        ic("상품 관련된거 확인안했음")
-
+        ic("코멘트 확인안했음")
+        product_id = ProductIDBuilder().set_uuid(product_id).build()
         return self.comment_repo.get_comments_by_product_id(
-            product_id=None,
+            product_id=product_id, 
             page=page,
             size=size,
         )
