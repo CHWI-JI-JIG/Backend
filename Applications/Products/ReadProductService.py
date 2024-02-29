@@ -86,24 +86,23 @@ class ReadProductService:
                     'NotExsistKey'
                     'NotOnwer'
         """
-        match self.session_repo.load_session(user_key):
+        builder = MemberSessionBuilder().set_deserialize_key(user_key)
+        match self.load_session_repo.load_session(user_key):
             case Ok(json):
-                session = (
-                    MemberSessionBuilder()
-                    .set_deserialize_value(json)
-                    .unwrap()
-                    .set_deserialize_key(user_key)
-                    .build()
-                )
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        user_session = session.build()
+                    case _:
+                        return Err("Invalid Member Session")
             case _:
-                return Err("NotExsistKey")
+                return Err("plz login")
 
         assert check_hex_string(seller_id), "The seller_id is not in hex format."
         member_id = MemberIDBuilder().set_uuid(seller_id).build()
 
         assert isinstance(member_id, MemberID), "Type of seller_id is MemberID."
 
-        if session.member_id.get_id() == member_id.get_id():
+        if user_session.member_id.get_id() == member_id.get_id():
             return self.product_repo.get_products_by_seller_id(
                 seller_id=member_id,
                 page=page,
