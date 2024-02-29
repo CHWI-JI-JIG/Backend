@@ -23,6 +23,7 @@ from icecream import ic
 @dataclass(frozen=True)
 class ProductTempSession(ID, ISessionSerializeable):
     key: UUID
+    seller_id: MemberID
     product: Optional[Product]
     img_path: str = ""
 
@@ -39,7 +40,7 @@ class ProductTempSession(ID, ISessionSerializeable):
                     {
                         "check_product": True,
                         "check_img": True,
-                        "seller_id": p.seller_id.get_id(),
+                        "seller_id": self.seller_id.get_id(),
                         "name": p.name,
                         "price": p.price,
                         "description": p.description,
@@ -53,6 +54,7 @@ class ProductTempSession(ID, ISessionSerializeable):
                     {
                         "check_product": False,
                         "check_img": True,
+                        "seller_id": self.seller_id.get_id(),
                         "img_path": i,
                     },
                     ensure_ascii=False,
@@ -62,7 +64,7 @@ class ProductTempSession(ID, ISessionSerializeable):
                     {
                         "check_product": True,
                         "check_img": False,
-                        "seller_id": p.seller_id.get_id(),
+                        "seller_id": self.seller_id.get_id(),
                         "name": p.name,
                         "price": p.price,
                         "description": p.description,
@@ -74,6 +76,7 @@ class ProductTempSession(ID, ISessionSerializeable):
                     {
                         "check_product": False,
                         "check_img": False,
+                        "seller_id": self.seller_id.get_id(),
                     },
                     ensure_ascii=False,
                 )
@@ -96,14 +99,15 @@ class ProductSessionBuilder(ISesseionBuilder):
         self.img_path = img_path
 
     def check_set_img(self) -> bool:
-        return not (self.img_path is None)
+        return isinstance(self.img_path, str)
 
     def check_set_product(self) -> bool:
-        return not (
-            self.seller_id is None
-            and self.name is None
-            and self.price is None
-            and self.description is None
+
+        return (
+            isinstance(self.seller_id, MemberID)
+            and isinstance(self.name, str)
+            and isinstance(self.price, int)
+            and isinstance(self.description, str)
         )
 
     def set_deserialize_key(self, key: str) -> Self:
@@ -118,21 +122,19 @@ class ProductSessionBuilder(ISesseionBuilder):
             return Err("fail read json")
         assert isinstance(to_dict, dict), "Type of convert value is Dict."
 
+        dict_key = "seller_id"
+        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
+        if not isinstance(to_dict.get(dict_key), str):
+            return Err(f"Not Exists {dict_key}")
+        self.set_seller_id(to_dict.get(dict_key))
+
         dict_key = "check_product"
         assert isinstance(
             to_dict.get(dict_key), bool
         ), f"{dict_key} is not exsist dict."
-        if not isinstance(to_dict.get(dict_key), str):
+        if not isinstance(to_dict.get(dict_key), bool):
             return Err(f"Not Exists {dict_key}")
         if to_dict.get(dict_key):
-            dict_key = "seller_id"
-            assert isinstance(
-                to_dict.get(dict_key), str
-            ), f"{dict_key} is not exsist dict."
-            if not isinstance(to_dict.get(dict_key), str):
-                return Err(f"Not Exists {dict_key}")
-            self.set_seller_id(to_dict.get(dict_key))
-
             dict_key = "name"
             assert isinstance(
                 to_dict.get(dict_key), str
@@ -153,7 +155,7 @@ class ProductSessionBuilder(ISesseionBuilder):
             assert isinstance(
                 to_dict.get(dict_key), int
             ), f"{dict_key} is not exsist dict."
-            if not isinstance(to_dict.get(dict_key), str):
+            if not isinstance(to_dict.get(dict_key), int):
                 return Err(f"Not Exists {dict_key}")
             self.set_price(int(to_dict.get(dict_key)))
 
@@ -161,7 +163,7 @@ class ProductSessionBuilder(ISesseionBuilder):
         assert isinstance(
             to_dict.get(dict_key), bool
         ), f"{dict_key} is not exsist dict."
-        if not isinstance(to_dict.get(dict_key), str):
+        if not isinstance(to_dict.get(dict_key), bool):
             return Err(f"Not Exists {dict_key}")
         if to_dict.get(dict_key):
             dict_key = "img_path"
@@ -243,8 +245,10 @@ class ProductSessionBuilder(ISesseionBuilder):
         return Ok(self)
 
     def build(self) -> ProductTempSession:
+        assert isinstance(self.seller_id, MemberID), "Not Set seller_id"
+
         match (self.name, self.price, self.description, self.seller_id):
-            case (None, None, None, None):
+            case (None, None, None, _):
                 product = None
             case (name, price, description, seller_id) if (
                 isinstance(name, str)
@@ -275,6 +279,7 @@ class ProductSessionBuilder(ISesseionBuilder):
 
         return ProductTempSession(
             key=self.key,
+            seller_id=self.seller_id,
             product=product,
             img_path=img_path,
         )

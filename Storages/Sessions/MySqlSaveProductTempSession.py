@@ -62,7 +62,6 @@ class MySqlSaveProductTempSession(ISaveableProductTempSession):
                         f"UPDATE {session_table_name} SET value = %s WHERE id = %s",
                         (session.serialize_value(), session.serialize_key()),
                     )
-                    ic()
                 else:
                     cursor.execute(
                         f"INSERT INTO {session_table_name} (id, value) VALUES (%s, %s)",
@@ -70,8 +69,6 @@ class MySqlSaveProductTempSession(ISaveableProductTempSession):
                     )
 
                 connection.commit()
-                ic()
-
                 return Ok(session)
 
         except Exception as e:
