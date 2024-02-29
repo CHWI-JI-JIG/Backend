@@ -61,9 +61,10 @@ def check_id_duplicate(account):
         return False    
 
 @app.route('/Images/<path:filename>')
-def send_image(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
+def send_image(filename): #/Images/img102.png
+    ic(filename)
+    return (send_from_directory(app.config['UPLOAD_FOLDER'], filename))
+    
 @app.route('/api/search', methods=['GET'])
 def search():
     keyword = request.args.get('keyword', type=str)
@@ -100,7 +101,7 @@ def search():
                     "productId": row[1],
                     "seq": row[2],
                     "productName": row[3],
-                    "productImgUrl":url_for('http://192.1680.132/Images', filename=row[4]), # /Images/image1.jpg
+                    "productImageUrl":url_for('send_image', filename=row[4]), # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path,
                     "productPrice": row[5],
                     "productDescription": row[6],
@@ -196,7 +197,7 @@ def product():
                     "productId" : str (v.id.uuid),
                     "sellerId" : str(v.seller_id.uuid),
                     "productName" : v.name,
-                    "productImgUrl" : url_for('http://192.1680.132/Images', filename=v.img_path), # /Images/image1.jpg
+                    "productImageUrl" : url_for('send_image', filename=v.img_path), # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path
                     "productPrice" : v.price
                 }
@@ -230,7 +231,7 @@ def sellerProduct():
                 product_data = {
                     "productId" : str (v.id.uuid),
                     "productName" : v.name,
-                    "productImgUrl" : url_for('http://192.1680.132/Images', filename=v.img_path), # /Images/image1.jpg
+                    "productImageUrl" : url_for('send_image', filename=v.img_path), # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path,
                     "productPrice" : v.price,
                     "regDate" : v.register_day
