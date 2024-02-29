@@ -7,10 +7,12 @@ from Domains.Members import *
 from Domains.Products import *
 from Domains.Sessions import *
 from Builders.Members import *
+from Builders.Products import *
 from Repositories.Members import *
 from Repositories.Products import *
 from Repositories.Sessions import *
 
+from datetime import datetime
 from icecream import ic
 
 
@@ -130,3 +132,22 @@ class CreateProductService:
                         return Err("Invalid Product Session")
             case _:
                 return Err("Not Exist Session")
+
+        if not (product_builder.check_set_img() and product_builder.check_set_product):
+            return Err("Not Set Data")
+        product = product_builder.build()
+        img_path = product.img_path
+        product = product.product
+        id = ProductIDBuilder().set_uuid().build()
+
+        return self.product_repo.save_product(
+            Product(
+                id=id,
+                seller_id=product.seller_id,
+                name=product.name,
+                img_path=img_path,
+                price=product.price,
+                description=product.description,
+                register_day=datetime.now(),
+            )
+        )

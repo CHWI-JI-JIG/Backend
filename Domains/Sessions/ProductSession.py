@@ -95,6 +95,17 @@ class ProductSessionBuilder(ISesseionBuilder):
         self.description = description
         self.img_path = img_path
 
+    def check_set_img(self) -> bool:
+        return not (self.img_path is None)
+
+    def check_set_product(self) -> bool:
+        return not (
+            self.seller_id is None
+            and self.name is None
+            and self.price is None
+            and self.description is None
+        )
+
     def set_deserialize_key(self, key: str) -> Self:
         self.set_key(key)
         return self
