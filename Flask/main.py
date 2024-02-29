@@ -100,7 +100,8 @@ def search():
                     "productId": row[1],
                     "seq": row[2],
                     "productName": row[3],
-                    "productImgUrl": row[4],
+                    "productImgUrl":url_for('Images', filename=row[4]), # /Images/image1.jpg
+                    #'http://serveraddr/Images'+ v.img_path,
                     "productPrice": row[5],
                     "productDescription": row[6],
                     "date": row[7]
@@ -195,7 +196,8 @@ def product():
                     "productId" : str (v.id.uuid),
                     "sellerId" : str(v.seller_id.uuid),
                     "productName" : v.name,
-                    "productImgUrl" : url_for('static', filename='Images' + v.img_path), # /Image/image1.jpg
+                    "productImgUrl" : url_for('Images', filename=v.img_path), # /Images/image1.jpg
+                    #'http://serveraddr/Images'+ v.img_path
                     "productPrice" : v.price
                 }
                 response_data["data"].append(product_data)
@@ -228,7 +230,8 @@ def sellerProduct():
                 product_data = {
                     "productId" : str (v.id.uuid),
                     "productName" : v.name,
-                    "productImgUrl" : v.img_path,
+                    "productImgUrl" : url_for('Images', filename=v.img_path), # /Images/image1.jpg
+                    #'http://serveraddr/Images'+ v.img_path,
                     "productPrice" : v.price,
                     "regDate" : v.register_day
                 }
