@@ -1,3 +1,4 @@
+from Domains.Comments import Comment, CommentID
 import __init__
 from abc import ABCMeta, abstractmethod
 from typing import Optional
@@ -68,3 +69,33 @@ class MySqlSaveComment(ISaveableComment):
                 return Err(str(e))
             finally:
                 connection.close()
+    
+    def update_comment(self, Comment: Comment) -> Result[UUID, str]:
+            connection = self.connect()
+            comment_table_name = self.get_padding_name("comments")
+            
+            try:
+                    # 커서 생성
+                    with connection.cursor() as cursor:
+                        update_query = f"""
+    UPDATE {comment_table_name}
+    SET answer = %s
+    WHERE id = %s;
+                        """
+                        cursor.execute(
+                            update_query,                                                               
+                            (
+                                Comment.answer,
+                                Comment.id,
+                            ),
+                        )
+                        # 변경 사항을 커밋
+                        connection.commit()
+                        return Ok(Comment.id)
+            except Exception as e:
+                connection.rollback()
+                return Err(str(e))
+            finally:
+                connection.close()
+                
+        
