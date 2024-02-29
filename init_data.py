@@ -318,7 +318,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[0],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -336,7 +335,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[1],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -354,7 +352,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[2],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -372,7 +369,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[3],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -390,7 +386,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[4],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -408,7 +403,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[5],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -426,7 +420,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[6],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -444,7 +437,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[7],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -462,7 +454,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[8],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -480,7 +471,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[9],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):
@@ -498,7 +488,6 @@ def init_comment():
             writer_id=member_list[2],
             product_id=product_list[10],
             writer_account="",
-            seller_account="",
         )
     ):
         case Ok(comment):

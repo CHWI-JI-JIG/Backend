@@ -67,6 +67,7 @@ class test_builder(unittest.TestCase):
             MemberSessionBuilder()
             .set_deserialize_key(new_session.get_id())
             .set_deserialize_value(new_session.serialize_value())
+            .unwrap()
             .build()
         )
         self.assertEqual(new_session, read_session)

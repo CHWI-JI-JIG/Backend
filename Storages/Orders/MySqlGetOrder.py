@@ -60,68 +60,63 @@ class MySqlGetOrder(IGetableOrder):
         product_table_name = self.get_padding_name("product")
         user_table_name = self.get_padding_name("user")
         try:
-            # 커서 생성
             with connection.cursor() as cursor:
-                # 판매자 ID를 기준으로 주문 목록 조회 쿼리
                 select_query = f"""
 SELECT
-    COUNT(*) AS total_count,
-    o.id,
-    o.buy_count,
+    o.id AS order_id,
+    o.buy_count AS buy_count,
     b.id AS buyer_id,
     b.account AS buyer_account,
     b.phone AS buyer_phone,
     b.address AS buyer_address,
     p.id AS product_id,
     p.name AS product_name,
-    p.img_path AS product_img_path,
-    o.total_price,
-    o.order_date
+    p.img_path AS img_path,
+    o.total_price AS total_price,
+    o.order_date AS order_date
 FROM
     {order_table_name} o
     JOIN {product_table_name} p ON o.product_id = p.id
     JOIN {user_table_name} b ON o.buyer_id = b.id
 WHERE
     p.seller_id = %s
-GROUP BY
-    o.id
 ORDER BY
-    o.order_date DESC
+    o.seq DESC
 LIMIT
     %s, %s;
-            """
-                cursor.execute(
-                    select_query,
-                    (
-                        seller_id.get_id(),
-                        page * size,  
-                        size,
-                    ),
-                )
-                
-                orders_data = cursor.fetchall()
-                total_count = len(orders_data)  
+                """
+                cursor.execute(select_query, (seller_id.get_id(), page * size, size))
+
+                result = cursor.fetchall()
                 orders = []
-                for order_data in orders_data:
+                
+                for row in result:
+                    order_id,buy_count,buyer_id,buyer_account,buyer_phone,buyer_address,product_id,product_name,img_path,total_price,order_date=row
                     order = Order(
-                        id=OrderIDBuilder().set_uuid(id).build(),
-                        buy_count=order_data["buy_count"],
-                        buyer_id=MemberID(UUID(order_data["buyer_id"])),
-                        buyer_account=order_data["buyer_account"],
-                        buyer_phone=order_data["buyer_phone"],
-                        buyer_address=order_data["buyer_address"],
-                        product_id=ProductID(UUID(order_data["product_id"])),
-                        product_name=order_data["product_name"],
-                        product_img_path=order_data["product_img_path"],
-                        total_price=order_data["total_price"],
-                        order_date=order_data["order_date"],
+                        id=OrderIDBuilder().set_uuid(order_id).build(),
+                        product_id=product_id,
+                        buyer_id=buyer_id,
+                        buyer_account=buyer_account,
+                        buyer_phone=buyer_phone,
+                        buyer_address=buyer_address,
+                        product_name=product_name,
+                        product_img_path=img_path,
+                        buy_count=buy_count,
+                        total_price=total_price,
+                        order_date=order_date,
                     )
                     orders.append(order)
+                
+                cursor.execute(f"SELECT COUNT(*) FROM {order_table_name} o JOIN {product_table_name} p ON o.product_id = p.id WHERE p.seller_id = %s", (seller_id.get_id(),))
+                total_count = cursor.fetchone()[0]
+                
+                connection.commit()
+                
                 return Ok((total_count, orders))
+            
         except Exception as e:
+            connection.close()  
             return Err(str(e))
-        finally:
-            connection.close()
 
 
 
@@ -140,7 +135,67 @@ LIMIT
                 Ok( int, list ): int=> count of list max, list=> result
                 Err(str): reason of Fail
         """
-        ...
+        connection = self.connect()
+        order_table_name = self.get_padding_name("order")
+        product_table_name = self.get_padding_name("product")
+        user_table_name = self.get_padding_name("user")
+        try:
+            with connection.cursor() as cursor:
+                select_query = f"""
+SELECT
+    o.id AS order_id,
+    o.buy_count AS buy_count,
+    b.id AS buyer_id,
+    b.account AS buyer_account,
+    b.phone AS buyer_phone,
+    b.address AS buyer_address,
+    p.id AS product_id,
+    p.name AS product_name,
+    p.img_path AS img_path,
+    o.total_price AS total_price,
+    o.order_date AS order_date
+FROM
+    {order_table_name} o
+    JOIN {product_table_name} p ON o.product_id = p.id
+    JOIN {user_table_name} b ON o.buyer_id = b.id
+WHERE
+    o.buyer_id = %s
+ORDER BY
+    o.seq DESC
+LIMIT
+    %s, %s;
+                """
+                cursor.execute(select_query, (buyer_id.get_id(), page * size, size))
+
+                result = cursor.fetchall()
+                orders = []
+                for row in result:
+                    order_id,buy_count,buyer_id,buyer_account,buyer_phone,buyer_address,product_id,product_name,img_path,total_price,order_date=row
+                    order = Order(
+                        id=OrderIDBuilder().set_uuid(order_id).build(),
+                        product_id=product_id,
+                        buyer_id=buyer_id,
+                        buyer_account=buyer_account,
+                        buyer_phone=buyer_phone,
+                        buyer_address=buyer_address,
+                        product_name=product_name,
+                        product_img_path=img_path,
+                        buy_count=buy_count,
+                        total_price=total_price,
+                        order_date=order_date,
+                    )
+                    orders.append(order)
+                    
+                cursor.execute(f"SELECT COUNT(*) FROM {order_table_name} WHERE buyer_id = %s", (buyer_id,))
+                total_count = cursor.fetchone()[0]
+                
+                connection.commit()
+                
+                return Ok((total_count, orders))
+            
+        except Exception as e:
+            connection.close()  
+            return Err(str(e)) 
     
 
         

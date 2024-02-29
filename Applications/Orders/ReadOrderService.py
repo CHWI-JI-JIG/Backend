@@ -31,13 +31,15 @@ class ReadOrderService:
         assert issubclass(
             type(get_order_repo), IGetableOrder
         ), "get_order_repo must be a class that inherits from IGetableorder."
-
         self.order_repo = get_order_repo
 
         assert issubclass(
             type(load_session_repo), ILoadableSession
         ), "load_session_repo must be a class that inherits from ILoadableSession."
         self.session_repo = load_session_repo
+
+
+
 
     def get_order_data_for_buyer_page(
         self,
@@ -57,13 +59,31 @@ class ReadOrderService:
                 Err(str): reason of Fail
         """
         ic()
-        ic("아직 세션 검증 안했슴. memberid 아직 안만듬")
-
+        match self.session_repo.load_session(buyer_key):
+            case Ok(json):
+                builder = MemberSessionBuilder().set_deserialize_key(buyer_key)
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        ic()
+                        buyer_id = session.build().member_id
+                        ic()
+                    case _:
+                        ic()
+                        return Err("Invalid Product Session")
+            case _:
+                ic()
+                return Err("Not Exist Session")
+        ic()
         return self.order_repo.get_orders_by_buyer_id(
-            buyer_id=None,
+            buyer_id=buyer_id,
             page=page,
             size=size,
         )
+        
+
+
+
+
 
     def get_order_data_for_seller_page(
         self,
