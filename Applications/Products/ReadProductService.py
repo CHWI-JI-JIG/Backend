@@ -71,7 +71,6 @@ class ReadProductService:
 
     def get_product_data_for_seller_page(
         self,
-        seller_id: str,
         user_key: str,
         page=0,
         size=10,
@@ -92,6 +91,7 @@ class ReadProductService:
                 match builder.set_deserialize_value(json):
                     case Ok(session):
                         user_session = session.build()
+                        seller_id = user_session.member_id.get_id()
                     case _:
                         return Err("Invalid Member Session")
             case _:
