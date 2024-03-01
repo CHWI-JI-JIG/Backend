@@ -44,11 +44,11 @@ class CreateProductService:
         self.load_session_repo = load_session
 
     def publish_temp_product_id(
-        self, member_session_key: str
+        self, user_session_key: str
     ) -> Result[ProductTempSession, str]:
         # check member session
-        builder = MemberSessionBuilder().set_deserialize_key(member_session_key)
-        match self.load_session_repo.load_session(member_session_key):
+        builder = MemberSessionBuilder().set_deserialize_key(user_session_key)
+        match self.load_session_repo.load_session(user_session_key):
             case Ok(json):
                 match builder.set_deserialize_value(json):
                     case Ok(session):
