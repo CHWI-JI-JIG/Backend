@@ -36,7 +36,6 @@ class SaveOrderTransition(ISaveableOrderTransition):
         return f"{self.name_padding}{name}"
     
     
-    
     def save_order_transition(
         self, transition: OrderTransitionSession
     ) -> Result[OrderTransitionSession, str]:
@@ -61,6 +60,44 @@ class SaveOrderTransition(ISaveableOrderTransition):
                 return Ok(transition)
                 
         except Exception as e:
-            ic()
             connection.close()
             return Err(str(e))
+        
+        
+    def update_order_transition(
+        self, transition: OrderTransitionSession
+    ) -> Result[OrderTransitionSession, str]:
+        try:
+            connection = self.connect()
+            session_table_name = self.get_padding_name("session")
+
+            with connection.cursor() as cursor:
+                select_query = f"""
+                SELECT value
+                FROM {session_table_name}
+                WHERE id = %s
+                """
+                cursor.execute(select_query, (transition.serialize_key(),))
+                result = cursor.fetchone()
+
+                if result is not None:
+                    update_query = f"""
+                    UPDATE {session_table_name}
+                    SET value = %s
+                    WHERE id = %s
+                    """
+                    cursor.execute(
+                        update_query,
+                        (
+                            transition.serialize_value(),
+                            transition.serialize_key(),
+                        ),
+                    )
+                    connection.commit()
+                    return Ok(transition)
+                else:
+                    return Err("Session value not found")
+
+        except Exception as e:
+            connection.close()
+            return Err(str(e))               
