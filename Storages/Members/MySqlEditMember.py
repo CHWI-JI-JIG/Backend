@@ -28,10 +28,10 @@ class MySqlEditMember(IEditableMember):
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
     
-    def update_member(self, member: Member) -> Result[MemberID, str]:
+    def update_role(self, member_id: MemberID, role:RoleType) -> Result[MemberID, str]:
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
-        member.id.get_id()
+        member_id.get_id()
         try:
             # 커서 생성
             with connection.cursor() as cursor:
@@ -43,13 +43,13 @@ WHERE id= %s
                 cursor.execute(
                     update_query,
                     (
-                        str(member.role),
-                        member.id.get_id()
+                        str(role),
+                        member_id.get_id()
                     ),
                 )
                 # 변경 사항을 커밋
                 connection.commit()
-                return Ok(member.id)
+                return Ok(member_id)
         except Exception as e:
             connection.rollback()
             connection.close()
