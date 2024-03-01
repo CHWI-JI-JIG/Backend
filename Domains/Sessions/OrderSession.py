@@ -51,7 +51,7 @@ class OrderTransitionSession(ID, ISessionSerializeable):
         )
 
 
-class OrderTransitionBuilder(ISesseionBuilder):
+class ProductSessionBuilder(ISesseionBuilder):
     def __init__(
         self,
         recipient_name: Optional[str] = None,
@@ -195,41 +195,58 @@ class OrderTransitionBuilder(ISesseionBuilder):
         self.buyer_id = id
         return self
 
-    def set_product_id(self, product_id: str) -> Self:
-        assert self.product_id is None, "product id is already set."
-        assert isinstance(product_id, str), "Type of product_id is str."
-        assert check_hex_string(product_id), "The product is not in hex format."
+    def set_img_path(self, img_path: str) -> Result[Self, str]:
+        from Commons.format import IMG_PATH
+        import os.path
 
-        id = ProductIDBuilder().set_uuid(product_id).build()
+        assert self.img_path is None, "img path is already set."
+        # assert os.path.isfile(
+        #     IMG_PATH / img_path
+        # ), f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path."
 
-        assert isinstance(
-            id, ProductID
-        ), "ValueType Error: Initialize the id via ProductIDBuilder."
+        if not os.path.isfile(IMG_PATH / img_path):
+            ic()
+            print("Not Implement")
+            print(f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path.")
+            # return Err(f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path.")
 
-        self.product_id = id
-        return self
+        self.img_path = img_path
+        return Ok(self)
 
-    def build(self) -> OrderTransitionSession:
-        key = "key"
-        assert isinstance(self.key, UUID), f"Not Set {key}."
-        key = "buyer_id"
-        assert isinstance(self.buyer_id, MemberID), f"Not Set {key}."
-        key = "recipient_name"
-        assert isinstance(self.recipient_name, str), f"Not Set {key}."
-        key = "recipient_phone"
-        assert isinstance(self.recipient_phone, str), f"Not Set {key}."
-        key = "recipient_address"
-        assert isinstance(self.recipient_address, str), f"Not Set {key}."
-        key = "product_id"
-        assert isinstance(self.product_id, ProductID), f"Not Set {key}."
-        key = "buy_count"
-        assert isinstance(self.buy_count, int), f"Not Set {key}."
-        key = "total_price"
-        assert isinstance(self.total_price, int), f"Not Set {key}."
+    def build(self) -> ProductTempSession:
+        assert isinstance(self.seller_id, MemberID), "Not Set seller_id"
 
-        oid = OrderIDBuilder().set_uuid().build()
+        match (self.name, self.price, self.description, self.seller_id):
+            case (None, None, None, _):
+                product = None
+            case (name, price, description, seller_id) if (
+                isinstance(name, str)
+                and isinstance(price, int)
+                and isinstance(description, str)
+                and isinstance(seller_id, MemberID)
+            ):
+                id = ProductIDBuilder().set_uuid().build()
+                product = Product(
+                    id=id,
+                    seller_id=seller_id,
+                    name=name,
+                    description=description,
+                    img_path="Dump",
+                    register_day=datetime.now(),
+                    price=price,
+                )
+            case _:
+                assert False, "Not Set name, price, description, seller_id."
 
-        return OrderTransitionSession(
+        match self.img_path:
+            case None:
+                img_path = ""
+            case img_path if isinstance(img_path, str):
+                img_path = img_path
+            case _:
+                assert False, "img path don't set."
+
+        return ProductTempSession(
             key=self.key,
             order=Order(
                 id=oid,
