@@ -53,11 +53,12 @@ class AdminService:
             return Err("Invalid role type")
         
         try:
-            update_result = self.edit_repo.update_role(user_id, role_type)
+            member_id = MemberIDBuilder().set_uuid(user_id).build()
+            update_result = self.edit_repo.update_role(member_id, role_type)
             if update_result.is_err():
                 return Err("Failed to update member role")
 
-            return Ok(user_id)
+            return Ok(member_id)
             
         except Exception as e:
             return Err(str(e))
