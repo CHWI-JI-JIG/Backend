@@ -5,16 +5,22 @@ from werkzeug.utils import secure_filename
 
 from Applications.Members.CreateMemberService import CreateMemberService
 from Applications.Members.LoginMemberService import AuthenticationMemberService
+from Applications.Members.AdminService import AdminService
 from Applications.Products.ReadProductService import ReadProductService
 from Applications.Products.CreateProductService import CreateProductService
+from Applications.Orders.ReadOrderService import ReadOrderService
 from get_config_data import get_db_padding
 from icecream import ic
 
+from Storages.Members.MySqlEditMember import  MySqlEditMember
+from Storages.Members.MySqlGetMember import  MySqlGetMember
 from Storages.Members.MySqlSaveMember import  MySqlSaveMember
+from Storages.Orders.MySqlGetOrder import MySqlGetOrder
 from Storages.Members.LoginVerifiableAuthentication import LoginVerifiableAuthentication
 from Storages.Sessions import *
 from Storages.Products.MySqlGetProduct import MySqlGetProduct
 from result import Result, Ok, Err
+from Domains.Orders import *
 from Domains.Sessions import MemberSession
 from Domains.Products import *
 from mysql_config import mysql_db
@@ -133,14 +139,14 @@ def productRegistration():
     ic(data)
     memberAuth = data.get('key')
     #tempProductId = data.get('tempProductId')
-    productImagePath = data.get("productImagePath")
+    productImagePath = data.get("productImageUrl")
     productName = data.get('productName')
     productPrice = data.get('productPrice')
     productDescription = data.get('productDescription')
     #productRegistrationData = data.get('productRegistrationData')
     #sellerId = data.get('sellerId')
     
-    file = request.files['file']
+    file = request.files['productImageUrl']
     filename = secure_filename(file.filename)
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     
@@ -344,6 +350,74 @@ def bsignup():
         return jsonify({'success': True}), 200
     else:
         return jsonify({'success': False})
+
+## susujin code
+@app.route('/api/admin', methods=['POST'])
+def adminUser():
+    read_repo = MySqlGetMember(get_db_padding())
+    edit_repo = MySqlEditMember(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
+    
+    
+    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
+    
+    data = request.get_json()
+    user_key = data.get('key')
+    page = data.get('page')
+    page -= 1
+
+    size = 20
+    result = get_user_info.read_members(page, size)
+    ic(result)
+    response_data = {"page":page+1, "size": size,"data": []}
+    
+    match result:
+        case Ok((max, members)):
+            response_data["totalPage"] = math.ceil(max/size)
+            for v in members:
+                ic(members)
+                user_data = {
+                    "key" : v.id,
+                    "userId" : v.account,
+                    "userAuth" : v.role
+
+                }
+                response_data["data"].append(user_data)
+            return jsonify(response_data)
+            
+        case Err(e):
+            return jsonify({'success': False})
+        
+@app.route('/api/user-role', methods=['POST'])
+def updateUserRole():
+    read_repo = MySqlGetMember(get_db_padding())
+    edit_repo = MySqlEditMember(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
+    
+    get_user_info = AdminService(read_repo, edit_repo)
+    
+    data = request.get_json()
+    #user_key = data.get('key')
+    user_id = data.get('key')  # 사용자 UUID
+    new_role = data.get('userAuth')  # 변경할 권한
+
+    result = get_user_info.change_role(new_role, user_id, load_session_repo)
+    ic(result)
+
+    match result:
+        case Ok(user_id):
+            return jsonify({'success': True, 'message': 'User role updated successfully'})
+
+        case Err(e):
+            return jsonify({'success': False, 'message': str(e)})
+## susujin code end
+
+@app.route('/api/order-histroy', methods = ['POST'])
+def orderHistroy():
+    get_order_Repo=MySqlGetOrder(get_db_padding())
+    load_session_repo=MySqlLoadSession(get_db_padding())
+    get_order_info=ReadOrderService(get_order_Repo, load_session_repo)
+    return
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
