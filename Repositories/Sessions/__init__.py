@@ -9,8 +9,12 @@ if not (str(root_path) in sys.path):
 
 from Repositories.Sessions.ILoadableSession import ILoadableSession
 from Repositories.Sessions.IMakeSaveMemberSession import IMakeSaveMemberSession
+from Repositories.Sessions.ISaveableProductTempSession import (
+    ISaveableProductTempSession,
+)
 
 __all__ = [
     "ILoadableSession",
+    "ISaveableProductTempSession",
     "IMakeSaveMemberSession",
 ]

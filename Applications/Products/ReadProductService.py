@@ -44,9 +44,9 @@ class ReadProductService:
         assert check_hex_string(product_id), "The product_id is not in hex format."
         id = ProductIDBuilder().set_uuid(product_id).build()
 
-        assert isinstance(id, MemberID), "Type of product_id is ProductID."
+        assert isinstance(id, ProductID), "Type of product_id is ProductID."
 
-        return self.product_repo.get_product_by_product_id(seller_id=id)
+        return self.product_repo.get_product_by_product_id(product_id=id)
 
     def get_product_data_for_main_page(
         self,
@@ -71,7 +71,6 @@ class ReadProductService:
 
     def get_product_data_for_seller_page(
         self,
-        seller_id: str,
         user_key: str,
         page=0,
         size=10,
@@ -86,27 +85,22 @@ class ReadProductService:
                     'NotExsistKey'
                     'NotOnwer'
         """
+        builder = MemberSessionBuilder().set_deserialize_key(user_key)
         match self.session_repo.load_session(user_key):
             case Ok(json):
-                session = (
-                    MemberSessionBuilder()
-                    .set_deserialize_value(json)
-                    .set_deserialize_key(user_key)
-                    .build()
-                )
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        user_session = session.build()
+                        seller_id = user_session.member_id
+                    case _:
+                        return Err("Invalid Member Session")
             case _:
-                return Err("NotExsistKey")
+                return Err("plz login")
 
-        assert check_hex_string(seller_id), "The seller_id is not in hex format."
-        member_id = MemberIDBuilder().set_uuid(seller_id).build()
+        assert isinstance(seller_id,MemberID), "Not MenberID."
 
-        assert isinstance(member_id, MemberID), "Type of seller_id is MemberID."
-
-        if session.member_id.get_id() == member_id.get_id():
-            return self.product_repo.get_products_by_seller_id(
-                seller_id=member_id,
-                page=page,
-                size=size,
-            )
-
-        return Err("NotOnwer")
+        return self.product_repo.get_products_by_seller_id(
+            seller_id=seller_id,
+            page=page,
+            size=size,
+        )

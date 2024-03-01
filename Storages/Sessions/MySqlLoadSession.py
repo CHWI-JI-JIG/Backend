@@ -65,9 +65,6 @@ WHERE id = %s
 
                 session_value = result[0]
 
-                # session_builder = MemberSessionBuilder().set_deserialize_key(str(session_key)).set_deserialize_value(session_value)
-                # member_session = session_builder.build()
-
                 connection.commit()
 
                 cursor.close()
