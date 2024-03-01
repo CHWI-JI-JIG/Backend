@@ -18,10 +18,10 @@ from Repositories.Sessions import *
 from icecream import ic
 
 
-class CreateOrderService:
+class OrderPaymentService:
     """
     할일
-    1. 결제로 갈때, 주문 정보를 담고 있는 트렌젝션을 저장한다.
+    1. 결제로 갈때, 주문 정보를 담고 있는 트렌젝션을 저장하고, 트렌젝션을 발급해준다.
     # 2. 유효한 결제 정보인지 확인한다.
     # 3. 결제가 완료되면, 결제정보가 맞는지 검증세션을 확인해서, 유효한 결제 정보인지 확인한다.
     3. 결제 창에서 True 값이 넘어면,
@@ -52,7 +52,7 @@ class CreateOrderService:
 
         self.load_repo = load_session
 
-    def publish_temp_order_id(
+    def publish__order_transition(
         self,
         recipient_name: str,
         recipient_phone: str,
@@ -90,9 +90,10 @@ class CreateOrderService:
             .build()
         )
 
-    def create(
+    def payment_and_approval_order(
         self,
         order_transition_session: str,
+        payment_success: bool,
     ) -> Result[OrderID, str]:
         # load transition
         bulider = OrderTransitionBuilder().set_deserialize_key(order_transition_session)
@@ -100,7 +101,7 @@ class CreateOrderService:
             case Ok(json):
                 match bulider.set_deserialize_value(json):
                     case Ok(session):
-                        order_session = session.build()
+                        order_session = session.set_is_success(payment_success).build()
                     case e:
                         ic(e)
                         return Err("Invalid Order Transition")
@@ -108,5 +109,9 @@ class CreateOrderService:
                 ic(e)
                 return Err("Not Exists Session")
 
-        # create order
-        return self.order_repo.save_order(order=order_session.order)
+        # payment order
+        match order_session.is_success:
+            case True:
+                return self.order_repo.save_order(order=order_session.order)
+            case _:
+                return Err("Fail Payment")
