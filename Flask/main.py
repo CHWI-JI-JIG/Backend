@@ -16,6 +16,7 @@ from Storages.Sessions import *
 from Storages.Products.MySqlGetProduct import MySqlGetProduct
 from result import Result, Ok, Err
 from Domains.Sessions import MemberSession
+from Domains.Products import *
 from mysql_config import mysql_db
 
 import os
@@ -76,7 +77,7 @@ def search():
     page -= 1
     totalCount = 0
     totalPage = 0
-    size = 3
+    size = 20
     
     
     try:
@@ -175,7 +176,30 @@ def productRegistration():
         case Err(e):
             return jsonify({'success': False})
 
-@app.route('/api/products', methods=['get'])
+@app.route('/api/detail', methods = ['GET'] )
+def detail():
+    productId = request.args.get('productId', type=str)
+    get_product_repo = MySqlGetProduct(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
+    
+    get_product_detail_info = ReadProductService(get_product_repo, load_session_repo)
+    result = get_product_detail_info.get_product_for_detail_page(productId)
+    
+    match result:
+        case None:
+            jsonify({'success': False})
+        case ret if isinstance(ret, Product):
+            res_data = {
+                "productId" : ret.id.get_id(),
+                "productName" : ret.name,
+                "productDescription" : ret.description,
+                "productPrice" : ret.price,
+                "productImageUrl" : url_for('send_image', filename=ret.img_path)
+            }
+            return jsonify(res_data)
+    
+    
+@app.route('/api/products', methods=['GET'])
 def product():
     
     get_product_repo = MySqlGetProduct(get_db_padding())
@@ -185,7 +209,7 @@ def product():
     
     page = request.args.get('page', type=int)
     page -= 1
-    size = 3
+    size = 20
     result = get_product_info.get_product_data_for_main_page(page, size)
     response_data = {"page":page+1, "size": size,"data": []}
     
@@ -195,8 +219,8 @@ def product():
             response_data["totalPage"] = math.ceil(max/size)
             for v in products:
                 product_data = {
-                    "productId" : str (v.id.uuid),
-                    "sellerId" : str(v.seller_id.uuid),
+                    "productId" : str (v.id.get_id()),
+                    "sellerId" : str(v.seller_id.get_id()),
                     "productName" : v.name,
                     "productImageUrl" : url_for('send_image', filename=v.img_path), # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path
@@ -231,7 +255,7 @@ def sellerProduct():
             for v in products:
                 ic(products)
                 product_data = {
-                    "productId" : str (v.id.uuid),
+                    "productId" : str (v.id.get_id()),
                     "productName" : v.name,
                     "productImageUrl" : url_for('send_image', filename=v.img_path), # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path,
