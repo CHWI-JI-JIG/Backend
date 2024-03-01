@@ -5,9 +5,10 @@ from result import Result, Ok, Err
 
 from Domains.Members import *
 from Domains.Products import *
-from Domains.Comments import *
+from Domains.Orders import *
 from Domains.Sessions import *
 from Builders.Members import *
+
 from Repositories.Members import *
 from Repositories.Products import *
 from Repositories.Orders import *
@@ -21,7 +22,7 @@ class CreateOrderService:
     """
     할일
     1. 결제로 갈때, 주문 정보를 담고 있는 트렌젝션을 저장한다.
-    # 2. 유효한 트렌젝션인지 확인한다.
+    # 2. 유효한 결제 정보인지 확인한다.
     # 3. 결제가 완료되면, 결제정보가 맞는지 검증세션을 확인해서, 유효한 결제 정보인지 확인한다.
     3. 결제 창에서 True 값이 넘어면,
     4. 유효한 결제 정보라면, 주문 트렌젝션을 불러와서 결제를 진행한다.
@@ -44,14 +45,18 @@ class CreateOrderService:
 
         self.load_repo = load_session
 
-    """def publish_temp_order_id(
+    def publish_temp_order_id(
         self,
-        buyer_id:str,
-        recipient_name:str,
-        recipient_phone:str,
-        recipient_address:str,
-        product_id:str,
-        buy_count:int,
-        single_pricet:int,
-        user_session_key:str,
-    ) ->  """
+        recipient_name: str,
+        recipient_phone: str,
+        recipient_address: str,
+        product_id: str,
+        buy_count: int,
+        single_price: int,
+        user_session_key: str,
+    ) -> Result[OrderTransitionSession, str]: ...
+
+    def create(
+        self,
+        order_transition_session: str,
+    ) -> Result[OrderID, str]: ...

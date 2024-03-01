@@ -8,6 +8,7 @@ from pathlib import Path
 from result import Result, Err, Ok
 from datetime import datetime
 
+from Commons.helpers import check_hex_string
 
 from Domains import ID
 from Domains.Products import *
@@ -18,12 +19,13 @@ from Domains.Orders import *
 
 from Builders.Members import *
 from Builders.Products import *
+from Builders.Orders import *
 
 from icecream import ic
 
 
 @dataclass(frozen=True)
-class OrderTempSession(ID, ISessionSerializeable):
+class OrderTransitionSession(ID, ISessionSerializeable):
     key: UUID
     order: Order
 
@@ -34,81 +36,36 @@ class OrderTempSession(ID, ISessionSerializeable):
         return self.get_id()
 
     def serialize_value(self) -> str:
-        match (self.product, self.img_path):
-            case (p, i) if isinstance(p, Product) and len(i) > 0:
-                return json.dumps(
-                    {
-                        "check_product": True,
-                        "check_img": True,
-                        "seller_id": self.seller_id.get_id(),
-                        "name": p.name,
-                        "price": p.price,
-                        "description": p.description,
-                        "img_path": i,
-                    },
-                    ensure_ascii=False,
-                )
-
-            case (none, i) if len(i) > 0 and none is None:
-                return json.dumps(
-                    {
-                        "check_product": False,
-                        "check_img": True,
-                        "seller_id": self.seller_id.get_id(),
-                        "img_path": i,
-                    },
-                    ensure_ascii=False,
-                )
-            case (p, none) if len(none) <= 0 and isinstance(p, Product):
-                return json.dumps(
-                    {
-                        "check_product": True,
-                        "check_img": False,
-                        "seller_id": self.seller_id.get_id(),
-                        "name": p.name,
-                        "price": p.price,
-                        "description": p.description,
-                    },
-                    ensure_ascii=False,
-                )
-            case _:
-                return json.dumps(
-                    {
-                        "check_product": False,
-                        "check_img": False,
-                        "seller_id": self.seller_id.get_id(),
-                    },
-                    ensure_ascii=False,
-                )
+        order = self.order
+        return json.dumps(
+            {
+                "buyer_id": order.buyer_id.get_id(),
+                "recipient_name": order.recipient_name,
+                "recipient_phone": order.recipient_phone,
+                "recipient_address": order.recipient_address,
+                "product_id": order.product_id.get_id(),
+                "buy_count": order.buy_count,
+                "total_price": order.total_price,
+            },
+            ensure_ascii=False,
+        )
 
 
-class OrderSessionBuilder(ISesseionBuilder):
+class OrderTransitionBuilder(ISesseionBuilder):
     def __init__(
         self,
-        key: Optional[UUID] = None,
-        name: Optional[str] = None,
-        price: Optional[int] = None,
-        description: Optional[str] = None,
-        img_path: Optional[str] = None,
+        recipient_name: Optional[str] = None,
+        recipient_phone: Optional[str] = None,
+        recipient_description: Optional[str] = None,
     ):
-        self.key = key
-        self.seller_id: Optional[MemberID] = None
-        self.name: Optional[name] = name
-        self.price = price
-        self.description = description
-        self.img_path = img_path
-
-    def check_set_img(self) -> bool:
-        return isinstance(self.img_path, str)
-
-    def check_set_product(self) -> bool:
-
-        return (
-            isinstance(self.seller_id, MemberID)
-            and isinstance(self.name, str)
-            and isinstance(self.price, int)
-            and isinstance(self.description, str)
-        )
+        self.key: Optional[UUID] = None
+        self.buyer_id: Optional[MemberID] = None
+        self.recipient_name: Optional[str] = recipient_name
+        self.recipient_phone = recipient_phone
+        self.recipient_address = recipient_description
+        self.product_id: Optional[ProductID] = None
+        self.buy_count: Optional[int] = None
+        self.total_price: Optional[int] = None
 
     def set_deserialize_key(self, key: str) -> Self:
         self.set_key(key)
@@ -122,81 +79,43 @@ class OrderSessionBuilder(ISesseionBuilder):
             return Err("fail read json")
         assert isinstance(to_dict, dict), "Type of convert value is Dict."
 
-        dict_key = "seller_id"
-        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
+        dict_key = "buyer_id"
         if not isinstance(to_dict.get(dict_key), str):
             return Err(f"Not Exists {dict_key}")
-        self.set_seller_id(to_dict.get(dict_key))
+        self.set_buyer_id(to_dict.get(dict_key))
 
-        dict_key = "check_product"
-        assert isinstance(
-            to_dict.get(dict_key), bool
-        ), f"{dict_key} is not exsist dict."
-        if not isinstance(to_dict.get(dict_key), bool):
+        dict_key = "recipient_name"
+        if not isinstance(to_dict.get(dict_key), str):
             return Err(f"Not Exists {dict_key}")
-        if to_dict.get(dict_key):
-            dict_key = "name"
-            assert isinstance(
-                to_dict.get(dict_key), str
-            ), f"{dict_key} is not exsist dict."
-            if not isinstance(to_dict.get(dict_key), str):
-                return Err(f"Not Exists {dict_key}")
-            self.set_name(to_dict.get(dict_key))
+        self.set_recipient_name(to_dict.get(dict_key))
 
-            dict_key = "description"
-            assert isinstance(
-                to_dict.get(dict_key), str
-            ), f"{dict_key} is not exsist dict."
-            if not isinstance(to_dict.get(dict_key), str):
-                return Err(f"Not Exists {dict_key}")
-            self.set_description(to_dict.get(dict_key))
-
-            dict_key = "price"
-            assert isinstance(
-                to_dict.get(dict_key), int
-            ), f"{dict_key} is not exsist dict."
-            if not isinstance(to_dict.get(dict_key), int):
-                return Err(f"Not Exists {dict_key}")
-            self.set_price(int(to_dict.get(dict_key)))
-
-        dict_key = "check_img"
-        assert isinstance(
-            to_dict.get(dict_key), bool
-        ), f"{dict_key} is not exsist dict."
-        if not isinstance(to_dict.get(dict_key), bool):
+        dict_key = "recipient_phone"
+        if not isinstance(to_dict.get(dict_key), str):
             return Err(f"Not Exists {dict_key}")
-        if to_dict.get(dict_key):
-            dict_key = "img_path"
-            assert isinstance(
-                to_dict.get(dict_key), str
-            ), f"{dict_key} is not exsist dict."
-            if not isinstance(to_dict.get(dict_key), str):
-                return Err(f"Not Exists {dict_key}")
-            self.set_img_path(to_dict.get(dict_key))
+        self.set_recipient_phone(to_dict.get(dict_key))
+
+        dict_key = "recipient_address"
+        if not isinstance(to_dict.get(dict_key), str):
+            return Err(f"Not Exists {dict_key}")
+        self.set_recipient_address(to_dict.get(dict_key))
+
+        dict_key = "product_id"
+        if not isinstance(to_dict.get(dict_key), str):
+            return Err(f"Not Exists {dict_key}")
+        self.set_product_id(to_dict.get(dict_key))
+
+        dict_key = "buy_count"
+        if not isinstance(to_dict.get(dict_key), int):
+            return Err(f"Not Exists {dict_key}")
+
+        self.set_count(to_dict.get(dict_key))
+
+        dict_key = "total_price"
+        if not isinstance(to_dict.get(dict_key), int):
+            return Err(f"Not Exists {dict_key}")
+        self.set_total_price(to_dict.get(dict_key))
 
         return Ok(self)
-
-    def set_name(self, name: str) -> Self:
-        assert self.name is None, "name is already set."
-        assert isinstance(name, str), "Type of name is str"
-
-        self.name = name
-        return self
-
-    def set_description(self, description: str) -> Self:
-        assert self.description is None, "rule is already set."
-        assert isinstance(description, str), "Type of rule is str."
-
-        self.description = description
-        return self
-
-    def set_price(self, price: int) -> Self:
-        assert isinstance(price, int), "Type of price is int."
-        assert self.price is None, "The priceuence is already set."
-        assert price >= 100, "price >= 0"
-
-        self.price = price
-        return self
 
     def set_key(self, key: Optional[str] = None) -> Self:
         assert self.key is None, "The Key is already set."
@@ -208,78 +127,120 @@ class OrderSessionBuilder(ISesseionBuilder):
                 self.key = UUID(hex=key)
             case _:
                 assert False, "Type of key is str."
+        assert isinstance(self.key, UUID), "Not set key."
 
         return self
 
-    def set_seller_id(self, seller_id: str) -> Self:
-        assert self.seller_id is None, "seller id is already set."
+    def set_recipient_name(self, name: str) -> Self:
+        assert self.recipient_name is None, "name is already set."
+        assert isinstance(name, str), "Type of name is str"
 
-        if isinstance(seller_id, str):
-            id = MemberIDBuilder().set_uuid(seller_id).build()
-        else:
-            assert False, "Type of seller_id is str."
+        self.recipient_name = name
+        return self
+
+    def set_recipient_phone(self, phone: str) -> Self:
+        assert self.recipient_phone is None, "phone is already set."
+        assert isinstance(phone, str), "Type of phone is str"
+
+        self.recipient_phone = phone
+        return self
+
+    def set_recipient_address(self, recipient_address: str) -> Self:
+        assert self.recipient_address is None, "recipient_address is already set."
+        assert isinstance(recipient_address, str), "Type of recipient_address is str."
+
+        self.recipient_address = recipient_address
+        return self
+
+    def set_count_and_price(self, buy_count: int, price: int) -> Self:
+        assert isinstance(price, int), "Type of price is int."
+        assert isinstance(buy_count, int), "Type of buy_count is int."
+        assert self.total_price is None, "The price is already set."
+        assert self.buy_count is None, "The buy_count is already set."
+        assert price >= 100, "price >= 0"
+        assert buy_count >= 1, "count >= 0"
+
+        self.buy_count = buy_count
+        self.total_price = price * buy_count
+        return self
+
+    def set_count(self, buy_count: int) -> Self:
+        assert isinstance(buy_count, int), "Type of buy_count is int."
+        assert self.total_price is None, "The price is already set."
+        assert buy_count >= 1, "count >= 0"
+
+        self.buy_count = buy_count
+        return self
+
+    def set_total_price(self, total_price: int) -> Self:
+        assert isinstance(total_price, int), "Type of total price is int."
+        assert self.total_price is None, "The price is already set."
+        assert total_price >= 100, "price >= 0"
+
+        self.total_price = total_price
+        return self
+
+    def set_buyer_id(self, buyer_id: str) -> Self:
+        assert self.buyer_id is None, "buyer id is already set."
+        assert isinstance(buyer_id, str), "Type of buyer_id is str."
+        assert check_hex_string(buyer_id), "The buyer is not in hex format."
+
+        id = MemberIDBuilder().set_uuid(buyer_id).build()
 
         assert isinstance(
             id, MemberID
         ), "ValueType Error: Initialize the id via MemberIDBuilder."
 
-        self.seller_id = id
+        self.buyer_id = id
         return self
 
-    def set_img_path(self, img_path: str) -> Result[Self, str]:
-        from Commons.format import IMG_PATH
-        import os.path
+    def set_product_id(self, product_id: str) -> Self:
+        assert self.product_id is None, "product id is already set."
+        assert isinstance(product_id, str), "Type of product_id is str."
+        assert check_hex_string(product_id), "The product is not in hex format."
 
-        assert self.img_path is None, "img path is already set."
-        # assert os.path.isfile(
-        #     IMG_PATH / img_path
-        # ), f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path."
+        id = ProductIDBuilder().set_uuid(product_id).build()
 
-        if not os.path.isfile(IMG_PATH / img_path):
-            ic()
-            print("Not Implement")
-            print(f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path.")
-            # return Err(f"Not Exsist '{str(IMG_PATH/img_path)}'. img path is not abs path.")
+        assert isinstance(
+            id, ProductID
+        ), "ValueType Error: Initialize the id via ProductIDBuilder."
 
-        self.img_path = img_path
-        return Ok(self)
+        self.product_id = id
+        return self
 
-    def build(self) -> OrderTempSession:
-        assert isinstance(self.seller_id, MemberID), "Not Set seller_id"
+    def build(self) -> OrderTransitionSession:
+        key = "key"
+        assert isinstance(self.key, UUID), f"Not Set {key}."
+        key = "buyer_id"
+        assert isinstance(self.buyer_id, MemberID), f"Not Set {key}."
+        key = "recipient_name"
+        assert isinstance(self.recipient_name, str), f"Not Set {key}."
+        key = "recipient_phone"
+        assert isinstance(self.recipient_phone, str), f"Not Set {key}."
+        key = "recipient_address"
+        assert isinstance(self.recipient_address, str), f"Not Set {key}."
+        key = "product_id"
+        assert isinstance(self.product_id, ProductID), f"Not Set {key}."
+        key = "buy_count"
+        assert isinstance(self.buy_count, int), f"Not Set {key}."
+        key = "total_price"
+        assert isinstance(self.total_price, int), f"Not Set {key}."
 
-        match (self.name, self.price, self.description, self.seller_id):
-            case (None, None, None, _):
-                product = None
-            case (name, price, description, seller_id) if (
-                isinstance(name, str)
-                and isinstance(price, int)
-                and isinstance(description, str)
-                and isinstance(seller_id, MemberID)
-            ):
-                id = ProductIDBuilder().set_uuid().build()
-                product = Product(
-                    id=id,
-                    seller_id=seller_id,
-                    name=name,
-                    description=description,
-                    img_path="Dump",
-                    register_day=datetime.now(),
-                    price=price,
-                )
-            case _:
-                assert False, "Not Set name, price, description, seller_id."
+        oid = OrderIDBuilder().set_uuid().build()
 
-        match self.img_path:
-            case None:
-                img_path = ""
-            case img_path if isinstance(img_path, str):
-                img_path = img_path
-            case _:
-                assert False, "img path don't set."
-
-        return ProductTempSession(
+        return OrderTransitionSession(
             key=self.key,
-            seller_id=self.seller_id,
-            product=product,
-            img_path=img_path,
+            order=Order(
+                id=oid,
+                product_id=self.product_id,
+                buyer_id=self.buyer_id,
+                recipient_name=self.recipient_name,
+                recipient_phone=self.recipient_phone,
+                recipient_address=self.recipient_address,
+                product_name="dump",
+                product_img_path="dump",
+                buy_count=self.buy_count,
+                total_price=self.total_price,
+                order_date=datetime.now(),
+            ),
         )

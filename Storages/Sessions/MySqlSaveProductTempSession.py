@@ -16,7 +16,7 @@ import pymysql
 from icecream import ic
 
 
-class MySqlSaveProductTempSession(ISaveableProductTempSession):
+class MySqlSaveProductTempSession(IUptadeORSaveProductTempSession):
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
