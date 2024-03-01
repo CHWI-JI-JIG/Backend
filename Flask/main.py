@@ -8,16 +8,19 @@ from Applications.Members.LoginMemberService import AuthenticationMemberService
 from Applications.Members.AdminService import AdminService
 from Applications.Products.ReadProductService import ReadProductService
 from Applications.Products.CreateProductService import CreateProductService
+from Applications.Orders.ReadOrderService import ReadOrderService
 from get_config_data import get_db_padding
 from icecream import ic
 
 from Storages.Members.MySqlEditMember import  MySqlEditMember
 from Storages.Members.MySqlGetMember import  MySqlGetMember
 from Storages.Members.MySqlSaveMember import  MySqlSaveMember
+from Storages.Orders.MySqlGetOrder import MySqlGetOrder
 from Storages.Members.LoginVerifiableAuthentication import LoginVerifiableAuthentication
 from Storages.Sessions import *
 from Storages.Products.MySqlGetProduct import MySqlGetProduct
 from result import Result, Ok, Err
+from Domains.Orders import *
 from Domains.Sessions import MemberSession
 from Domains.Products import *
 from mysql_config import mysql_db
@@ -394,8 +397,8 @@ def updateUserRole():
     get_user_info = AdminService(read_repo, edit_repo)
     
     data = request.get_json()
-    user_key = data.get('key')
-    user_id = data.get('userUUID')  # 사용자 UUID
+    #user_key = data.get('key')
+    user_id = data.get('key')  # 사용자 UUID
     new_role = data.get('userAuth')  # 변경할 권한
 
     result = get_user_info.change_role(new_role, user_id, load_session_repo)
@@ -408,6 +411,13 @@ def updateUserRole():
         case Err(e):
             return jsonify({'success': False, 'message': str(e)})
 ## susujin code end
+
+@app.route('/api/order-histroy', methods = ['POST'])
+def orderHistroy():
+    get_order_Repo=MySqlGetOrder(get_db_padding())
+    load_session_repo=MySqlLoadSession(get_db_padding())
+    get_order_info=ReadOrderService(get_order_Repo, load_session_repo)
+    return
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
