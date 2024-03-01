@@ -208,7 +208,7 @@ def product():
         case Err(e):
             return jsonify({'success': False})     
 
-@app.route('/api/sproducts', methods=['POST']) # 보류 //sellerId 해결해야함, ReadProductService.py check_hex_string() 문제 해결되야함.
+@app.route('/api/sproducts', methods=['POST'])
 def sellerProduct():
     get_product_repo = MySqlGetProduct(get_db_padding())
     load_session_repo = MySqlLoadSession(get_db_padding())
@@ -216,14 +216,12 @@ def sellerProduct():
     get_product_info = ReadProductService(get_product_repo, load_session_repo)
     
     data = request.get_json()
-    seller_id
     user_key = data.get('key')
-    user_key = str(user_key)
-    ic(user_key)
     page = data.get('page')
-    ic(page)
+
     size = 20
     result = get_product_info.get_product_data_for_seller_page( user_key, page, size)
+    ic(result)
     response_data = {"page":page+1, "size": size,"data": []}
     
     match result:
