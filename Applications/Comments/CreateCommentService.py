@@ -24,8 +24,8 @@ class CreateCommentService:
         load_session: ILoadableSession,
     ):
         assert issubclass(
-            type(save_comment), ISaveableMember
-        ), "save_member_repo must be a class that inherits from ISaveableMember."
+            type(save_comment), ISaveableComment
+        ), "save_member_repo must be a class that inherits from ISaveableComment."
 
         self.comment_repo = save_comment
 
