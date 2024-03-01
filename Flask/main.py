@@ -16,6 +16,7 @@ from Storages.Members.MySqlEditMember import  MySqlEditMember
 from Storages.Members.MySqlGetMember import  MySqlGetMember
 from Storages.Members.MySqlSaveMember import  MySqlSaveMember
 from Storages.Orders.MySqlGetOrder import MySqlGetOrder
+from Storages.Products import MySqlSaveProduct
 from Storages.Members.LoginVerifiableAuthentication import LoginVerifiableAuthentication
 from Storages.Sessions import *
 from Storages.Products.MySqlGetProduct import MySqlGetProduct
@@ -135,31 +136,41 @@ def productRegistration():
     if 'file' not in request.files:
             return jsonify({"error": "Invalid image file."}), 400
     
-    data = request.get_json()
-    ic(data)
-    memberAuth = data.get('key')
-    #tempProductId = data.get('tempProductId')
-    productImagePath = data.get("productImageUrl")
-    productName = data.get('productName')
-    productPrice = data.get('productPrice')
-    productDescription = data.get('productDescription')
+    # data = request.get_json()
+    # ic(data)
+    # memberAuth = data.get('key')
+    # #tempProductId = data.get('tempProductId')
+    # productImagePath = data.get("file")
+    # productName = data.get('productName')
+    # productPrice = data.get('productPrice')
+    # productDescription = data.get('productDescription')
     #productRegistrationData = data.get('productRegistrationData')
     #sellerId = data.get('sellerId')
     
-    file = request.files['productImageUrl']
+    productName = request.form['productName']
+    productPrice = int(request.form['productPrice'])
+    productDescription = request.form['productDescription']
+    memberAuth = request.form.get('key')
+    
+    file = request.files['file']
     filename = secure_filename(file.filename)
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     
     member_save_repo = MySqlSaveMember(get_db_padding())
-    regi = CreateProductService(member_save_repo)
+    save_product=MySqlSaveProduct(get_db_padding())
+    save_product_session=MySqlSaveProductTempSession(get_db_padding())
+    load_session=MySqlLoadSession(get_db_padding())
+    
+    regi = CreateProductService(save_product, save_product_session,load_session)
     check = regi.publish_temp_product_id(memberAuth)
+    
     match check:
         case Ok(member_session):
             check = member_session
         case _:
             return jsonify({'success' : False})
             
-    regiImg = regi.check_upload_image_path(productImagePath, check.get_id())
+    regiImg = regi.check_upload_image_path(file.filename, check.get_id())
     match regiImg:
         case Ok(member_session):
             pass

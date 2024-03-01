@@ -17,23 +17,22 @@ from Builders.Products import *
 
 
 from Repositories.Members import *
-from Repositories.Products import IGetableProduct
 from Repositories.Comments import *
 from Repositories.Sessions import ILoadableSession
 
 from icecream import ic
 
 
-class ReadOrderService:
+class ReadCommentService:
     def __init__(
         self,
-        get_product_repo: IGetableComment,
+        get_comment_repo: IGetableComment,
     ):
         assert issubclass(
-            type(get_product_repo), IGetableProduct
-        ), "get_product_repo must be a class that inherits from IGetableProduct."
+            type(get_comment_repo), IGetableComment
+        ), "get_product_repo must be a class that inherits from IGetableComment."
 
-        self.comment_repo = get_product_repo
+        self.comment_repo = get_comment_repo
 
     def get_comment_data_for_product_page(
         self,
@@ -41,6 +40,7 @@ class ReadOrderService:
         page=0,
         size=10,
     ) -> Result[Tuple[int, List[Comment]], str]:
+        
         """_summary_
 
         Args:
@@ -52,11 +52,12 @@ class ReadOrderService:
                 Ok( int, list ): int=> count of list max, list=> result
                 Err(str): reason of Fail
         """
-        ic()
-        ic("상품 관련된거 확인안했음")
-
+        
+        # ic()
+        # ic("상품 관련된거 확인안했음")
+        
         return self.comment_repo.get_comments_by_product_id(
-            product_id=None,
+            product_id = None,
             page=page,
             size=size,
         )

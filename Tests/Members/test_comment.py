@@ -11,8 +11,9 @@ from Storages.Sessions import *
 from Storages.Comments import *
 
 from Applications.Comments import *
-
-from Migrations import MySqlCreateComments, MySqlCreateProduct, MySqlCreateUser
+from Applications.Comments import ReadCommentService
+from Migrations import *
+from Applications.Comments import *
 from result import Result, Ok, Err, is_ok
 
 from icecream import ic
@@ -26,7 +27,7 @@ class test_comment(unittest.TestCase):
     def setUpClass(cls):
         cls.driver = "test"
         print(sys._getframe(0).f_code.co_name, f"(test_comment)")
-        test_padding = "test_comment_service"
+        test_padding = "test_comment_service_"
         set_db_padding(test_padding)
         
         m_c = MySqlCreateComments(get_db_padding())
@@ -38,33 +39,43 @@ class test_comment(unittest.TestCase):
         m_m = MySqlCreateUser(get_db_padding())
         cls.member_migrate = m_m
         
+        m_s = MySqlCreateSession(get_db_padding())
+        cls.session_migrate = m_s
+        
         if m_c.check_exist_comments():
             m_c.delete_comments()
         if m_p.check_exist_product():
             m_p.delete_product()
         if m_m.check_exist_user():
-            m_m.check_exist_user
+            m_m.delete_user()
+        if m_s.check_exist_session():
+            m_s.delete_session()
             
         m_m.create_user()
-        init_member()
+        init_member() 
+        m_s.create_session()
         
         m_p.create_product()
         init_product()
         
-        cls.comment_create_service = CreateCommentService(
-            save_comment=MySqlSaveComment(get_db_padding()),
-            load_session=MySqlLoadSession(get_db_padding())
-        )
+        m_c.create_comments()
+        init_comment()
         
-        cls.comment_read_service = ReadOrderService(
-            get_comment_repo=MySqlGetComment(get_db_padding()),
-        )
         
         login = AuthenticationMemberService(
             auth_member_repo=LoginVerifiableAuthentication(get_db_padding()),
             session_repo=MakeSaveMemberSession(get_db_padding()),
         )
         cls.login_service = login
+        
+        cls.comment_create_service = CreateCommentService(
+            save_comment=MySqlSaveComment(get_db_padding()),
+            load_session=MySqlLoadSession(get_db_padding())
+        )
+        
+        cls.comment_read_service = ReadCommentService(
+            get_comment_repo=MySqlGetComment(get_db_padding()),
+        )
 
         match login.login("1q2w", "123"):
             case Ok(auth):
@@ -84,12 +95,16 @@ class test_comment(unittest.TestCase):
         m_c = cls.comment_migrate
         m_p = cls.product_migrate
         m_m = cls.member_migrate
+        m_s = cls.session_migrate
+        
         if m_c.check_exist_comments():
             m_c.delete_comments()
         if m_p.check_exist_product():
             m_p.delete_product()
         if m_m.check_exist_user():
-            m_m.check_exist_user
+            m_m.delete_user()
+        if m_s.check_exist_session():
+            m_s.delete_session()
         
 
     def setUp(self):
@@ -99,10 +114,10 @@ class test_comment(unittest.TestCase):
         
         # 코멘트 테이블 생성 여부 확인
         assert self.comment_migrate.check_exist_comments(), "Not Init Comment table"
-        # 제품 테이블 생성 여부 확인
-        assert not self.product_migrate.check_exist_product(), "Exist Product table"
-        self.comment_migrate.create_comments()
-        init_comment()
+        # # 제품 테이블 생성 여부 확인
+        # assert not self.product_migrate.check_exist_product(), "Exist Product table"
+        # self.product_migrate.create_product()
+        # init_product()
         
 
     def tearDown(self):
@@ -111,7 +126,13 @@ class test_comment(unittest.TestCase):
         # 코멘트 테이블 삭제
         if self.comment_migrate.check_exist_comments():
             self.comment_migrate.delete_comments()
-        init_comment()
+        if self.product_migrate.check_exist_product():
+            self.product_migrate.delete_product()
+        if self.member_migrate.check_exist_user():
+            self.member_migrate.delete_user()
+        if self.session_migrate.check_exist_session():
+            self.session_migrate.delete_session()
+        
         
         
         # self.comment_create_service.create_question(
@@ -159,6 +180,7 @@ class test_comment(unittest.TestCase):
         page=0
         size=3
         ret = self.comment_read_service.get_comment_data_for_product_page(
+            product_id=product_list[1],
             page=page,
             size=size,
         )
@@ -176,6 +198,7 @@ class test_comment(unittest.TestCase):
         page=1
         size=3
         ret = self.comment_read_service.get_comment_data_for_product_page(
+            product_id=None,
             page=page,
             size=size,
         )
