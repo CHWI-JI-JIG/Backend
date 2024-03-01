@@ -15,7 +15,7 @@ class Order:
     id: OrderID
     product_id: ProductID
     buyer_id: MemberID
-    recipient_account: str
+    recipient_name: str
     recipient_phone: str
     recipient_address: str
     product_name: str

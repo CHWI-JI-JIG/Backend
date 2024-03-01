@@ -64,14 +64,14 @@ class MySqlGetOrder(IGetableOrder):
                 select_query = f"""
 SELECT
     o.id AS order_id,
-    o.buy_count AS buy_count,
-    b.id AS buyer_id,
-    b.account AS buyer_account,
-    b.phone AS buyer_phone,
-    b.address AS buyer_address,
     p.id AS product_id,
+    b.id AS buyer_id,
+    o.recipient_name AS recipient_name,
+    o.recipient_phone AS recipient_phone,
+    o.recipient_address AS recipient_address,
     p.name AS product_name,
     p.img_path AS img_path,
+    o.buy_count AS buy_count,
     o.total_price AS total_price,
     o.order_date AS order_date
 FROM
@@ -91,14 +91,14 @@ LIMIT
                 orders = []
                 
                 for row in result:
-                    order_id,buy_count,buyer_id,buyer_account,buyer_phone,buyer_address,product_id,product_name,img_path,total_price,order_date=row
+                    order_id, product_id, buyer_id, recipient_name, recipient_phone, recipient_address, product_name, img_path, buy_count, total_price, order_date=row
                     order = Order(
                         id=OrderIDBuilder().set_uuid(order_id).build(),
                         product_id=product_id,
                         buyer_id=buyer_id,
-                        buyer_account=buyer_account,
-                        buyer_phone=buyer_phone,
-                        buyer_address=buyer_address,
+                        recipient_name=recipient_name,
+                        recipient_phone=recipient_phone,
+                        recipient_address=recipient_address,
                         product_name=product_name,
                         product_img_path=img_path,
                         buy_count=buy_count,
@@ -144,14 +144,14 @@ LIMIT
                 select_query = f"""
 SELECT
     o.id AS order_id,
-    o.buy_count AS buy_count,
-    b.id AS buyer_id,
-    b.account AS buyer_account,
-    b.phone AS buyer_phone,
-    b.address AS buyer_address,
     p.id AS product_id,
+    b.id AS buyer_id,
+    o.recipient_name AS recipient_name,
+    o.recipient_phone AS recipient_phone,
+    o.recipient_address AS recipient_address,
     p.name AS product_name,
     p.img_path AS img_path,
+    o.buy_count AS buy_count,
     o.total_price AS total_price,
     o.order_date AS order_date
 FROM
@@ -170,14 +170,14 @@ LIMIT
                 result = cursor.fetchall()
                 orders = []
                 for row in result:
-                    order_id,buy_count,buyer_id,buyer_account,buyer_phone,buyer_address,product_id,product_name,img_path,total_price,order_date=row
+                    order_id, product_id, buyer_id, recipient_name, recipient_phone, recipient_address, product_name, img_path, buy_count, total_price, order_date=row
                     order = Order(
                         id=OrderIDBuilder().set_uuid(order_id).build(),
                         product_id=product_id,
                         buyer_id=buyer_id,
-                        buyer_account=buyer_account,
-                        buyer_phone=buyer_phone,
-                        buyer_address=buyer_address,
+                        recipient_name=recipient_name,
+                        recipient_phone=recipient_phone,
+                        recipient_address=recipient_address,
                         product_name=product_name,
                         product_img_path=img_path,
                         buy_count=buy_count,

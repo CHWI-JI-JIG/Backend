@@ -44,7 +44,7 @@ class CreateOrderService:
 
         self.load_repo = load_session
 
-    def publish_temp_order_id(
+    """def publish_temp_order_id(
         self,
         buyer_id:str,
         recipient_name:str,
@@ -54,4 +54,4 @@ class CreateOrderService:
         buy_count:int,
         single_pricet:int,
         user_session_key:str,
-    ) ->
+    ) ->  """

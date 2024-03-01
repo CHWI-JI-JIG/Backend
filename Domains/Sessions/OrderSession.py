@@ -23,7 +23,7 @@ from icecream import ic
 
 
 @dataclass(frozen=True)
-class ProductTempSession(ID, ISessionSerializeable):
+class OrderTempSession(ID, ISessionSerializeable):
     key: UUID
     order: Order
 
@@ -82,7 +82,7 @@ class ProductTempSession(ID, ISessionSerializeable):
                 )
 
 
-class ProductSessionBuilder(ISesseionBuilder):
+class OrderSessionBuilder(ISesseionBuilder):
     def __init__(
         self,
         key: Optional[UUID] = None,
@@ -244,7 +244,7 @@ class ProductSessionBuilder(ISesseionBuilder):
         self.img_path = img_path
         return Ok(self)
 
-    def build(self) -> ProductTempSession:
+    def build(self) -> OrderTempSession:
         assert isinstance(self.seller_id, MemberID), "Not Set seller_id"
 
         match (self.name, self.price, self.description, self.seller_id):

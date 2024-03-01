@@ -40,20 +40,26 @@ class MySqlSaveOrder(ISaveableOrder):
                 insert_query = f"""
 INSERT INTO {order_table_name} (
     id,
-    buy_count,
-    buyer_id,
     product_id,
+    buyer_id,
+    recipient_name,
+    recipient_phone,
+    recipient_address,
+    buy_count,
     total_price,
     order_date
-) VALUES (%s, %s, %s, %s, %s, %s);
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
             """
                 cursor.execute(
                     insert_query,
                     (
                         order.id.get_id(),
-                        order.buy_count,
-                        order.buyer_id.get_id(),
                         order.product_id.get_id(),
+                        order.buyer_id.get_id(),
+                        order.recipient_name,
+                        order.recipient_phone,
+                        order.recipient_address,
+                        order.buy_count,
                         order.total_price,
                         order.order_date,
                     ),
