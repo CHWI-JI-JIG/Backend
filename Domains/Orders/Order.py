@@ -15,9 +15,9 @@ class Order:
     id: OrderID
     product_id: ProductID
     buyer_id: MemberID
-    buyer_account: str
-    buyer_phone: str
-    buyer_address: str
+    recipient_account: str
+    recipient_phone: str
+    recipient_address: str
     product_name: str
     product_img_path: str
     buy_count: int
