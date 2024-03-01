@@ -123,53 +123,34 @@ class ProductSessionBuilder(ISesseionBuilder):
         assert isinstance(to_dict, dict), "Type of convert value is Dict."
 
         dict_key = "seller_id"
-        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
         if not isinstance(to_dict.get(dict_key), str):
             return Err(f"Not Exists {dict_key}")
         self.set_seller_id(to_dict.get(dict_key))
 
         dict_key = "check_product"
-        assert isinstance(
-            to_dict.get(dict_key), bool
-        ), f"{dict_key} is not exsist dict."
         if not isinstance(to_dict.get(dict_key), bool):
             return Err(f"Not Exists {dict_key}")
         if to_dict.get(dict_key):
             dict_key = "name"
-            assert isinstance(
-                to_dict.get(dict_key), str
-            ), f"{dict_key} is not exsist dict."
             if not isinstance(to_dict.get(dict_key), str):
                 return Err(f"Not Exists {dict_key}")
             self.set_name(to_dict.get(dict_key))
 
             dict_key = "description"
-            assert isinstance(
-                to_dict.get(dict_key), str
-            ), f"{dict_key} is not exsist dict."
             if not isinstance(to_dict.get(dict_key), str):
                 return Err(f"Not Exists {dict_key}")
             self.set_description(to_dict.get(dict_key))
 
             dict_key = "price"
-            assert isinstance(
-                to_dict.get(dict_key), int
-            ), f"{dict_key} is not exsist dict."
             if not isinstance(to_dict.get(dict_key), int):
                 return Err(f"Not Exists {dict_key}")
             self.set_price(int(to_dict.get(dict_key)))
 
         dict_key = "check_img"
-        assert isinstance(
-            to_dict.get(dict_key), bool
-        ), f"{dict_key} is not exsist dict."
         if not isinstance(to_dict.get(dict_key), bool):
             return Err(f"Not Exists {dict_key}")
         if to_dict.get(dict_key):
             dict_key = "img_path"
-            assert isinstance(
-                to_dict.get(dict_key), str
-            ), f"{dict_key} is not exsist dict."
             if not isinstance(to_dict.get(dict_key), str):
                 return Err(f"Not Exists {dict_key}")
             self.set_img_path(to_dict.get(dict_key))

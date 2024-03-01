@@ -40,7 +40,6 @@ class AdminService:
         size=10,
     ) -> Result[Tuple[int, List[Member]], str]:
         return self.read_repo.get_members(page=page, size=size)
-    
 
     def change_role(
         self,
@@ -51,17 +50,8 @@ class AdminService:
             role_type = RoleType(role)
         except ValueError:
             return Err("Invalid role type")
-        
-        try:
-            member_id = MemberIDBuilder().set_uuid(user_id).build()
-            update_result = self.edit_repo.update_role(member_id, role_type)
-            if update_result.is_err():
-                return Err("Failed to update member role")
-
-            return Ok(member_id)
-            
         except Exception as e:
             return Err(str(e))
-         
-                
-                
+        member_id = MemberIDBuilder().set_uuid(user_id).build()
+
+        return self.edit_repo.update_role(member_id, role_type)
