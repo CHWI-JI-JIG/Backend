@@ -43,7 +43,7 @@ class OrderTransitionSession(ID, ISessionSerializeable):
                 "recipient_name": order.recipient_name,
                 "recipient_phone": order.recipient_phone,
                 "recipient_address": order.recipient_address,
-                "product_id": order.product_id,
+                "product_id": order.product_id.get_id(),
                 "buy_count": order.buy_count,
                 "total_price": order.total_price,
             },
@@ -164,13 +164,12 @@ class OrderTransitionBuilder(ISesseionBuilder):
         self.total_price = price * buy_count
         return self
 
-    def set_count(self, buy_count: int, price: int) -> Self:
+    def set_count(self, buy_count: int) -> Self:
         assert isinstance(buy_count, int), "Type of buy_count is int."
         assert self.total_price is None, "The price is already set."
         assert buy_count >= 1, "count >= 0"
 
         self.buy_count = buy_count
-        self.total_price = price * buy_count
         return self
 
     def set_total_price(self, total_price: int) -> Self:
