@@ -8,17 +8,17 @@ from Domains.Members import *
 from Domains.Sessions import *
 
 
-class ISaveableProductTempSession(metaclass=ABCMeta):
+class ISaveableOrderTransition(metaclass=ABCMeta):
     @abstractmethod
-    def update_or_save_product_temp_session(
-        self, session: ProductTempSession
-    ) -> Result[ProductTempSession, str]:
+    def save_order_transition(
+        self, transition: OrderTransitionSession
+    ) -> Result[OrderTransitionSession, str]:
         """
         Read User table. Make MemberSession. Save MemberSession
 
         Returns:
-            Result[MemberSession, str]:
-                Ok(member_session): Sucess to Save memberSession
+            Result[OrderTransitionSession, str]:
+                Ok(order_transition): Sucess to Save transition
                 Err(e) : db Error
         """
         ...
