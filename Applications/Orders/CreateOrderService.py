@@ -18,6 +18,15 @@ from icecream import ic
 
 
 class CreateOrderService:
+    """
+    할일
+    1. 결제로 갈때, 주문 정보를 담고 있는 트렌젝션을 저장한다.
+    # 2. 유효한 트렌젝션인지 확인한다.
+    # 3. 결제가 완료되면, 결제정보가 맞는지 검증세션을 확인해서, 유효한 결제 정보인지 확인한다.
+    3. 결제 창에서 True 값이 넘어면,
+    4. 유효한 결제 정보라면, 주문 트렌젝션을 불러와서 결제를 진행한다.
+    """
+
     def __init__(
         self,
         save_order: ISaveableOrder,
@@ -34,5 +43,3 @@ class CreateOrderService:
         ), "save_member_repo must be a class that inherits from ILoadableSession."
 
         self.load_repo = load_session
-        
- 

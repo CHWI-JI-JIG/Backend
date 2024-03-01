@@ -6,12 +6,14 @@ from result import Result, Ok, Err
 from Domains.Members import MemberID
 from Domains.Products import ProductID, Product
 from Domains.Comments import Comment, CommentID
+from Domains.Orders import Order, OrderID
 from datetime import datetime
 from icecream import ic
 
 member_list: List[MemberID] = []
 product_list: List[ProductID] = []
 comment_list: List[CommentID] = []
+order_list: List[OrderID] = []
 
 
 def init_member():
@@ -310,3 +312,260 @@ def init_comment():
             comment_list.append(comment)
         case a:
             assert False, f"Fail Create Comment:{a}"
+            
+    
+    
+def init_order():
+    from Storages.Orders import MySqlGetOrder, MySqlSaveOrder
+    from Builders.Orders import OrderIDBuilder
+    from Domains.Orders import OrderID
+    from uuid import uuid4
+
+    order_list.clear()
+    create = MySqlSaveOrder(get_db_padding())
+    
+    id = OrderIDBuilder().set_uuid().set_seqence(1).build()
+    match create.save_order(
+        Order(
+            id=id,
+            product_id = product_list[0],
+            buyer_id=member_list[2], #3
+            buyer_account="",
+            buyer_phone="",
+            buyer_address="",
+            product_name="",
+            product_img_path="",
+            buy_count = "2",
+            total_price = "340000",
+            order_date = datetime.now(),
+            )
+        ):
+        case Ok(order):
+            product_list.append(order)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+            
+            
+            
+    id = OrderIDBuilder().set_uuid().set_seqence(2).build()
+    match create.save_order(
+        Order(
+            id=id,
+            product_id = product_list[1],
+            buyer_id=member_list[2], #3
+            buyer_account="",
+            buyer_phone="",
+            buyer_address="",
+            product_name="",
+            product_img_path="",
+            buy_count = "2",
+            total_price = "340000",
+            order_date = datetime.now(),
+            )
+        ):
+        case Ok(order):
+            product_list.append(order)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+            
+            
+            
+    id = OrderIDBuilder().set_uuid().set_seqence(3).build()
+    match create.save_order(
+        Order(
+            id=id,
+            product_id = product_list[2],
+            buyer_id=member_list[2], #3
+            buyer_account="",
+            buyer_phone="",
+            buyer_address="",
+            product_name="",
+            product_img_path="",
+            buy_count = "2",
+            total_price = "340000",
+            order_date = datetime.now(),
+            )
+        ):
+        case Ok(order):
+            product_list.append(order)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+            
+            
+            
+    id = OrderIDBuilder().set_uuid().set_seqence(4).build()
+    match create.save_order(
+        Order(
+            id=id,
+            product_id = product_list[3],
+            buyer_id=member_list[2], #3
+            buyer_account="",
+            buyer_phone="",
+            buyer_address="",
+            product_name="",
+            product_img_path="",
+            buy_count = "2",
+            total_price = "340000",
+            order_date = datetime.now(),
+            )
+        ):
+        case Ok(order):
+            product_list.append(order)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+            
+            
+    id = OrderIDBuilder().set_uuid().set_seqence(5).build()
+    match create.save_order(
+        Order(
+            id=id,
+            product_id = product_list[4],
+            buyer_id=member_list[2], #3
+            buyer_account="",
+            buyer_phone="",
+            buyer_address="",
+            product_name="",
+            product_img_path="",
+            buy_count = "2",
+            total_price = "340000",
+            order_date = datetime.now(),
+            )
+        ):
+        case Ok(order):
+            product_list.append(order)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+            
+            
+    id = OrderIDBuilder().set_uuid().set_seqence(6).build()
+    match create.save_order(
+        Order(
+            id=id,
+            product_id = product_list[5],
+            buyer_id=member_list[3], #3
+            buyer_account="",
+            buyer_phone="",
+            buyer_address="",
+            product_name="",
+            product_img_path="",
+            buy_count = "2",
+            total_price = "340000",
+            order_date = datetime.now(),
+            )
+        ):
+        case Ok(order):
+            product_list.append(order)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+            
+            
+            
+    id = OrderIDBuilder().set_uuid().set_seqence(7).build()
+    match create.save_order(
+        Order(
+            id=id,
+            product_id = product_list[6],
+            buyer_id=member_list[3], #3
+            buyer_account="",
+            buyer_phone="",
+            buyer_address="",
+            product_name="",
+            product_img_path="",
+            buy_count = "2",
+            total_price = "340000",
+            order_date = datetime.now(),
+            )
+        ):
+        case Ok(order):
+            product_list.append(order)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+            
+            
+    id = OrderIDBuilder().set_uuid().set_seqence(8).build()
+    match create.save_order(
+        Order(
+            id=id,
+            product_id = product_list[7],
+            buyer_id=member_list[3], #3
+            buyer_account="",
+            buyer_phone="",
+            buyer_address="",
+            product_name="",
+            product_img_path="",
+            buy_count = "2",
+            total_price = "340000",
+            order_date = datetime.now(),
+            )
+        ):
+        case Ok(order):
+            product_list.append(order)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+            
+            
+    id = OrderIDBuilder().set_uuid().set_seqence(9).build()
+    match create.save_order(
+        Order(
+            id=id,
+            product_id = product_list[8],
+            buyer_id=member_list[3], #3
+            buyer_account="",
+            buyer_phone="",
+            buyer_address="",
+            product_name="",
+            product_img_path="",
+            buy_count = "2",
+            total_price = "340000",
+            order_date = datetime.now(),
+            )
+        ):
+        case Ok(order):
+            product_list.append(order)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+            
+            
+    id = OrderIDBuilder().set_uuid().set_seqence(10).build()
+    match create.save_order(
+        Order(
+            id=id,
+            product_id = product_list[9],
+            buyer_id=member_list[3], #3
+            buyer_account="",
+            buyer_phone="",
+            buyer_address="",
+            product_name="",
+            product_img_path="",
+            buy_count = "2",
+            total_price = "340000",
+            order_date = datetime.now(),
+            )
+        ):
+        case Ok(order):
+            product_list.append(order)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+            
+            
+    id = OrderIDBuilder().set_uuid().set_seqence(11).build()
+    match create.save_order(
+        Order(
+            id=id,
+            product_id = product_list[10],
+            buyer_id=member_list[3], #3
+            buyer_account="",
+            buyer_phone="",
+            buyer_address="",
+            product_name="",
+            product_img_path="",
+            buy_count = "2",
+            total_price = "340000",
+            order_date = datetime.now(),
+            )
+        ):
+        case Ok(order):
+            product_list.append(order)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+    

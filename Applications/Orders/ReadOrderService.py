@@ -58,31 +58,24 @@ class ReadOrderService:
                 Ok( int, list ): int=> count of list max, list=> result
                 Err(str): reason of Fail
         """
-        ic()
+        
         match self.session_repo.load_session(buyer_key):
             case Ok(json):
                 builder = MemberSessionBuilder().set_deserialize_key(buyer_key)
                 match builder.set_deserialize_value(json):
                     case Ok(session):
-                        ic()
                         buyer_id = session.build().member_id
-                        ic()
                     case _:
-                        ic()
                         return Err("Invalid Product Session")
             case _:
-                ic()
                 return Err("Not Exist Session")
-        ic()
+
         return self.order_repo.get_orders_by_buyer_id(
             buyer_id=buyer_id,
             page=page,
             size=size,
         )
         
-
-
-
 
 
     def get_order_data_for_seller_page(
@@ -102,11 +95,19 @@ class ReadOrderService:
                 Ok( int, list ): int=> count of list max, list=> result
                 Err(str): reason of Fail
         """
-        ic()
-        ic("아직 세션 검증 안했슴. memberid 아직 안만듬")
+        match self.session_repo.load_session(seller_key):
+            case Ok(json):
+                builder = MemberSessionBuilder().set_deserialize_key(seller_key)
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        seller_id = session.build().member_id
+                    case _:
+                        return Err("Invalid Product Session")
+            case _:
+                return Err("Not Exist Session")
 
         return self.order_repo.get_orders_by_seller_id(
-            seller_id=None,
+            seller_id=seller_id,
             page=page,
             size=size,
         )
