@@ -21,7 +21,7 @@ class CreateProductService:
         self,
         # read_member_repo: IReadableMember,
         save_product: ISaveableProduct,
-        save_product_session: ISaveableProductTempSession,
+        save_product_session: IUptadeORSaveProductTempSession,
         load_session: ILoadableSession,
     ):
 
@@ -32,8 +32,8 @@ class CreateProductService:
         self.product_repo = save_product
 
         assert issubclass(
-            type(save_product_session), ISaveableProductTempSession
-        ), "save_member_repo must be a class that inherits from ISaveableProductTempSession."
+            type(save_product_session), IUptadeORSaveProductTempSession
+        ), "save_member_repo must be a class that inherits from  IUptadeORSaveProductTempSession."
 
         self.save_session_repo = save_product_session
 
@@ -44,11 +44,11 @@ class CreateProductService:
         self.load_session_repo = load_session
 
     def publish_temp_product_id(
-        self, member_session_key: str
+        self, user_session_key: str
     ) -> Result[ProductTempSession, str]:
         # check member session
-        builder = MemberSessionBuilder().set_deserialize_key(member_session_key)
-        match self.load_session_repo.load_session(member_session_key):
+        builder = MemberSessionBuilder().set_deserialize_key(user_session_key)
+        match self.load_session_repo.load_session(user_session_key):
             case Ok(json):
                 match builder.set_deserialize_value(json):
                     case Ok(session):

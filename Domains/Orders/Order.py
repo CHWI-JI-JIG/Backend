@@ -15,9 +15,9 @@ class Order:
     id: OrderID
     product_id: ProductID
     buyer_id: MemberID
-    buyer_account: str
-    buyer_phone: str
-    buyer_address: str
+    recipient_name: str
+    recipient_phone: str
+    recipient_address: str
     product_name: str
     product_img_path: str
     buy_count: int
@@ -34,6 +34,8 @@ class IOrderBuilder(metaclass=ABCMeta):
 
     @abstractmethod
     def set_buyer_id(self, id: MemberID) -> Self: ...
+    @abstractmethod
+    def set_recipient_name(self, name: str) -> Self: ...
 
     @abstractmethod
     def set_buyer_account(self, buyer_account: str) -> Self: ...
