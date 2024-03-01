@@ -60,7 +60,7 @@ def check_id_duplicate(account):
     else:
         return False    
 
-@app.route('/Images/<path:filename>')
+@app.route('/api/Images/<path:filename>')
 def send_image(filename): #/Images/img102.png
     ic(filename)
     return (send_from_directory(app.config['UPLOAD_FOLDER'], filename))
@@ -129,6 +129,7 @@ def productRegistration():
             return jsonify({"error": "Invalid image file."}), 400
     
     data = request.get_json()
+    ic(data)
     memberAuth = data.get('key')
     #tempProductId = data.get('tempProductId')
     productImagePath = data.get("productImagePath")
@@ -207,7 +208,7 @@ def product():
         case Err(e):
             return jsonify({'success': False})     
 
-@app.route('/api/seller-products', methods=['POST'])
+@app.route('/api/sproducts', methods=['POST'])
 def sellerProduct():
     get_product_repo = MySqlGetProduct(get_db_padding())
     load_session_repo = MySqlLoadSession(get_db_padding())
@@ -215,12 +216,12 @@ def sellerProduct():
     get_product_info = ReadProductService(get_product_repo, load_session_repo)
     
     data = request.get_json()
-    seller_id = data.get('sellerId')
     user_key = data.get('key')
     page = data.get('page')
-    page -= 1
-    size = 3
-    result = get_product_info.get_product_data_for_seller_page(seller_id, user_key, page, size)
+
+    size = 20
+    result = get_product_info.get_product_data_for_seller_page( user_key, page, size)
+    ic(result)
     response_data = {"page":page+1, "size": size,"data": []}
     
     match result:
@@ -228,6 +229,7 @@ def sellerProduct():
             
             response_data["totalPage"] = math.ceil(max/size)
             for v in products:
+                ic(products)
                 product_data = {
                     "productId" : str (v.id.uuid),
                     "productName" : v.name,
@@ -261,6 +263,7 @@ def login():
             ic(member_session)
             session['key'] = member_session.get_id()
             session['auth'] = member_session.role.name
+            
             return jsonify({'success': True, 'certification' : True,'key': member_session.get_id(), 'auth' : str(member_session.role.name), 'name': str(member_session.name)}), 200
         case Err(e):
             return jsonify({'success': False})
