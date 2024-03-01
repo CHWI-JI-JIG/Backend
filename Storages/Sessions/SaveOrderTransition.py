@@ -40,4 +40,27 @@ class SaveOrderTransition(ISaveableOrderTransition):
     def save_order_transition(
         self, transition: OrderTransitionSession
     ) -> Result[OrderTransitionSession, str]:
-        
+        try:
+            connection = self.connect()
+            session_table_name = self.get_padding_name("session")
+
+            with connection.cursor() as cursor:
+                insert_query = f"""
+                INSERT INTO {session_table_name} (id, value)
+                VALUES (%s, %s)
+                """
+                cursor.execute(
+                    insert_query,
+                    (
+                        transition.serialize_key(),
+                        transition.serialize_value(),
+                    ),
+                )
+                connection.commit()
+                
+                return Ok(transition)
+                
+        except Exception as e:
+            ic()
+            connection.close()
+            return Err(str(e))
