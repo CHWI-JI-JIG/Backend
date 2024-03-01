@@ -60,10 +60,11 @@ def check_id_duplicate(account):
     else:
         return False    
 
-@app.route('/Images/<path:filename')
-def send_image(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
+@app.route('/api/Images/<path:filename>')
+def send_image(filename): #/Images/img102.png
+    ic(filename)
+    return (send_from_directory(app.config['UPLOAD_FOLDER'], filename))
+    
 @app.route('/api/search', methods=['GET'])
 def search():
     keyword = request.args.get('keyword', type=str)
@@ -100,7 +101,7 @@ def search():
                     "productId": row[1],
                     "seq": row[2],
                     "productName": row[3],
-                    "productImgUrl":url_for('Images', filename=row[4]), # /Images/image1.jpg
+                    "productImageUrl":url_for('send_image', filename=row[4]), # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path,
                     "productPrice": row[5],
                     "productDescription": row[6],
@@ -124,22 +125,23 @@ def search():
 @app.route('/api/product-registration', methods = ['POST'])
 def productRegistration():
     
-    #if 'file' not in request.files:
-    #        return jsonify({"error": "Invalid image file."}), 400
+    if 'file' not in request.files:
+            return jsonify({"error": "Invalid image file."}), 400
     
     data = request.get_json()
+    ic(data)
     memberAuth = data.get('key')
-    tempProductId = data.get('tempProductId')
+    #tempProductId = data.get('tempProductId')
     productImagePath = data.get("productImagePath")
     productName = data.get('productName')
     productPrice = data.get('productPrice')
     productDescription = data.get('productDescription')
-    productRegistrationData = data.get('productRegistrationData')
-    sellerId = data.get('sellerId')
+    #productRegistrationData = data.get('productRegistrationData')
+    #sellerId = data.get('sellerId')
     
-    #file = request.files['file']
-    #filename = secure_filename(file.filename)
-    #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    file = request.files['file']
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     
     member_save_repo = MySqlSaveMember(get_db_padding())
     regi = CreateProductService(member_save_repo)
@@ -196,7 +198,7 @@ def product():
                     "productId" : str (v.id.uuid),
                     "sellerId" : str(v.seller_id.uuid),
                     "productName" : v.name,
-                    "productImgUrl" : url_for('Images', filename=v.img_path), # /Images/image1.jpg
+                    "productImageUrl" : url_for('send_image', filename=v.img_path), # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path
                     "productPrice" : v.price
                 }
@@ -206,7 +208,7 @@ def product():
         case Err(e):
             return jsonify({'success': False})     
 
-@app.route('/api/seller-products', method=['POST'])
+@app.route('/api/sproducts', methods=['POST']) # 보류 //sellerId 해결해야함, ReadProductService.py check_hex_string() 문제 해결되야함.
 def sellerProduct():
     get_product_repo = MySqlGetProduct(get_db_padding())
     load_session_repo = MySqlLoadSession(get_db_padding())
@@ -214,12 +216,14 @@ def sellerProduct():
     get_product_info = ReadProductService(get_product_repo, load_session_repo)
     
     data = request.get_json()
-    seller_id = data.get('sellerId')
+    seller_id
     user_key = data.get('key')
+    user_key = str(user_key)
+    ic(user_key)
     page = data.get('page')
-    page -= 1
-    size = 3
-    result = get_product_info.get_product_data_for_seller_page(seller_id, user_key, page, size)
+    ic(page)
+    size = 20
+    result = get_product_info.get_product_data_for_seller_page( user_key, page, size)
     response_data = {"page":page+1, "size": size,"data": []}
     
     match result:
@@ -227,10 +231,11 @@ def sellerProduct():
             
             response_data["totalPage"] = math.ceil(max/size)
             for v in products:
+                ic(products)
                 product_data = {
                     "productId" : str (v.id.uuid),
                     "productName" : v.name,
-                    "productImgUrl" : url_for('Images', filename=v.img_path), # /Images/image1.jpg
+                    "productImageUrl" : url_for('send_image', filename=v.img_path), # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path,
                     "productPrice" : v.price,
                     "regDate" : v.register_day
@@ -260,6 +265,7 @@ def login():
             ic(member_session)
             session['key'] = member_session.get_id()
             session['auth'] = member_session.role.name
+            
             return jsonify({'success': True, 'certification' : True,'key': member_session.get_id(), 'auth' : str(member_session.role.name), 'name': str(member_session.name)}), 200
         case Err(e):
             return jsonify({'success': False})

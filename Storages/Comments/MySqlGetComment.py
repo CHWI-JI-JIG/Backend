@@ -58,7 +58,7 @@ FROM {comment_table_name} AS comment
     ON comment.writer_id = user.id
 WHERE comment.product_id = %s
 LIMIT %s, %s;
-"""               
+"""
                 cursor.execute(query, (product_id, offset, size))
                 result = cursor.fetchall()
 
