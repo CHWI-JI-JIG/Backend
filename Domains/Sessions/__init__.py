@@ -10,6 +10,7 @@ if not (str(root_path) in sys.path):
 from Domains.Sessions.ISession import ISesseionBuilder, ISessionSerializeable
 from Domains.Sessions.MemberSession import MemberSession, MemberSessionBuilder
 from Domains.Sessions.ProductSession import ProductTempSession, ProductSessionBuilder
+from Domains.Sessions.OrderSession import OrderTempSession, OrderSessionBuilder
 
 __all__ = [
     "ISessionSerializeable",
@@ -18,4 +19,6 @@ __all__ = [
     "MemberSessionBuilder",
     "ProductTempSession",
     "ProductSessionBuilder",
+    "OrderTempSession",
+    "OrderSessionBuilder",
 ]

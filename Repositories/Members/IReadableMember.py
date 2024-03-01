@@ -7,8 +7,8 @@ from Domains.Members import *
 
 
 class IReadableMember(metaclass=ABCMeta):
-    @abstractmethod
-    def check_exist_account(self, account: str) -> bool: ...
+    # @abstractmethod
+    # def check_exist_account(self, account: str) -> bool: ...
 
     @abstractmethod
     def get_member(self, member_id: MemberID) -> Result[Member, str]: ...
@@ -16,7 +16,7 @@ class IReadableMember(metaclass=ABCMeta):
     @abstractmethod
     def get_privacy(self, member_id: MemberID) -> Result[Privacy, str]: ...
 
-    @abstractmethod
-    def get_member_and_privacy(
-        self, member_id: MemberID
-    ) -> Result[Tuple[Member, Privacy], str]: ...
+    # @abstractmethod
+    # def get_member_and_privacy(
+    #     self, member_id: MemberID
+    # ) -> Result[Tuple[Member, Privacy], str]: ...

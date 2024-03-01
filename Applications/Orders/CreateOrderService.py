@@ -43,3 +43,15 @@ class CreateOrderService:
         ), "save_member_repo must be a class that inherits from ILoadableSession."
 
         self.load_repo = load_session
+
+    def publish_temp_order_id(
+        self,
+        buyer_id:str,
+        recipient_name:str,
+        recipient_phone:str,
+        recipient_address:str,
+        product_id:str,
+        buy_count:int,
+        single_pricet:int,
+        user_session_key:str,
+    ) ->
