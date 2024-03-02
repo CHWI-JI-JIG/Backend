@@ -28,8 +28,6 @@ from Applications.Comments import *
 from Applications.Products import *
 
 from Storages.Members import *
-from Storages.Members.MySqlGetMember import MySqlGetMember
-from Storages.Members.MySqlEditMember import MySqlEditMember
 from Storages.Orders import *
 from Storages.Products import *
 from Storages.Comments import *
@@ -401,62 +399,67 @@ def bsignup():
 
 
 ## susujin code
-@app.route('/api/admin', methods=['POST'])
+@app.route("/api/admin", methods=["POST"])
 def adminUser():
     read_repo = MySqlGetMember(get_db_padding())
     edit_repo = MySqlEditMember(get_db_padding())
-    
+
     get_user_info = AdminService(read_repo, edit_repo)
-    
+
     data = request.get_json()
-    user_key = data.get('key')
-    page = data.get('page')
+    user_key = data.get("key")
+    page = data.get("page")
     page -= 1
 
     size = 20
     result = get_user_info.read_members(page, size)
     ic(result)
-    response_data = {"page":page+1, "size": size,"data": []}
-    
+    response_data = {"page": page + 1, "size": size, "data": []}
+
     match result:
         case Ok((max, members)):
-            response_data["totalPage"] = math.ceil(max/size)
+            response_data["totalPage"] = math.ceil(max / size)
             for v in members:
                 ic(members)
                 user_data = {
-                    "userKey" : str (v.id.get_id()), #사용자 key
-                    "userId" : v.account, #사용자 아이디(로그인용)
-                    "userAuth" : v.role #사용자 권한
-
+                    "userKey": str(v.id.get_id()),  # 사용자 key
+                    "userId": v.account,  # 사용자 아이디(로그인용)
+                    "userAuth": v.role,  # 사용자 권한
                 }
                 response_data["data"].append(user_data)
             return jsonify(response_data)
-            
+
         case Err(e):
-            return jsonify({'success': False})
-        
-@app.route('/api/user-role', methods=['POST'])
+            return jsonify({"success": False})
+
+
+@app.route("/api/user-role", methods=["POST"])
 def updateUserRole():
     read_repo = MySqlGetMember(get_db_padding())
     edit_repo = MySqlEditMember(get_db_padding())
-    
+
     get_user_info = AdminService(read_repo, edit_repo)
-    
+
     data = request.get_json()
-    user_key = data.get('key') # 세션키(즉, 관리자 세션키)
-    user_id = data.get('userKey') # 사용자 key
-    new_role = data.get('userAuth')  # 변경할 권한
+    user_key = data.get("key")  # 세션키(즉, 관리자 세션키)
+    user_id = data.get("userKey")  # 사용자 key
+    new_role = data.get("userAuth")  # 변경할 권한
 
     result = get_user_info.change_role(new_role, user_id)
     ic(result)
 
     match result:
         case Ok(user_id):
-            return jsonify({'success': True, 'message': 'User role updated successfully'})
+            return jsonify(
+                {"success": True, "message": "User role updated successfully"}
+            )
 
         case Err(e):
-            return jsonify({'success': False, 'message': str(e)})
+            return jsonify({"success": False, "message": str(e)})
+
+
 ## susujin code end
+
 
 @app.route("/api/order-history", methods=["POST"])
 def orderHistroy():
@@ -535,21 +538,20 @@ def sellerOrder():
             return jsonify(response_data)
 
         case Err(e):
-            return jsonify({'success': False})
- 
+            return jsonify({"success": False})
 
 
-@app.route('/api/userproductinfo', methods=['POST'])
+@app.route("/api/userproductinfo", methods=["POST"])
 def userProductInfo():
     save_order = MySqlSaveOrder(get_db_padding())
     save_transition = MySqlSaveOrderTransition(get_db_padding())
     load_session = MySqlLoadSession(get_db_padding())
-    
+
     save_trans_info = OrderPaymentService(save_order, save_transition, load_session)
-    
+
     data = request.get_json()
-    
-    user_session_key = data.get('key')
+
+    user_session_key = data.get("key")
     recipient_name = data.get("userName")
     recipient_phone = data.get("userPhone")
     recipient_address = data.get("userAddr")
@@ -565,45 +567,45 @@ def userProductInfo():
         product_id=product_id,
         buy_count=buy_count,
         single_price=single_price,
-        user_session_key=user_session_key)
-    
+        user_session_key=user_session_key,
+    )
+
     ic(result)
 
     match result:
         case Ok(session):
-            return jsonify({'success': True, 'transId' : session.get_id()})
+            return jsonify({"success": True, "transId": session.get_id()})
 
         case Err(e):
-            return jsonify({'success': False})
-        
-  
-        
-@app.route('/api/PG/sendpayinfo', methods=['POST'])
+            return jsonify({"success": False})
+
+
+@app.route("/api/PG/sendpayinfo", methods=["POST"])
 def sendPayInfo():
     save_order = MySqlSaveOrder(get_db_padding())
     save_transition = MySqlSaveOrderTransition(get_db_padding())
     save_transition = MySqlSaveOrderTransition(get_db_padding())
     load_session = MySqlLoadSession(get_db_padding())
-    
+
     send_pay_info = OrderPaymentService(save_order, save_transition, load_session)
-    
+
     data = request.get_json()
-    
-    order_transition_session = data.get('key')
+
+    order_transition_session = data.get("key")
     card_num = data.get("cardNum")
     single_price = data.get("productPrice")
     payment_success = data.get("paymentVerification") 
 
     result = send_pay_info.payment_and_approval_order(
         order_transition_session=order_transition_session,
-        payment_success=payment_success
-        )
-    
+        payment_success=payment_success,
+    )
+
     ic(result)
 
     match result:
         case Ok():
-            return jsonify({'success': True})
+            return jsonify({"success": True})
 
         case Err(e):
             return jsonify({'success': False})
