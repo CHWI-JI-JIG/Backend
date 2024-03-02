@@ -88,14 +88,14 @@ class test_comment(unittest.TestCase):
         m_m = cls.member_migrate
         m_s = cls.session_migrate
         
-        # if m_c.check_exist_comments():
-        #     m_c.delete_comments()
-        # if m_p.check_exist_product():
-        #     m_p.delete_product()
-        # if m_m.check_exist_user():
-        #     m_m.delete_user()
-        # if m_s.check_exist_session():
-        #     m_s.delete_session()
+        if m_c.check_exist_comments():
+            m_c.delete_comments()
+        if m_p.check_exist_product():
+            m_p.delete_product()
+        if m_m.check_exist_user():
+            m_m.delete_user()
+        if m_s.check_exist_session():
+            m_s.delete_session()
         
 
     def setUp(self):
@@ -186,13 +186,10 @@ class test_comment(unittest.TestCase):
             page=0,
             size=10, 
         )
-
         self.assertTrue(is_ok(ret_read_updated), "업데이트된 코멘트 읽기에 실패")
         _, comments_updated = ret_read_updated.unwrap()
-        ic()
-        ic(comments_updated)
         target = comments_updated[0]
-        self.assertEqual(target.id, ret_create.unwrap().get_id())
+        self.assertEqual(target.id, ret_create.unwrap())
         self.assertEqual(target.answer, "답변답변")
         self.assertEqual(target.question, "질문질문")
 

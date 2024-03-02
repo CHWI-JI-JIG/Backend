@@ -85,7 +85,7 @@ class MySqlSaveComment(ISaveableComment):
                             update_query,                                                               
                             (
                                 answer,
-                                Comment_id,
+                                Comment_id.get_id(),
                             ),
                         )
                         # 변경 사항을 커밋
