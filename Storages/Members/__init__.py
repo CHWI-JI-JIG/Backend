@@ -9,8 +9,12 @@ if not (str(root_path) in sys.path):
 
 from Storages.Members.MySqlSaveMember import MySqlSaveMember
 from Storages.Members.MySqlLoginAuthentication import MySqlLoginAuthentication
+from Storages.Members.MySqlEditMember import MySqlEditMember
+from Storages.Members.MySqlGetMember import MySqlGetMember
 
 __all__ = [
     "MySqlSaveMember",
     "MySqlLoginAuthentication",
+    "MySqlGetMember",
+    "MySqlEditMember",
 ]
