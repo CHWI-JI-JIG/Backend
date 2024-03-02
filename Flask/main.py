@@ -446,8 +446,52 @@ def orderHistroy():
             
         case Err(e):
             return jsonify({'success': False})
+        
+        
+@app.route('/api/seller-order', methods = ['POST'])
+def sellerOrder():
+    get_order_Repo=MySqlGetOrder(get_db_padding())
+    load_session_repo=MySqlLoadSession(get_db_padding())
+    
+    get_order_info=ReadOrderService(get_order_Repo, load_session_repo)
+    
+    data = request.get_json()
+    user_id = data.get('key')
+    page = data.get('page')
+    page -= 1
+    size = 20
+    
+    result = get_order_info.get_order_data_for_seller_page(user_id,page,size)
+    response_data = {"page":page+1, "size": size,"data": []}
+    
+    match result:
+        case Ok((max, members)):
+            response_data["totalPage"] = math.ceil(max/size)
+            for v in members:
+                ic(members)
+                order_data = {
+                    "buyerId" : v.buyer_id,
+                    "buyerName" : v.recipient_name,
+                    "byuerPhoneNumber" : v.recipient_phone,
+                    "buyerAddr" : v.recipient_address,
+                    "productId" : v.product_id,
+                    "productName" : v.product_name,
+                    "productImageUrl" : v.product_img_path,
+                    "orderQuantity" : v.buy_count,
+                    "orderPrice" : v.total_price,
+                    "orderDate" : v.order_date
+                }
+                response_data["data"].append(order_data)
+            return jsonify(response_data)
+            
+        case Err(e):
+            return jsonify({'success': False})
+
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
     
+    
 
+    
