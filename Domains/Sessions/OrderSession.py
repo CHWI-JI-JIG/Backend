@@ -28,6 +28,7 @@ from icecream import ic
 class OrderTransitionSession(ID, ISessionSerializeable):
     key: UUID
     order: Order
+    is_success: Optional[bool] = None
 
     def get_id(self) -> str:
         return self.key.hex
@@ -37,18 +38,40 @@ class OrderTransitionSession(ID, ISessionSerializeable):
 
     def serialize_value(self) -> str:
         order = self.order
-        return json.dumps(
-            {
-                "buyer_id": order.buyer_id.get_id(),
-                "recipient_name": order.recipient_name,
-                "recipient_phone": order.recipient_phone,
-                "recipient_address": order.recipient_address,
-                "product_id": order.product_id.get_id(),
-                "buy_count": order.buy_count,
-                "total_price": order.total_price,
-            },
-            ensure_ascii=False,
-        )
+        assert (
+            isinstance(self.is_success, bool) or self.is_success is None
+        ), "Type of is_succuss is bool."
+        match self.is_success:
+            case None:
+                return json.dumps(
+                    {
+                        "check_success": False,
+                        "buyer_id": order.buyer_id.get_id(),
+                        "recipient_name": order.recipient_name,
+                        "recipient_phone": order.recipient_phone,
+                        "recipient_address": order.recipient_address,
+                        "product_id": order.product_id.get_id(),
+                        "buy_count": order.buy_count,
+                        "total_price": order.total_price,
+                    },
+                    ensure_ascii=False,
+                )
+            case is_success:
+                assert isinstance(is_success, bool), "Type of is_success is bool."
+                return json.dumps(
+                    {
+                        "check_success": True,
+                        "is_success": is_success,
+                        "buyer_id": order.buyer_id.get_id(),
+                        "recipient_name": order.recipient_name,
+                        "recipient_phone": order.recipient_phone,
+                        "recipient_address": order.recipient_address,
+                        "product_id": order.product_id.get_id(),
+                        "buy_count": order.buy_count,
+                        "total_price": order.total_price,
+                    },
+                    ensure_ascii=False,
+                )
 
 
 class OrderTransitionBuilder(ISesseionBuilder):
@@ -66,6 +89,7 @@ class OrderTransitionBuilder(ISesseionBuilder):
         self.product_id: Optional[ProductID] = None
         self.buy_count: Optional[int] = None
         self.total_price: Optional[int] = None
+        self.is_success: Optional[bool] = None
 
     def set_deserialize_key(self, key: str) -> Self:
         self.set_key(key)
@@ -78,6 +102,15 @@ class OrderTransitionBuilder(ISesseionBuilder):
         except:
             return Err("fail read json")
         assert isinstance(to_dict, dict), "Type of convert value is Dict."
+
+        dict_key = "check_success"
+        if not isinstance(to_dict.get(dict_key), bool):
+            return Err(f"Not Exists {dict_key}")
+        if to_dict.get(dict_key):
+            dict_key = "is_success"
+            if not isinstance(to_dict.get(dict_key), str):
+                return Err(f"Not Exists {dict_key}")
+            self.set_name(to_dict.get(dict_key))
 
         dict_key = "buyer_id"
         if not isinstance(to_dict.get(dict_key), str):
@@ -116,6 +149,16 @@ class OrderTransitionBuilder(ISesseionBuilder):
         self.set_total_price(to_dict.get(dict_key))
 
         return Ok(self)
+
+    def check_set_success(self) -> bool:
+        return isinstance
+
+    def set_is_success(self, is_success: bool) -> Self:
+        assert self.is_success is None, "The is_success is already set."
+        assert isinstance(is_success, bool), "Type of is_success is bool."
+        self.is_success = is_success
+
+        return self
 
     def set_key(self, key: Optional[str] = None) -> Self:
         assert self.key is None, "The Key is already set."
@@ -243,4 +286,5 @@ class OrderTransitionBuilder(ISesseionBuilder):
                 total_price=self.total_price,
                 order_date=datetime.now(),
             ),
+            is_success=self.is_success,
         )

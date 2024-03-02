@@ -87,14 +87,13 @@ class CreateMemberService:
                     )
                 member_builder.set_role(role)
             case "admin":
-                assert False, "NotImplementError: admin"
                 if company_registration_number is not None:
                     return Err(
-                        "NoHaveRegistration: If User is Seller, Then Paramater need Company registration number."
+                        "HaveRegistration: If User is Buyer, Then Paramater don't need Company registration number."
                     )
                 if pay_account is not None:
                     return Err(
-                        "NoHavePayAccount: If User is Seller, Then Paramater need Pay Account."
+                        "HavePayAccount: If User is Buyer, Then Paramater don't need Pay Account."
                     )
                 member_builder.set_role(role)
             case _:

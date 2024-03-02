@@ -13,3 +13,8 @@ class ISaveableComment(metaclass=ABCMeta):
     def save_comment(
         self, Comment: Comment
     ) -> Result[CommentID, str]: ...
+    
+    @abstractmethod
+    def update_comment(self, Comment_id: CommentID, anwser:str,) -> Result[CommentID, str]:...
+    
+    

@@ -30,7 +30,7 @@ class test_order_builder(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t", sys._getframe(0).f_code.co_name)
 
-    def test_order_transition(self):
+    def test_order_transition_생성후_이후_성공_추가(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
@@ -49,7 +49,7 @@ class test_order_builder(unittest.TestCase):
         )
 
         self.assertEqual(
-            '{"buyer_id": "365b77a0a6b34fe28c7112d6c1bb64ca", "recipient_name": "test name", "recipient_phone": "01033458312", "recipient_address": "guri suteak", "product_id": "d697b39f733a426f96a13fc40c8bf061", "buy_count": 3, "total_price": 6000}',
+            '{"check_success": false, "buyer_id": "365b77a0a6b34fe28c7112d6c1bb64ca", "recipient_name": "test name", "recipient_phone": "01033458312", "recipient_address": "guri suteak", "product_id": "d697b39f733a426f96a13fc40c8bf061", "buy_count": 3, "total_price": 6000}',
             new_order_transition.serialize_value(),
         )
 
@@ -60,21 +60,15 @@ class test_order_builder(unittest.TestCase):
             .unwrap()
             .build()
         )
+        self.assertEqual(new_order_transition.key, read_session.key)
         self.assertEqual(
-            new_order_transition.key,
-            read_session.key,
+            new_order_transition.order.product_id, read_session.order.product_id
         )
         self.assertEqual(
-            new_order_transition.order.product_id,
-            read_session.order.product_id,
+            new_order_transition.order.buyer_id, read_session.order.buyer_id
         )
         self.assertEqual(
-            new_order_transition.order.buyer_id,
-            read_session.order.buyer_id,
-        )
-        self.assertEqual(
-            new_order_transition.order.recipient_name,
-            read_session.order.recipient_name,
+            new_order_transition.order.recipient_name, read_session.order.recipient_name
         )
         self.assertEqual(
             new_order_transition.order.recipient_address,
@@ -85,13 +79,48 @@ class test_order_builder(unittest.TestCase):
             read_session.order.recipient_phone,
         )
         self.assertEqual(
-            new_order_transition.order.buy_count,
-            read_session.order.buy_count,
+            new_order_transition.order.buy_count, read_session.order.buy_count
         )
         self.assertEqual(
-            new_order_transition.order.total_price,
-            read_session.order.total_price,
+            new_order_transition.order.total_price, read_session.order.total_price
         )
+        self.assertIsNone(read_session.is_success)
+
+        success_session = (
+            OrderTransitionBuilder()
+            .set_deserialize_key(read_session.get_id())
+            .set_deserialize_value(read_session.serialize_value())
+            .unwrap()
+            .set_is_success(True)
+            .build()
+        )
+
+        self.assertEqual(new_order_transition.key, success_session.key)
+        self.assertEqual(
+            new_order_transition.order.product_id, success_session.order.product_id
+        )
+        self.assertEqual(
+            new_order_transition.order.buyer_id, success_session.order.buyer_id
+        )
+        self.assertEqual(
+            new_order_transition.order.recipient_name,
+            success_session.order.recipient_name,
+        )
+        self.assertEqual(
+            new_order_transition.order.recipient_address,
+            success_session.order.recipient_address,
+        )
+        self.assertEqual(
+            new_order_transition.order.recipient_phone,
+            success_session.order.recipient_phone,
+        )
+        self.assertEqual(
+            new_order_transition.order.buy_count, success_session.order.buy_count
+        )
+        self.assertEqual(
+            new_order_transition.order.total_price, success_session.order.total_price
+        )
+        self.assertEqual(success_session.is_success, True)
 
 
 def main():

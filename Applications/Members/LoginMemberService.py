@@ -42,14 +42,15 @@ class AuthenticationMemberService:
                 Err(str):
 
         """
-        login_result = self.auth_repo.identify_and_authenticate(
-            account, hashing_passwd(passwd)
-        )
 
-        match login_result:
+        match self.auth_repo.identify_and_authenticate(account, hashing_passwd(passwd)):
             case Ok(auth):
                 block_time = self.get_block_time(auth.fail_count)
-                if not self.check_login_able(auth.last_access, block_time):
+                if block_time > 0 and not self.check_login_able(
+                    auth.last_access, block_time
+                ):
+                    ic()
+                    ic(block_time, auth.last_access)
                     return Err(f"block : {block_time}")
                 ret = auth
 
@@ -67,7 +68,6 @@ class AuthenticationMemberService:
                     assert False, "Value Error"
         else:
             self.auth_repo.update_access(ret)
-            ic(login_result)
             return Err("비밀번호가 틀렸습니다.")
 
     def get_block_time(self, num_of_incorrect_login: int) -> int:

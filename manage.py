@@ -37,7 +37,9 @@ def parse_opt():
             r"Tests/Members/test_user_migrate.py",
             r"Tests/Products/test_product_builder.py",
             r"Tests/Products/test_product_service.py",
+            r"Tests/Members/test_comment.py",
             r"Tests/Orders/test_order_builder.py",
+            r"Tests/Orders/test_order_payment.py",
             # r"",
         ],
     )

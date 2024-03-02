@@ -4,7 +4,7 @@ import sys
 
 
 from Builders.Members import *
-from Storages.Members import MySqlSaveMember, LoginVerifiableAuthentication
+from Storages.Members import MySqlSaveMember, MySqlLoginAuthentication
 from Domains.Members import *
 
 from Migrations import MySqlCreateUser, MySqlCreateProduct
@@ -27,7 +27,7 @@ class test_member_service(unittest.TestCase):
         # product_migrate = MySqlCreateProduct(test_padding)
         cls.mysql_save_member = MySqlSaveMember(test_padding)
         cls.create_service = CreateMemberService(cls.mysql_save_member)
-        cls.l_repo = LoginVerifiableAuthentication(test_padding)
+        cls.l_repo = MySqlLoginAuthentication(test_padding)
         if cls.user_migrate.check_exist_user():
             cls.user_migrate.delete_user()
 

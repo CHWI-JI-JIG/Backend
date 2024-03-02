@@ -22,3 +22,9 @@ class ISaveableOrderTransition(metaclass=ABCMeta):
                 Err(e) : db Error
         """
         ...
+        
+    def update_order_transition(
+        self, transition: OrderTransitionSession
+    ) -> Result[OrderTransitionSession, str]:
+        ...
+    

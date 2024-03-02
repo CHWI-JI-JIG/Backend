@@ -57,8 +57,8 @@ class test_product_service(unittest.TestCase):
         cls.member_create_service = service
 
         login = AuthenticationMemberService(
-            auth_member_repo=LoginVerifiableAuthentication(get_db_padding()),
-            session_repo=MakeSaveMemberSession(get_db_padding()),
+            auth_member_repo=MySqlLoginAuthentication(get_db_padding()),
+            session_repo=MySqlMakeSaveMemberSession(get_db_padding()),
         )
         cls.login_service = login
 
