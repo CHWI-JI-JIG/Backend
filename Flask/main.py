@@ -409,61 +409,61 @@ def bsignup():
 
 
 ## susujin code
-@app.route("/api/admin", methods=["POST"])
+@app.route('/api/admin', methods=['POST'])
 def adminUser():
     read_repo = MySqlGetMember(get_db_padding())
     edit_repo = MySqlEditMember(get_db_padding())
-
+    
     get_user_info = AdminService(read_repo, edit_repo)
-
+    
     data = request.get_json()
-    user_key = data.get("key")
-    page = data.get("page")
+    user_key = data.get('key')
+    page = data.get('page')
     page -= 1
 
     size = 20
     result = get_user_info.read_members(page, size)
     ic(result)
-    response_data = {"page": page + 1, "size": size, "data": []}
-
+    response_data = {"page":page+1, "size": size,"data": []}
+    
     match result:
         case Ok((max, members)):
-            response_data["totalPage"] = math.ceil(max / size)
+            response_data["totalPage"] = math.ceil(max/size)
             for v in members:
                 ic(members)
-                user_data = {"key": v.id, "userId": v.account, "userAuth": v.role}
+                user_data = {
+                    "userKey" : str (v.id.get_id()), #사용자 key
+                    "userId" : v.account, #사용자 아이디(로그인용)
+                    "userAuth" : v.role #사용자 권한
+
+                }
                 response_data["data"].append(user_data)
             return jsonify(response_data)
-
+            
         case Err(e):
-            return jsonify({"success": False})
-
-
-@app.route("/api/user-role", methods=["POST"])
+            return jsonify({'success': False})
+        
+@app.route('/api/user-role', methods=['POST'])
 def updateUserRole():
     read_repo = MySqlGetMember(get_db_padding())
     edit_repo = MySqlEditMember(get_db_padding())
-
+    
     get_user_info = AdminService(read_repo, edit_repo)
-
+    
     data = request.get_json()
-    # user_key = data.get('key')
-    user_id = data.get("key")  # 사용자 UUID
-    new_role = data.get("userAuth")  # 변경할 권한
+    user_key = data.get('key') # 세션키(즉, 관리자 세션키)
+    user_id = data.get('userKey') # 사용자 key
+    new_role = data.get('userAuth')  # 변경할 권한
 
     result = get_user_info.change_role(new_role, user_id)
     ic(result)
 
     match result:
         case Ok(user_id):
-            return jsonify(
-                {"success": True, "message": "User role updated successfully"}
-            )
+            return jsonify({'success': True, 'message': 'User role updated successfully'})
 
         case Err(e):
-            return jsonify({"success": False, "message": str(e)})
-
-
+            return jsonify({'success': False, 'message': str(e)})
 ## susujin code end
 
 
@@ -484,19 +484,19 @@ def orderHistroy():
     response_data = {"page": page + 1, "size": size, "data": []}
 
     match result:
-        case Ok((max, members)):
+        case Ok((max, product)):
             response_data["totalPage"] = math.ceil(max / size)
-            for v in members:
-                ic(members)
+            for v in product:
                 order_data = {
                     "productId": v.product_id,
                     "productName": v.product_name,
-                    "productImageUrl": v.product_img_path,
+                    "productImageUrl": url_for("send_image", filename=v.product_img_path),
                     "orderQuantity": v.buy_count,
                     "orderPrice": v.total_price,
                     "orderDate": v.order_date,
                 }
                 response_data["data"].append(order_data)
+                ic(response_data)
             return jsonify(response_data)
 
         case Err(e):
@@ -527,11 +527,11 @@ def sellerOrder():
                 order_data = {
                     "buyerId": v.buyer_id,
                     "buyerName": v.recipient_name,
-                    "byuerPhoneNumber": v.recipient_phone,
+                    "buyerPhoneNumber": v.recipient_phone,
                     "buyerAddr": v.recipient_address,
                     "productId": v.product_id,
                     "productName": v.product_name,
-                    "productImageUrl": v.product_img_path,
+                    "productImageUrl": url_for("send_image", filename=v.product_img_path),
                     "orderQuantity": v.buy_count,
                     "orderPrice": v.total_price,
                     "orderDate": v.order_date,
