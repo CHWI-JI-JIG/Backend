@@ -8,9 +8,9 @@ if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
 from Applications.Comments.CreateCommentService import CreateCommentService
-from Applications.Comments.ReadCommentService import ReadOrderService
+from Applications.Comments.ReadCommentService import ReadCommentService
 
 __all__ = [
     "CreateCommentService",
-    "ReadOrderService",
+    "ReadCommentService",
 ]
