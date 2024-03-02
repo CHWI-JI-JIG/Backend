@@ -28,19 +28,19 @@ class test_comment(unittest.TestCase):
         print(sys._getframe(0).f_code.co_name, f"(test_comment)")
         test_padding = "test_comment_service_"
         set_db_padding(test_padding)
-        
+
         m_c = MySqlCreateComments(get_db_padding())
         cls.comment_migrate = m_c
-        
+
         m_p = MySqlCreateProduct(get_db_padding())
         cls.product_migrate = m_p
-        
+
         m_m = MySqlCreateUser(get_db_padding())
         cls.member_migrate = m_m
-        
+
         m_s = MySqlCreateSession(get_db_padding())
         cls.session_migrate = m_s
-        
+
         if m_c.check_exist_comments():
             m_c.delete_comments()
         if m_p.check_exist_product():
@@ -49,25 +49,25 @@ class test_comment(unittest.TestCase):
             m_m.delete_user()
         if m_s.check_exist_session():
             m_s.delete_session()
-            
+
         m_m.create_user()
-        init_member() 
+        init_member()
         m_s.create_session()
-        
+
         m_p.create_product()
         init_product()
         
         login = AuthenticationMemberService(
-            auth_member_repo=LoginVerifiableAuthentication(get_db_padding()),
-            session_repo=MakeSaveMemberSession(get_db_padding()),
+            auth_member_repo=MySqlLoginAuthentication(get_db_padding()),
+            session_repo=MySqlMakeSaveMemberSession(get_db_padding()),
         )
         cls.login_service = login
-        
+
         cls.comment_create_service = CreateCommentService(
             save_comment=MySqlSaveComment(get_db_padding()),
-            load_session=MySqlLoadSession(get_db_padding())
+            load_session=MySqlLoadSession(get_db_padding()),
         )
-        
+
         cls.comment_read_service = ReadCommentService(
             get_comment_repo=MySqlGetComment(get_db_padding()),
         )
@@ -87,7 +87,7 @@ class test_comment(unittest.TestCase):
         m_p = cls.product_migrate
         m_m = cls.member_migrate
         m_s = cls.session_migrate
-        
+
         if m_c.check_exist_comments():
             m_c.delete_comments()
         if m_p.check_exist_product():
@@ -96,7 +96,6 @@ class test_comment(unittest.TestCase):
             m_m.delete_user()
         if m_s.check_exist_session():
             m_s.delete_session()
-        
 
     def setUp(self):
         "Hook method for setting up the test fixture before exercising it."

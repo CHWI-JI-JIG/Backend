@@ -58,6 +58,22 @@ def init_member():
             member_list.append(member)
         case a:
             assert False, f"Fail Create Member:{a}"
+            
+    match service.create(
+        account="susujin",
+        passwd="123",
+        role="seller",
+        name="Park su jin",
+        phone="01012349876",
+        email="sj@naver.com",
+        address="강원도 원주시",
+        company_registration_number="48237239503827",
+        pay_account="049837625673",
+    ):
+        case Ok(member):
+            member_list.append(member)
+        case a:
+            assert False, f"Fail Create Member:{a}"
 
     match service.create(
         account="asdf",
@@ -81,6 +97,20 @@ def init_member():
         phone="01067541234",
         email="bstax@daum.com",
         address="전라북도 익산",
+    ):
+        case Ok(member):
+            member_list.append(member)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+
+    match service.create(
+        account="admin",
+        passwd="admin",
+        role="admin",
+        name="관리자",
+        phone="01084736475",
+        email="admin@naver.com",
+        address="경기도 성남시 분당구",
     ):
         case Ok(member):
             member_list.append(member)
@@ -568,4 +598,3 @@ def init_order():
             product_list.append(order)
         case a:
             assert False, f"Fail Create Member:{a}"
-    

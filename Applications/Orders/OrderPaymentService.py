@@ -35,8 +35,8 @@ class OrderPaymentService:
         load_session: ILoadableSession,
     ):
         assert issubclass(
-            type(save_order), ISaveableMember
-        ), "save_member_repo must be a class that inherits from ISaveableMember."
+            type(save_order), ISaveableOrder
+        ), "save_member_repo must be a class that inherits from ISaveableOrder."
 
         self.order_repo = save_order
 
@@ -52,7 +52,7 @@ class OrderPaymentService:
 
         self.load_repo = load_session
 
-    def publish__order_transition(
+    def publish_order_transition(
         self,
         recipient_name: str,
         recipient_phone: str,
@@ -78,6 +78,7 @@ class OrderPaymentService:
         # publish
         return self.transition_repo.save_order_transition(
             OrderTransitionBuilder()
+            .set_key()
             .set_recipient_name(recipient_name)
             .set_recipient_phone(recipient_phone)
             .set_recipient_address(recipient_address)

@@ -7,14 +7,14 @@ root_path = now_path.parent.parent
 if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
-from Storages.Sessions.MakeSaveMemberSession import MakeSaveMemberSession
+from Storages.Sessions.MySqlMakeSaveMemberSession import MySqlMakeSaveMemberSession
 from Storages.Sessions.MySqlSaveProductTempSession import MySqlSaveProductTempSession
 from Storages.Sessions.MySqlLoadSession import MySqlLoadSession
-from Storages.Sessions.SaveOrderTransition import SaveOrderTransition
+from Storages.Sessions.MySqlSaveOrderTransition import MySqlSaveOrderTransition
 
 __all__ = [
-    "MakeSaveMemberSession",
+    "MySqlMakeSaveMemberSession",
     "MySqlLoadSession",
     "MySqlSaveProductTempSession",
-    "SaveOrderTransition",
+    "MySqlSaveOrderTransition",
 ]

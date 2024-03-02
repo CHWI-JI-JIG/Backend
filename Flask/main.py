@@ -1,31 +1,15 @@
 import __init__
 
-from flask import Flask, session, jsonify, request, redirect, url_for, send_from_directory
+from flask import (
+    Flask,
+    session,
+    jsonify,
+    request,
+    redirect,
+    url_for,
+    send_from_directory,
+)
 from werkzeug.utils import secure_filename
-
-from Applications.Members.CreateMemberService import CreateMemberService
-from Applications.Members.LoginMemberService import AuthenticationMemberService
-from Applications.Members.AdminService import AdminService
-from Applications.Products.ReadProductService import ReadProductService
-from Applications.Products.CreateProductService import CreateProductService
-from Applications.Orders.ReadOrderService import ReadOrderService
-from get_config_data import get_db_padding
-from icecream import ic
-
-from Storages.Members.MySqlEditMember import  MySqlEditMember
-from Storages.Members.MySqlGetMember import  MySqlGetMember
-from Storages.Members.MySqlSaveMember import  MySqlSaveMember
-from Storages.Orders.MySqlGetOrder import MySqlGetOrder
-from Storages.Products import MySqlSaveProduct
-from Storages.Members.LoginVerifiableAuthentication import LoginVerifiableAuthentication
-from Storages.Sessions import *
-from Storages.Products.MySqlGetProduct import MySqlGetProduct
-from result import Result, Ok, Err
-from Domains.Orders import *
-from Domains.Sessions import MemberSession
-from Domains.Products import *
-from mysql_config import mysql_db
-
 import os
 import sys
 import math
@@ -35,26 +19,53 @@ from flask_cors import CORS
 
 import pymysql
 
-SECRETSPATH = __init__.root_path/"secrets.json"
-IMG_PATH = __init__.root_path/"Images"
-#ALLOWED_EXTENSIONS = {'png', 'jpeg', 'jpg', 'gif'}
+from icecream import ic
+from result import Result, Ok, Err
+
+from Applications.Members import *
+from Applications.Orders import *
+from Applications.Comments import *
+from Applications.Products import *
+
+from Storages.Members import *
+from Storages.Members.MySqlGetMember import MySqlGetMember
+from Storages.Members.MySqlEditMember import MySqlEditMember
+from Storages.Orders import *
+from Storages.Products import *
+from Storages.Comments import *
+from Storages.Sessions import *
+
+from Domains.Orders import *
+from Domains.Products import *
+from Domains.Comments import *
+from Domains.Members import *
+from Domains.Sessions import *
+
+from get_config_data import get_db_padding
+from mysql_config import mysql_db
 
 
-with SECRETSPATH.open('r') as f:
+SECRETSPATH = __init__.root_path / "secrets.json"
+IMG_PATH = __init__.root_path / "Images"
+# ALLOWED_EXTENSIONS = {'png', 'jpeg', 'jpg', 'gif'}
+
+
+with SECRETSPATH.open("r") as f:
     secrets = json.load(f)
 
 app = Flask(__name__)
 CORS(app)
-app.secret_key = secrets['SECRET_KEY']
-app.config['UPLOAD_FOLDER'] = IMG_PATH
+app.secret_key = secrets["SECRET_KEY"]
+app.config["UPLOAD_FOLDER"] = IMG_PATH
 
-#def allowed_file(filename):
+# def allowed_file(filename):
 #    return '.' in filename and \
 #           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
 def check_id_duplicate(account):
     db = pymysql.connect(**mysql_db)
-    
+
     try:
         with db.cursor() as cursor:
             sql = f"SELECT account FROM {get_db_padding()}user WHERE account = %s"
@@ -62,45 +73,46 @@ def check_id_duplicate(account):
             result = cursor.fetchone()
     finally:
         db.close()
-        
+
     if result:
         return True
     else:
-        return False    
+        return False
 
-@app.route('/api/Images/<path:filename>')
-def send_image(filename): #/Images/img102.png
+
+@app.route("/api/Images/<path:filename>")
+def send_image(filename):  # /Images/img102.png
     ic(filename)
-    return (send_from_directory(app.config['UPLOAD_FOLDER'], filename))
-    
-@app.route('/api/search', methods=['GET'])
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+
+@app.route("/api/search", methods=["GET"])
 def search():
-    keyword = request.args.get('keyword', type=str)
-    keyword = '%'+keyword+'%'
-    
+    keyword = request.args.get("keyword", type=str)
+    keyword = "%" + keyword + "%"
+
     db = pymysql.connect(**mysql_db)
-    
-    page = request.args.get('page', type=int)
+
+    page = request.args.get("page", type=int)
     page -= 1
     totalCount = 0
     totalPage = 0
     size = 20
-    
-    
+
     try:
         with db.cursor() as cursor:
-            
+
             sql = f"SELECT COUNT(*) as count FROM {get_db_padding()}product WHERE name LIKE %s"
             cursor.execute(sql, (keyword,))
             result = cursor.fetchone()
             ic(result)
             if result and isinstance(result[0], int):
                 totalCount = result[0]
-                totalPage = math.ceil(totalCount/size)
+                totalPage = math.ceil(totalCount / size)
             ic(totalCount)
             offset = page * size
             sql = f"SELECT * FROM {get_db_padding()}product WHERE name LIKE %s LIMIT %s, %s"
-            cursor.execute(sql, (keyword,offset, size))
+            cursor.execute(sql, (keyword, offset, size))
             rows = cursor.fetchall()
             data = []
             for row in rows:
@@ -109,260 +121,285 @@ def search():
                     "productId": row[1],
                     "seq": row[2],
                     "productName": row[3],
-                    "productImageUrl":url_for('send_image', filename=row[4]), # /Images/image1.jpg
+                    "productImageUrl": url_for(
+                    "send_image", filename=row[4]
+                    ),  # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path,
                     "productPrice": row[5],
                     "productDescription": row[6],
-                    "date": row[7]
+                    "date": row[7],
                 }
                 data.append(temp_data)
     finally:
         db.close()
-        
+
     response = {
-        "page": page+1,
-        "totalPage" : totalPage,
-        "totalCount" : totalCount,
-        "size" : size,
-        "data" : data
-        
+        "page": page + 1,
+        "totalPage": totalPage,
+        "totalCount": totalCount,
+        "size": size,
+        "data": data,
     }
-    
+
     return jsonify(response)
 
-@app.route('/api/product-registration', methods = ['POST'])
+
+@app.route("/api/product-registration", methods=["POST"])
 def productRegistration():
-    
-    if 'file' not in request.files:
-            return jsonify({"error": "Invalid image file."}), 400
-    
-    # data = request.get_json()
-    # ic(data)
-    # memberAuth = data.get('key')
-    # #tempProductId = data.get('tempProductId')
-    # productImagePath = data.get("file")
-    # productName = data.get('productName')
-    # productPrice = data.get('productPrice')
-    # productDescription = data.get('productDescription')
-    #productRegistrationData = data.get('productRegistrationData')
-    #sellerId = data.get('sellerId')
-    
-    productName = request.form['productName']
-    productPrice = int(request.form['productPrice'])
-    productDescription = request.form['productDescription']
-    memberAuth = request.form.get('key')
-    
-    file = request.files['file']
+
+    if "file" not in request.files:
+        return jsonify({"error": "Invalid image file."}), 400
+
+    productName = request.form["productName"]
+    productPrice = int(request.form["productPrice"])
+    productDescription = request.form["productDescription"]
+    memberAuth = request.form.get("key")
+
+    file = request.files["file"]
     filename = secure_filename(file.filename)
-    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    
+    file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
     member_save_repo = MySqlSaveMember(get_db_padding())
-    save_product=MySqlSaveProduct(get_db_padding())
-    save_product_session=MySqlSaveProductTempSession(get_db_padding())
-    load_session=MySqlLoadSession(get_db_padding())
-    
-    regi = CreateProductService(save_product, save_product_session,load_session)
+    save_product = MySqlSaveProduct(get_db_padding())
+    save_product_session = MySqlSaveProductTempSession(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+
+    regi = CreateProductService(save_product, save_product_session, load_session)
     check = regi.publish_temp_product_id(memberAuth)
-    
+
     match check:
         case Ok(member_session):
             check = member_session
         case _:
-            return jsonify({'success' : False})
-            
+            return jsonify({"success": False})
+
     regiImg = regi.check_upload_image_path(file.filename, check.get_id())
     match regiImg:
         case Ok(member_session):
             pass
             # regiImg = member_session
         case _:
-            return jsonify({'success': False})
-    
-    productInfo = regi.upload_product_data(productName, productPrice, productDescription, check.get_id())
+            return jsonify({"success": False})
+
+    productInfo = regi.upload_product_data(
+        productName, productPrice, productDescription, check.get_id()
+    )
     match productInfo:
         case Ok(member_session):
             pass
             # productInfo = member_session
         case _:
-            return jsonify({'success': False})
-        
+            return jsonify({"success": False})
+
     result = regi.create(check.get_id())
     match result:
         case Ok(member_session):
-            return jsonify({'success': True})
+            return jsonify({"success": True})
         case Err(e):
-            return jsonify({'success': False})
+            return jsonify({"success": False})
 
-@app.route('/api/detail', methods = ['GET'] )
+
+@app.route("/api/detail", methods=["GET"])
 def detail():
-    productId = request.args.get('productId', type=str)
+    productId = request.args.get("productId", type=str)
     get_product_repo = MySqlGetProduct(get_db_padding())
     load_session_repo = MySqlLoadSession(get_db_padding())
-    
+
     get_product_detail_info = ReadProductService(get_product_repo, load_session_repo)
     result = get_product_detail_info.get_product_for_detail_page(productId)
-    
+
     match result:
         case None:
-            jsonify({'success': False})
+            jsonify({"success": False})
         case ret if isinstance(ret, Product):
             res_data = {
-                "productId" : ret.id.get_id(),
-                "productName" : ret.name,
-                "productDescription" : ret.description,
-                "productPrice" : ret.price,
-                "productImageUrl" : url_for('send_image', filename=ret.img_path)
+                "productId": ret.id.get_id(),
+                "productName": ret.name,
+                "productDescription": ret.description,
+                "productPrice": ret.price,
+                "productImageUrl": url_for("send_image", filename=ret.img_path),
             }
             return jsonify(res_data)
-    
-    
-@app.route('/api/products', methods=['GET'])
+
+
+@app.route("/api/products", methods=["GET"])
 def product():
-    
+
     get_product_repo = MySqlGetProduct(get_db_padding())
     load_session_repo = MySqlLoadSession(get_db_padding())
-    
+
     get_product_info = ReadProductService(get_product_repo, load_session_repo)
-    
-    page = request.args.get('page', type=int)
+
+    page = request.args.get("page", type=int)
     page -= 1
     size = 20
     result = get_product_info.get_product_data_for_main_page(page, size)
-    response_data = {"page":page+1, "size": size,"data": []}
-    
+    response_data = {"page": page + 1, "size": size, "data": []}
+
     match result:
         case Ok((max, products)):
-            
-            response_data["totalPage"] = math.ceil(max/size)
+
+            response_data["totalPage"] = math.ceil(max / size)
             for v in products:
                 product_data = {
-                    "productId" : str (v.id.get_id()),
-                    "sellerId" : str(v.seller_id.get_id()),
-                    "productName" : v.name,
-                    "productImageUrl" : url_for('send_image', filename=v.img_path), # /Images/image1.jpg
+                    "productId": str(v.id.get_id()),
+                    "sellerId": str(v.seller_id.get_id()),
+                    "productName": v.name,
+                    "productImageUrl": url_for(
+                        "send_image", filename=v.img_path
+                    ),  # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path
-                    "productPrice" : v.price
+                    "productPrice": v.price,
                 }
                 response_data["data"].append(product_data)
             return jsonify(response_data)
-            
-        case Err(e):
-            return jsonify({'success': False})     
 
-@app.route('/api/sproducts', methods=['POST'])
+        case Err(e):
+            return jsonify({"success": False})
+
+
+@app.route("/api/sproducts", methods=["POST"])
 def sellerProduct():
     get_product_repo = MySqlGetProduct(get_db_padding())
     load_session_repo = MySqlLoadSession(get_db_padding())
-    
+
     get_product_info = ReadProductService(get_product_repo, load_session_repo)
-    
+
     data = request.get_json()
-    user_key = data.get('key')
-    page = data.get('page')
+    user_key = data.get("key")
+    page = data.get("page")
     page -= 1
 
     size = 20
-    result = get_product_info.get_product_data_for_seller_page( user_key, page, size)
-    ic(result)
-    response_data = {"page":page+1, "size": size,"data": []}
-    
+    result = get_product_info.get_product_data_for_seller_page(user_key, page, size)
+    #ic(result)
+    response_data = {"page": page + 1, "size": size, "data": []}
+
     match result:
         case Ok((max, products)):
-            
-            response_data["totalPage"] = math.ceil(max/size)
+
+            response_data["totalPage"] = math.ceil(max / size)
             for v in products:
                 ic(products)
                 product_data = {
-                    "productId" : str (v.id.get_id()),
-                    "productName" : v.name,
-                    "productImageUrl" : url_for('send_image', filename=v.img_path), # /Images/image1.jpg
+                    "productId": str(v.id.get_id()),
+                    "productName": v.name,
+                    "productImageUrl": url_for(
+                        "send_image", filename=v.img_path
+                    ),  # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path,
-                    "productPrice" : v.price,
-                    "regDate" : v.register_day
+                    "productPrice": v.price,
+                    "regDate": v.register_day,
                 }
                 response_data["data"].append(product_data)
             return jsonify(response_data)
-            
-        case Err(e):
-            return jsonify({'success': False})     
 
-@app.route('/api/login', methods=['POST'])
+        case Err(e):
+            return jsonify({"success": False})
+
+
+@app.route("/api/login", methods=["POST"])
 def login():
     data = request.get_json()
 
-    userId = data.get('userId')
-    userPassword = data.get('userPassword')
+    userId = data.get("userId")
+    userPassword = data.get("userPassword")
 
-    auth_member_repo = LoginVerifiableAuthentication(get_db_padding())
-    session_repo = MakeSaveMemberSession(get_db_padding())
+    auth_member_repo = MySqlLoginAuthentication(get_db_padding())
+    session_repo = MySqlMakeSaveMemberSession(get_db_padding())
 
     login_pass = AuthenticationMemberService(auth_member_repo, session_repo)
     result = login_pass.login(userId, userPassword)
 
     match result:
         case Ok(member_session):
-            
+
             ic(member_session)
-            session['key'] = member_session.get_id()
-            session['auth'] = member_session.role.name
-            
-            return jsonify({'success': True, 'certification' : True,'key': member_session.get_id(), 'auth' : str(member_session.role.name), 'name': str(member_session.name)}), 200
+            session["key"] = member_session.get_id()
+            session["auth"] = member_session.role.name
+
+            return (
+                jsonify(
+                    {
+                        "success": True,
+                        "certification": True,
+                        "key": member_session.get_id(),
+                        "auth": str(member_session.role.name),
+                        "name": str(member_session.name),
+                    }
+                ),
+                200,
+            )
         case Err(e):
-            return jsonify({'success': False})
+            return jsonify({"success": False})
 
-@app.route('/api/check-id', methods=['GET'])
+
+@app.route("/api/check-id", methods=["GET"])
 def check_id():
-    id = request.args.get('id', default='', type=str)
+    id = request.args.get("id", default="", type=str)
     duplicated = check_id_duplicate(id)
-    return jsonify({'duplicated': duplicated})
+    return jsonify({"duplicated": duplicated})
 
-@app.route('/api/signup', methods=['POST'])
+
+@app.route("/api/signup", methods=["POST"])
 def signup():
     data = request.get_json()
-    
-    account = data.get('buyerId')
-    passwd = data.get('buyerPassword')
+
+    account = data.get("buyerId")
+    passwd = data.get("buyerPassword")
     role = "buyer"
-    name = data.get('buyerName')
-    phone = data.get('buyerPhone')
-    email = data.get('buyerEmail')
-    address = data.get('buyerAddress')
-    
-    
+    name = data.get("buyerName")
+    phone = data.get("buyerPhone")
+    email = data.get("buyerEmail")
+    address = data.get("buyerAddress")
+
     save_member_repo = MySqlSaveMember(get_db_padding())
     member_service = CreateMemberService(save_member_repo)
-    
+
     result = member_service.create(account, passwd, role, name, phone, email, address)
-    
+
     if result.is_ok():
-        return jsonify({'success': True}), 200
+        return jsonify({"success": True}), 200
     else:
-        return jsonify({'success': False})
-    
-@app.route('/api/b-signup', methods=['POST'])
+        return jsonify({"success": False})
+
+
+@app.route("/api/b-signup", methods=["POST"])
 def bsignup():
     data = request.get_json()
-    
-    account = data.get('sellerId')
-    passwd = data.get('sellerPassword')
+
+    account = data.get("sellerId")
+    passwd = data.get("sellerPassword")
     role = "seller"
-    name = data.get('sellerName')
-    phone = data.get('sellerPhone')
-    email = data.get('sellerEmail')
-    address = data.get('sellerAddress')
-    company_registration_number = data.get('sellerBRN')
-    pay_account = data.get('sellerBankAccount')
-    
+    name = data.get("sellerName")
+    phone = data.get("sellerPhone")
+    email = data.get("sellerEmail")
+    address = data.get("sellerAddress")
+    company_registration_number = data.get("sellerBRN")
+    pay_account = data.get("sellerBankAccount")
+
     save_member_repo = MySqlSaveMember(get_db_padding())
     member_service = CreateMemberService(save_member_repo)
-    
-    result = member_service.create(account, passwd, role, name, phone, email, address, company_registration_number, pay_account)
-    
+
+    ic(account)
+    result = member_service.create(
+        account,
+        passwd,
+        role,
+        name,
+        phone,
+        email,
+        address,
+        company_registration_number,
+        pay_account,
+    )
+
     if result.is_ok():
-        return jsonify({'success': True}), 200
+        return jsonify({"success": True}), 200
     else:
-        return jsonify({'success': False})
-    
+        return jsonify({"success": False})
+
+
 ## susujin code
 @app.route('/api/admin', methods=['POST'])
 def adminUser():
@@ -421,147 +458,290 @@ def updateUserRole():
             return jsonify({'success': False, 'message': str(e)})
 ## susujin code end
 
-## susujin code
-@app.route('/api/admin', methods=['POST'])
-def adminUser():
-    read_repo = MySqlGetMember(get_db_padding())
-    edit_repo = MySqlEditMember(get_db_padding())
+@app.route("/api/order-history", methods=["POST"])
+def orderHistroy():
+    get_order_Repo = MySqlGetOrder(get_db_padding())
     load_session_repo = MySqlLoadSession(get_db_padding())
-    
-    
-    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
-    
-    data = request.get_json()
-    user_key = data.get('key')
-    page = data.get('page')
-    page -= 1
 
+    get_order_info = ReadOrderService(get_order_Repo, load_session_repo)
+
+    data = request.get_json()
+    user_id = data.get("key")
+    page = data.get("page")
+    page -= 1
+    size = 3
+
+    result = get_order_info.get_order_data_for_buyer_page(user_id, page, size)
+    response_data = {"page": page + 1, "size": size, "data": []}
+
+    match result:
+        case Ok((max, product)):
+            response_data["totalPage"] = math.ceil(max / size)
+            response_data['totalCount'] = max
+            for v in product:
+                order_data = {
+                    "productId": v.product_id,
+                    "productName": v.product_name,
+                    "productImageUrl": url_for(
+                    "send_image", filename=v.product_img_path
+                    ),
+                    "orderQuantity": v.buy_count,
+                    "orderPrice": v.total_price,
+                    "orderDate": v.order_date,
+                }
+                response_data["data"].append(order_data)
+                ic(response_data)
+            return jsonify(response_data)
+
+        case Err(e):
+            return jsonify({"success": False})
+
+
+@app.route("/api/seller-order", methods=["POST"])
+def sellerOrder():
+    get_order_Repo = MySqlGetOrder(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
+
+    get_order_info = ReadOrderService(get_order_Repo, load_session_repo)
+
+    data = request.get_json()
+    user_id = data.get("key")
+    page = data.get("page")
+    page -= 1
     size = 20
-    result = get_user_info.read_members(page, size)
-    ic(result)
-    response_data = {"page":page+1, "size": size,"data": []}
-    
+
+    result = get_order_info.get_order_data_for_seller_page(user_id, page, size)
+    response_data = {"page": page + 1, "size": size, "data": []}
+
     match result:
         case Ok((max, members)):
-            response_data["totalPage"] = math.ceil(max/size)
+            response_data["totalPage"] = math.ceil(max / size)
             for v in members:
                 ic(members)
-                user_data = {
-                    "key" : v.id,
-                    "userId" : v.account,
-                    "userAuth" : v.role
-
+                order_data = {
+                    "buyerId": v.buyer_id,
+                    "buyerName": v.recipient_name,
+                    "buyerPhoneNumber": v.recipient_phone,
+                    "buyerAddr": v.recipient_address,
+                    "productId": v.product_id,
+                    "productName": v.product_name,
+                    "productImageUrl": url_for(
+                        "send_image", filename=v.product_img_path
+                    ),
+                    "orderQuantity": v.buy_count,
+                    "orderPrice": v.total_price,
+                    "orderDate": v.order_date,
                 }
-                response_data["data"].append(user_data)
+                response_data["data"].append(order_data)
             return jsonify(response_data)
-            
+
+        case Err(e):
+            return jsonify({'success': False})
+ 
+
+
+@app.route('/api/userproductinfo', methods=['POST'])
+def userProductInfo():
+    save_order = MySqlSaveOrder(get_db_padding())
+    save_transition = MySqlSaveOrderTransition(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+    
+    save_trans_info = OrderPaymentService(save_order, save_transition, load_session)
+    
+    data = request.get_json()
+    
+    user_session_key = data.get('key')
+    recipient_name = data.get("userName")
+    recipient_phone = data.get("userPhone")
+    recipient_address = data.get("userAddr")
+    product_id = data.get("productId")
+    product_name = data.get("productName")
+    buy_count = data.get("productCount")
+    single_price = data.get("productPrice")
+
+    result = save_trans_info.publish_order_transition(
+        recipient_name=recipient_name,
+        recipient_phone=recipient_phone,
+        recipient_address=recipient_address,
+        product_id=product_id,
+        buy_count=buy_count,
+        single_price=single_price,
+        user_session_key=user_session_key)
+    
+    ic(result)
+
+    match result:
+        case Ok(session):
+            return jsonify({'success': True, 'transId' : session.get_id()})
+
         case Err(e):
             return jsonify({'success': False})
         
-@app.route('/api/user-role', methods=['POST'])
-def updateUserRole():
-    read_repo = MySqlGetMember(get_db_padding())
-    edit_repo = MySqlEditMember(get_db_padding())
-    load_session_repo = MySqlLoadSession(get_db_padding())
+  
+        
+@app.route('/api/PG/sendpayinfo', methods=['POST'])
+def sendPayInfo():
+    save_order = MySqlSaveOrder(get_db_padding())
+    save_transition = MySqlSaveOrderTransition(get_db_padding())
+    save_transition = MySqlSaveOrderTransition(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
     
-    get_user_info = AdminService(read_repo, edit_repo)
+    send_pay_info = OrderPaymentService(save_order, save_transition, load_session)
     
     data = request.get_json()
-    #user_key = data.get('key')
-    user_id = data.get('key')  # 사용자 UUID
-    new_role = data.get('userAuth')  # 변경할 권한
+    
+    order_transition_session = data.get('key')
+    card_num = data.get("cardNum")
+    single_price = data.get("productPrice")
+    payment_success = data.get("paymentVerification") 
 
-    result = get_user_info.change_role(new_role, user_id, load_session_repo)
+    result = send_pay_info.payment_and_approval_order(
+        order_transition_session=order_transition_session,
+        payment_success=payment_success
+        )
+    
     ic(result)
 
     match result:
-        case Ok(user_id):
-            return jsonify({'success': True, 'message': 'User role updated successfully'})
+        case Ok():
+            return jsonify({'success': True})
+
+        case Err(e):
+            return jsonify({'success': False})
+
+
+###        
+@app.route('/api/answer', methods=['POST'])
+def qaAnswer():
+    save_comment = MySqlSaveComment(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+    
+    add_answer_info = CreateCommentService(save_comment, load_session)
+    
+    data = request.get_json()
+
+    answer = data.get('answer')
+    comment_id = data.get('qid')
+    user_key = data.get('key')
+
+    result = add_answer_info.add_answer(answer,comment_id,user_key)
+    ic(result)
+
+    match result:
+        case Ok():
+            return jsonify({'success': True})
 
         case Err(e):
             return jsonify({'success': False, 'message': str(e)})
-## susujin code end
+        
 
-@app.route('/api/order-histroy', methods = ['POST'])
-def orderHistroy():
-    get_order_Repo=MySqlGetOrder(get_db_padding())
-    load_session_repo=MySqlLoadSession(get_db_padding())
+        
+@app.route('/api/qa', methods=['POST'])
+def qaLoad():
+    save_comment = MySqlSaveComment(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
     
-    get_order_info=ReadOrderService(get_order_Repo, load_session_repo)
+    add_qa_info = CreateCommentService(save_comment, load_session)
     
     data = request.get_json()
-    user_id = data.get('key')
-    page = data.get('page')
-    page -= 1
-    size = 20
+    question = data.get("question")
+    user_key = data.get("key")
+    product_id = data.get("productId")
     
-    result = get_order_info.get_order_data_for_buyer_page(user_id,page,size)
-    response_data = {"page":page+1, "size": size,"data": []}
-    
+    # page = data.get("page")
+    # page -= 1
+    # size = 20
+
+    result = add_qa_info.create_question("qa",product_id, user_key)
+    # response_data = {"page": page + 1, "size": size, "data": []}
+
+    ic(result)
+
     match result:
-        case Ok((max, members)):
-            response_data["totalPage"] = math.ceil(max/size)
-            for v in members:
-                ic(members)
-                order_data = {
-                    "productId" : v.product_id,
-                    "productName" : v.product_name,
-                    "productImageUrl" : v.product_img_path,
-                    "orderQuantity" : v.buy_count,
-                    "orderPrice" : v.total_price,
-                    "orderDate" : v.order_date
-                }
-                response_data["data"].append(order_data)
-            return jsonify(response_data)
-            
+        case Ok((max, comments)):
+            return jsonify({'success' :True})
+
         case Err(e):
-            return jsonify({'success': False})
-        
-        
-@app.route('/api/seller-order', methods = ['POST'])
-def sellerOrder():
-    get_order_Repo=MySqlGetOrder(get_db_padding())
-    load_session_repo=MySqlLoadSession(get_db_padding())
+            return jsonify({"success": False})
+
+
+
+@app.route('/api/qa-question', methods=['POST'])
+def qaQuestion():
+    save_comment = MySqlSaveComment(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
     
-    get_order_info=ReadOrderService(get_order_Repo, load_session_repo)
+    add_answer_info = CreateCommentService(save_comment, load_session)
     
     data = request.get_json()
-    user_id = data.get('key')
-    page = data.get('page')
-    page -= 1
-    size = 20
-    
-    result = get_order_info.get_order_data_for_seller_page(user_id,page,size)
-    response_data = {"page":page+1, "size": size,"data": []}
-    
+
+    session_key = data.get("key")
+    product_id = data.get("productId")
+    question = data.get('question')
+
+    result = add_answer_info.add_answer(answer, comment_id, user_key)
+    ic(result)
+
     match result:
-        case Ok((max, members)):
-            response_data["totalPage"] = math.ceil(max/size)
-            for v in members:
-                ic(members)
-                order_data = {
-                    "buyerId" : v.buyer_id,
-                    "buyerName" : v.recipient_name,
-                    "byuerPhoneNumber" : v.recipient_phone,
-                    "buyerAddr" : v.recipient_address,
-                    "productId" : v.product_id,
-                    "productName" : v.product_name,
-                    "productImageUrl" : v.product_img_path,
-                    "orderQuantity" : v.buy_count,
-                    "orderPrice" : v.total_price,
-                    "orderDate" : v.order_date
-                }
-                response_data["data"].append(order_data)
-            return jsonify(response_data)
-            
+        case Ok():
+            return jsonify({'success': True})
+
+        case Err(e):
+            return jsonify({'success': False, 'message': str(e)})
+
+
+
+
+@app.route('/api/check-owner', methods=['POST'])
+def checkOwner():
+    save_comment = MySqlSaveComment(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+    
+    add_answer_info = CreateCommentService(save_comment, load_session)
+    
+    data = request.get_json()
+
+    session_key = data.get("key")
+    product_id = data.get("productId")
+
+    result = add_answer_info.add_answer(answer, comment_id, user_key)
+    ic(result)
+
+    match result:
+        case Ok():
+            return jsonify({'owner': True})
+
+        case Err(e):
+            return jsonify({'owner': False})
+
+
+
+@app.route("/api/c-user", methods=["POST"])
+def cUser():
+    read_repo = ReadPrivacyService(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
+
+    c_user_info = ReadPrivacyService(read_repo, load_session_repo)
+
+    data = request.get_json()
+    
+    user_session_key = data.get("key")
+
+
+    result = c_user_info.read_privacy(user_session_key)
+
+    match result:
+        case Ok((member)):
+            userId = member.id.get_id()
+            userName = member.name
+            userPhone = member.phone
+            userAddr = member.address
+            return jsonify({'success': True, "userId" : userId, "userName" : userName, "userPhone" : userPhone, "userAddr" : userAddr})
+
         case Err(e):
             return jsonify({'success': False})
 
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
-    
-    
-
-    
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", debug=True)

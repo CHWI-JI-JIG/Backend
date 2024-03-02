@@ -9,6 +9,8 @@ from Domains.Products import ProductID, Product
 from Domains.Comments import Comment, CommentID
 from datetime import datetime
 from icecream import ic
+import random
+
 
 def init_product():
     from Storages.Products import MySqlGetProduct, MySqlSaveProduct
@@ -29,10 +31,13 @@ def init_product():
         for row in csvreader:
             id = ProductIDBuilder().set_uuid().set_seqence(1).build()
 
+            random_seller_index = random.randint(0, 2)
+            seller_member = member_list[random_seller_index]
+
             match create.save_product(
                 Product(
                     id=id,
-                    seller_id=member_list[0],
+                    seller_id=seller_member,
                     name=row["상품 이름"],
                     img_path=row["상품 이미지"],
                     price=str(row["상품 가격"]),
