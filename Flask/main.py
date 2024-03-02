@@ -571,10 +571,10 @@ def qaAnswer():
 @app.route("/api/userproductinfo", methods=["POST"])
 def userProductInfo():
     save_order = MySqlSaveOrder(get_db_padding())
-    save_transition = SaveOrderTransition(get_db_padding())
+    save_transition = MySqlSaveOrderTransition(get_db_padding())
     load_session = MySqlLoadSession(get_db_padding())
 
-    load_qa_info = OrderPaymentService(save_comment, load_session)
+    load_qa_info = OrderPaymentService(save_order, save_transition, load_session)
 
     data = request.get_json()
 
