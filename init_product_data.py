@@ -9,7 +9,7 @@ from Domains.Products import ProductID, Product
 from Domains.Comments import Comment, CommentID
 from datetime import datetime
 from icecream import ic
-import pandas as pd
+
 
 def init_product():
     from Storages.Products import MySqlGetProduct, MySqlSaveProduct
