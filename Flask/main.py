@@ -621,7 +621,7 @@ def qaAnswer():
     data = request.get_json()
 
     answer = data.get('answer')
-    comment_id = data.get('qid')
+    comment_id = data.get('qId')
     user_key = data.get('key')
 
     result = add_answer_info.add_answer(answer,comment_id,user_key)
@@ -638,31 +638,40 @@ def qaAnswer():
         
 @app.route('/api/qa', methods=['POST'])
 def qaLoad():
-    save_comment = MySqlSaveComment(get_db_padding())
-    load_session = MySqlLoadSession(get_db_padding())
+    get_comment_repo = MySqlGetComment(get_db_padding())
     
-    add_qa_info = CreateCommentService(save_comment, load_session)
+    qa_load_info = ReadCommentService(get_comment_repo)
     
     data = request.get_json()
-    question = data.get("question")
-    user_key = data.get("key")
+
     product_id = data.get("productId")
     
-    # page = data.get("page")
-    # page -= 1
-    # size = 20
+    page = data.get("page")
+    page -= 1
+    size = 10
 
-    result = add_qa_info.create_question("qa",product_id, user_key)
-    # response_data = {"page": page + 1, "size": size, "data": []}
+    result = qa_load_info.get_comment_data_for_product_page(product_id, page, size)
+    response_data = {"page": page + 1, "size": size, "data": []}
 
     ic(result)
 
     match result:
         case Ok((max, comments)):
-            return jsonify({'success' :True})
+            response_data["totalPage"] = math.ceil(max / size)
+            for v in comments:
+                comment_data = {
+                    "productId": v.product_id,
+                    "qid" : v.id,
+                    "buyerKey" : v.writer_id,
+                    "buyerId" : v.writer_account,
+                    "question": v.question,
+                    "answer": v.answer
+                }
+                response_data["data"].append(comment_data)
+            return jsonify(response_data)
 
         case Err(e):
-            return jsonify({"success": False})
+            return jsonify({'success': False})
 
 
 
@@ -671,48 +680,49 @@ def qaQuestion():
     save_comment = MySqlSaveComment(get_db_padding())
     load_session = MySqlLoadSession(get_db_padding())
     
-    add_answer_info = CreateCommentService(save_comment, load_session)
+    create_qa_info = CreateCommentService(save_comment, load_session)
     
     data = request.get_json()
-
-    session_key = data.get("key")
+    
+    question = data.get("question")
+    user_key = data.get("key")
     product_id = data.get("productId")
-    question = data.get('question')
 
-    result = add_answer_info.add_answer(answer, comment_id, user_key)
+    result = create_qa_info.create_question(question,product_id, user_key)
+
     ic(result)
 
     match result:
         case Ok():
-            return jsonify({'success': True})
+            return jsonify({'success' :True})
 
         case Err(e):
-            return jsonify({'success': False, 'message': str(e)})
+            return jsonify({"success": False})
 
 
 
 
-@app.route('/api/check-owner', methods=['POST'])
-def checkOwner():
-    save_comment = MySqlSaveComment(get_db_padding())
-    load_session = MySqlLoadSession(get_db_padding())
+# @app.route('/api/check-owner', methods=['POST'])
+# def checkOwner():
+#     save_comment = MySqlSaveComment(get_db_padding())
+#     load_session = MySqlLoadSession(get_db_padding())
     
-    add_answer_info = CreateCommentService(save_comment, load_session)
+#     add_answer_info = CreateCommentService(save_comment, load_session)
     
-    data = request.get_json()
+#     data = request.get_json()
 
-    session_key = data.get("key")
-    product_id = data.get("productId")
+#     session_key = data.get("key")
+#     product_id = data.get("productId")
 
-    result = add_answer_info.add_answer(answer, comment_id, user_key)
-    ic(result)
+#     result = add_answer_info.add_answer(answer, comment_id, user_key)
+#     ic(result)
 
-    match result:
-        case Ok():
-            return jsonify({'owner': True})
+#     match result:
+#         case Ok():
+#             return jsonify({'owner': True})
 
-        case Err(e):
-            return jsonify({'owner': False})
+#         case Err(e):
+#             return jsonify({'owner': False})
 
 
 
