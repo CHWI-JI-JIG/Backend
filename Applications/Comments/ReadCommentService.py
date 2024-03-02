@@ -57,7 +57,7 @@ class ReadCommentService:
         # ic("상품 관련된거 확인안했음")
         
         return self.comment_repo.get_comments_by_product_id(
-            product_id = None,
+            product_id = ProductIDBuilder().set_uuid(product_id).build(),
             page=page,
             size=size,
         )

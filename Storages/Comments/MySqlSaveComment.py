@@ -63,14 +63,13 @@ class MySqlSaveComment(ISaveableComment):
                     )
                     # 변경 사항을 커밋
                     connection.commit()
-                    return Ok(comment.id.uuid)
+                    return Ok(comment.id)
             except Exception as e:
                 connection.rollback()
-                return Err(str(e))
-            finally:
                 connection.close()
+                return Err(str(e))
     
-    def update_comment(self, Comment: Comment) -> Result[UUID, str]:
+    def update_comment(self, Comment_id: CommentID, answer:str) -> Result[CommentID, str]:
             connection = self.connect()
             comment_table_name = self.get_padding_name("comments")
             
@@ -85,13 +84,13 @@ class MySqlSaveComment(ISaveableComment):
                         cursor.execute(
                             update_query,                                                               
                             (
-                                Comment.answer,
-                                Comment.id,
+                                answer,
+                                Comment_id,
                             ),
                         )
                         # 변경 사항을 커밋
                         connection.commit()
-                        return Ok(Comment.id)
+                        return Ok(Comment_id)
             except Exception as e:
                 connection.rollback()
                 return Err(str(e))

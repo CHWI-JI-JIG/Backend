@@ -12,6 +12,8 @@ from Repositories.Members import *
 from Repositories.Products import *
 from Repositories.Comments import *
 from Repositories.Sessions import *
+from Builders.Products import *
+from Builders.Comments import *
 
 from icecream import ic
 
@@ -52,6 +54,17 @@ class CreateCommentService:
                             return Err("Invalid Member Session")
                 case _:
                     return Err("plz login")
+        ic()
+        return self.comment_repo.save_comment(
+            Comment(
+                id = CommentIDBuilder().set_uuid().build(),
+                product_id= ProductIDBuilder().set_uuid(product_id).build(),
+                writer_id=user_session.member_id,
+                writer_account = "",
+                answer= None,
+                question=question,    
+            )
+        )
 
     
     def add_answer(
@@ -70,6 +83,9 @@ class CreateCommentService:
                             return Err("Invalid Member Session")
                 case _:
                     return Err("plz login")
-        
+        return self.comment_repo.update_comment(
+            Comment_id=CommentIDBuilder().set_uuid(comment_id).build(),
+            answer= answer,
+        )
     
     

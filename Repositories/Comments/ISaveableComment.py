@@ -15,8 +15,6 @@ class ISaveableComment(metaclass=ABCMeta):
     ) -> Result[CommentID, str]: ...
     
     @abstractmethod
-    def update_comment(
-        self, Comment: Comment
-    ) -> Result[CommentID, str]: ...
+    def update_comment(self, Comment_id: CommentID, anwser:str,) -> Result[CommentID, str]:...
     
     
