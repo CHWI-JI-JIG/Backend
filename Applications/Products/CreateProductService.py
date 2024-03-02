@@ -82,7 +82,6 @@ class CreateProductService:
                     case Ok(session):
                         product_builder = session
                     case e:
-                        ic(e)
                         return Err("Invalid Product Session")
             case _:
                 return Err("Not Exist Session")

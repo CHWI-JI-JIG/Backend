@@ -91,13 +91,13 @@ class ReadProductService:
                 match builder.set_deserialize_value(json):
                     case Ok(session):
                         user_session = session.build()
-                        seller_id = user_session.member_id
+                        seller_id = user_session.member_id.get_id()
                     case _:
                         return Err("Invalid Member Session")
             case _:
                 return Err("plz login")
 
-        assert isinstance(seller_id,MemberID), "Not MenberID."
+        assert check_hex_string(seller_id), "The seller_id is not in hex format."
 
         return self.product_repo.get_products_by_seller_id(
             seller_id=seller_id,
