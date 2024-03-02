@@ -31,7 +31,7 @@ def init_product():
         for row in csvreader:
             id = ProductIDBuilder().set_uuid().set_seqence(1).build()
 
-            random_seller_index = random.randint(0, 2)
+            random_seller_index = random.randint(0, 4)
             seller_member = member_list[random_seller_index]
 
             match create.save_product(

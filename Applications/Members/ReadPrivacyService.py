@@ -1,4 +1,7 @@
+
 import __init__
+
+
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple, List
 from result import Result, Ok, Err
@@ -14,6 +17,7 @@ from Builders.Products import *
 from Repositories.Members import *
 from Repositories.Products import *
 from Repositories.Sessions import *
+
 
 from icecream import ic
 
@@ -34,7 +38,21 @@ class ReadPrivacyService:
         self.read_repo = read_repo
         self.load_session_repo = load_session_repo
 
-    def read_privacy(
-        self,
-        user_session_key: str,
-    ) -> Result[Privacy, str]: ...
+    def read_privacy(self, user_session_key: str) -> Result[Privacy, str]:
+
+        builder = MemberSessionBuilder().set_deserialize_key(user_session_key)
+
+        match self.load_session_repo.load_session(user_session_key):
+            case Ok(json):
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        user_session = session.build()
+                        seller_id = user_session.member_id
+                    case _:
+                        return Err("Invalid Member Session")
+            case _:
+                return Err("Please log in")
+
+        privacy_result = self.read_repo.get_privacy(seller_id)
+
+        return privacy_result
