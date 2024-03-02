@@ -636,42 +636,44 @@ def qaAnswer():
         
 
         
+from flask import jsonify
+
 @app.route('/api/qa', methods=['POST'])
 def qaLoad():
     get_comment_repo = MySqlGetComment(get_db_padding())
-    
     qa_load_info = ReadCommentService(get_comment_repo)
-    
     data = request.get_json()
-
     product_id = data.get("productId")
     
-    page = data.get("page")
-    page -= 1
+    if product_id is None:
+        return jsonify({'success': False, 'error': 'Product ID is missing'})
+    
+    page = data.get("page", 1)  # 페이지가 제공되지 않았거나 유효하지 않은 경우 기본값으로 1을 사용합니다.
     size = 10
 
-    result = qa_load_info.get_comment_data_for_product_page(product_id, page, size)
-    response_data = {"page": page + 1, "size": size, "data": []}
+    result = qa_load_info.get_comment_data_for_product_page(product_id, page - 1, size)
+    response_data = {"page": page, "size": size, "data": []}
 
-    ic(result)
+    if result.is_ok():
+        max_count, comments = result.unwrap()
+        ic(max_count)
+        ic(comments)
+        response_data["totalPage"] = math.ceil(max_count / size)
+        for v in comments:
+            comment_data = {
+                "productId": v.product_id,
+                "qId" : v.id.get_id(),
+                "buyerKey" : v.writer_id,
+                "buyerId" : v.writer_account,
+                "question": v.question,
+                "answer": v.answer
+            }
+            ic('comment_data:',comment_data)
+            response_data["data"].append(comment_data)
+        return jsonify(response_data)
+    else:
+        return jsonify({'success': False})
 
-    match result:
-        case Ok((max, comments)):
-            response_data["totalPage"] = math.ceil(max / size)
-            for v in comments:
-                comment_data = {
-                    "productId": v.product_id,
-                    "qid" : v.id,
-                    "buyerKey" : v.writer_id,
-                    "buyerId" : v.writer_account,
-                    "question": v.question,
-                    "answer": v.answer
-                }
-                response_data["data"].append(comment_data)
-            return jsonify(response_data)
-
-        case Err(e):
-            return jsonify({'success': False})
 
 
 
@@ -690,7 +692,6 @@ def qaQuestion():
 
     result = create_qa_info.create_question(question,product_id, user_key)
 
-    ic(result)
 
     match result:
         case Ok():
