@@ -64,7 +64,7 @@ LIMIT %s, %s;
 
                 comments = []
                 for row in result:
-                    id,writer_id,writer_account,question , answer, _= row
+                    id, writer_id, writer_account, question, answer, _ = row
 
                     comment = Comment(
                         id=CommentIDBuilder().set_uuid(id).build(),
@@ -75,7 +75,10 @@ LIMIT %s, %s;
                         product_id=product_id.get_id(),
                     )
                     comments.append(comment)
-                cursor.execute(f"SELECT COUNT(*) FROM {comment_table_name} WHERE comment.product_id = %s",(product_id.get_id(),))
+                cursor.execute(
+                    f"SELECT COUNT(*) FROM {comment_table_name} WHERE product_id = %s",
+                    (product_id.get_id(),),
+                )
                 total_count = cursor.fetchone()[0]
 
                 connection.commit()
