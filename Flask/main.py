@@ -241,8 +241,8 @@ def product():
             response_data["totalPage"] = math.ceil(max / size)
             for v in products:
                 product_data = {
-                    "productId": str(v.id.get_id()),
-                    "sellerId": str(v.seller_id.get_id()),
+                    "productId": v.id.get_id(),
+                    "sellerId": v.seller_id.get_id(),
                     "productName": v.name,
                     "productImageUrl": url_for(
                         "send_image", filename=v.img_path
@@ -281,7 +281,7 @@ def sellerProduct():
             for v in products:
                 ic(products)
                 product_data = {
-                    "productId": str(v.id.get_id()),
+                    "productId": v.id.get_id(),
                     "productName": v.name,
                     "productImageUrl": url_for(
                         "send_image", filename=v.img_path
@@ -423,7 +423,7 @@ def adminUser():
             for v in members:
                 ic(members)
                 user_data = {
-                    "userKey": str(v.id.get_id()),  # 사용자 key
+                    "userKey": v.id.get_id(),  # 사용자 key
                     "userId": v.account,  # 사용자 아이디(로그인용)
                     "userAuth": v.role,  # 사용자 권한
                 }
@@ -484,7 +484,7 @@ def orderHistroy():
             response_data['totalCount'] = max
             for v in product:
                 order_data = {
-                    "productId": v.product_id,
+                    "productId": v.product_id.get_id(),
                     "productName": v.product_name,
                     "productImageUrl": url_for(
                     "send_image", filename=v.product_img_path
@@ -522,11 +522,11 @@ def sellerOrder():
             response_data["totalPage"] = math.ceil(max / size)
             for v in members:
                 order_data = {
-                    "buyerId": v.buyer_id,
+                    "buyerId": v.buyer_id.get_id(),
                     "buyerName": v.recipient_name,
                     "buyerPhoneNumber": v.recipient_phone,
                     "buyerAddr": v.recipient_address,
-                    "productId": v.product_id,
+                    "productId": v.product_id.get_id(),
                     "productName": v.product_name,
                     "productImageUrl": url_for(
                         "send_image", filename=v.product_img_path
@@ -645,8 +645,6 @@ def qaAnswer():
         
 
         
-from flask import jsonify
-
 @app.route('/api/qa', methods=['POST'])
 def qaLoad():
     get_comment_repo = MySqlGetComment(get_db_padding())
@@ -663,25 +661,25 @@ def qaLoad():
     result = qa_load_info.get_comment_data_for_product_page(product_id, page - 1, size)
     response_data = {"page": page, "size": size, "data": []}
 
-    if result.is_ok():
-        max_count, comments = result.unwrap()
-        ic(max_count)
-        ic(comments)
-        response_data["totalPage"] = math.ceil(max_count / size)
-        for v in comments:
-            comment_data = {
-                "productId": v.product_id,
-                "qId" : v.id.get_id(),
-                "buyerKey" : v.writer_id,
-                "buyerId" : v.writer_account,
-                "question": v.question,
-                "answer": v.answer
-            }
-            ic('comment_data:',comment_data)
-            response_data["data"].append(comment_data)
-        return jsonify(response_data)
-    else:
-        return jsonify({'success': False})
+    ic(result)
+
+    match result:
+        case Ok((max, comments)):
+            response_data["totalPage"] = math.ceil(max / size)
+            for v in comments:
+                comment_data = {
+                    "productId": v.product_id.get_id(),
+                    "qId" : v.id,
+                    "buyerKey" : v.writer_id.get_id(),
+                    "buyerId" : v.writer_account,
+                    "question": v.question,
+                    "answer": v.answer
+                }
+                response_data["data"].append(comment_data)
+            return jsonify(response_data)
+
+        case Err(e):
+            return jsonify({'success': False})
 
 
 
@@ -738,7 +736,7 @@ def qaQuestion():
 
 @app.route("/api/c-user", methods=["POST"])
 def cUser():
-    read_repo = ReadPrivacyService(get_db_padding())
+    read_repo = MySqlGetPrivacy(get_db_padding())
     load_session_repo = MySqlLoadSession(get_db_padding())
 
     c_user_info = ReadPrivacyService(read_repo, load_session_repo)
@@ -748,16 +746,16 @@ def cUser():
     user_session_key = data.get("key")
 
     result = c_user_info.read_privacy(user_session_key)
-    
-    privacy = Privacy()
 
     match result:
         case Ok(privacy):
-            # userId = member.id.get_id()
-            # userName = member.name
-            # userPhone = member.phone
-            # userAddr = member.address
-            return jsonify(privacy)
+            privacy_data= {
+                "userId" : privacy.id.get_id(),
+                "userName" : privacy.name,
+                "userPhone" : privacy.phone,
+                "userAddr" : privacy.address
+            }
+            return jsonify(privacy_data)
 
         case Err(e):
             return jsonify({'success': False})
