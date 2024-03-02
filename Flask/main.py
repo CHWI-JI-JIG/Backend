@@ -746,16 +746,17 @@ def cUser():
     
     user_session_key = data.get("key")
 
-
     result = c_user_info.read_privacy(user_session_key)
+    
+    privacy = Privacy()
 
     match result:
-        case Ok((member)):
-            userId = member.id.get_id()
-            userName = member.name
-            userPhone = member.phone
-            userAddr = member.address
-            return jsonify({'success': True, "userId" : userId, "userName" : userName, "userPhone" : userPhone, "userAddr" : userAddr})
+        case Ok(privacy):
+            # userId = member.id.get_id()
+            # userName = member.name
+            # userPhone = member.phone
+            # userAddr = member.address
+            return jsonify(privacy)
 
         case Err(e):
             return jsonify({'success': False})
