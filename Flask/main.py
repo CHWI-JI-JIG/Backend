@@ -478,7 +478,9 @@ def orderHistroy():
 
     match result:
         case Ok((max, product)):
+            response_data["totalCount"] = max
             response_data["totalPage"] = math.ceil(max / size)
+
             for v in product:
                 order_data = {
                     "productId": v.product_id,
@@ -491,7 +493,8 @@ def orderHistroy():
                     "orderDate": v.order_date,
                 }
                 response_data["data"].append(order_data)
-                ic(response_data)
+                ic(response_data["totalCount"])
+                ic(response_data["page"])
             return jsonify(response_data)
 
         case Err(e):
