@@ -315,7 +315,7 @@ def login():
     userPassword = data.get("userPassword")
 
     auth_member_repo = MySqlLoginAuthentication(get_db_padding())
-    session_repo = MakeSaveMemberSession(get_db_padding())
+    session_repo = MySqlMakeSaveMemberSession(get_db_padding())
 
     login_pass = AuthenticationMemberService(auth_member_repo, session_repo)
     result = login_pass.login(userId, userPassword)
