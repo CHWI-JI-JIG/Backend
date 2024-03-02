@@ -122,7 +122,7 @@ def search():
                     "seq": row[2],
                     "productName": row[3],
                     "productImageUrl": url_for(
-                        "send_image", filename=row[4]
+                    "send_image", filename=row[4]
                     ),  # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path,
                     "productPrice": row[5],
@@ -593,7 +593,7 @@ def sendPayInfo():
     order_transition_session = data.get('key')
     card_num = data.get("cardNum")
     single_price = data.get("productPrice")
-    payment_success = data.get("paymentVerification")
+    payment_success = data.get("paymentVerification") 
 
     result = send_pay_info.payment_and_approval_order(
         order_transition_session=order_transition_session,
@@ -620,11 +620,11 @@ def qaAnswer():
     
     data = request.get_json()
 
-    answer = data.get('key')
-    comment_id = data.get('key')
+    answer = data.get('answer')
+    comment_id = data.get('qid')
     user_key = data.get('key')
 
-    result = add_answer_info.add_answer(answer, comment_id, user_key)
+    result = add_answer_info.add_answer(answer,comment_id,user_key)
     ic(result)
 
     match result:
@@ -641,34 +641,25 @@ def qaLoad():
     save_comment = MySqlSaveComment(get_db_padding())
     load_session = MySqlLoadSession(get_db_padding())
     
-    add_answer_info = CreateCommentService(save_comment, load_session)
+    add_qa_info = CreateCommentService(save_comment, load_session)
     
     data = request.get_json()
-    
-    session_key = data.get("key")
+    question = data.get("question")
+    user_key = data.get("key")
     product_id = data.get("productId")
     
-    page = data.get("page")
-    page -= 1
-    size = 20
+    # page = data.get("page")
+    # page -= 1
+    # size = 20
 
-    result = add_answer_info.add_answer(answer, comment_id, user_key)
-    response_data = {"page": page + 1, "size": size, "data": []}
+    result = add_qa_info.create_question("qa",product_id, user_key)
+    # response_data = {"page": page + 1, "size": size, "data": []}
 
     ic(result)
 
     match result:
         case Ok((max, comments)):
-            response_data["totalPage"] = math.ceil(max / size)
-            for v in comments:
-                ic(comments)
-                user_data = {
-                    "key": v.id, 
-                    "question": v.question, 
-                    "answer": v.answer
-                    }
-                response_data["data"].append(user_data)
-            return jsonify(response_data)
+            return jsonify({'success' :True})
 
         case Err(e):
             return jsonify({"success": False})
