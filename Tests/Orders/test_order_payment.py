@@ -10,21 +10,20 @@ from Migrations import *
 
 from Domains.Members import *
 from Domains.Products import *
+from Domains.Orders import *
 from Domains.Sessions import *
 
 from Builders.Members import *
 from Builders.Products import *
 
 from Applications.Members.ExtentionMethod import hashing_passwd
-from Applications.Members import CreateMemberService
-from Applications.Products import *
 from Applications.Members import *
+from Applications.Products import *
+from Applications.Orders import *
 
 from Storages.Members import *
 from Storages.Products import *
 from Storages.Orders import *
-from Storages. import *
-from Storages.Products import *
 from Storages.Sessions import *
 
 
@@ -34,7 +33,6 @@ from init_data import (
     product_list,
     init_member,
     init_product,
-    init_comment,
     init_order,
 )
 
@@ -66,36 +64,54 @@ class test_order_builder(unittest.TestCase):
         if mm.check_exist_user():
             mm.delete_user()
 
+        load_storage = MySqlLoadSession(get_db_padding())
+
         service = CreateMemberService(MySqlSaveMember(get_db_padding()))
         cls.member_create_service = service
 
         login = AuthenticationMemberService(
             auth_member_repo=MySqlLoginAuthentication(get_db_padding()),
-            session_repo=MakeSaveMemberSession(get_db_padding()),
+            session_repo=MySqlMakeSaveMemberSession(get_db_padding()),
         )
         cls.login_service = login
 
         service = ReadProductService(
             get_product_repo=MySqlGetProduct(get_db_padding()),
-            load_session_repo=MySqlLoadSession(get_db_padding()),
+            load_session_repo=load_storage,
         )
         cls.product_read_service = service
         service = CreateProductService(
             save_product=MySqlSaveProduct(get_db_padding()),
             save_product_session=MySqlSaveProductTempSession(get_db_padding()),
-            load_session=MySqlLoadSession(get_db_padding()),
+            load_session=load_storage,
         )
         cls.product_create_service = service
-        
+
         service = AuthenticationMemberService(
-            auth_member_repo=
-            save_product=MySqlSaveProduct(get_db_padding()),
-            save_product_session=MySqlSaveProductTempSession(get_db_padding()),
-            load_session=MySqlLoadSession(get_db_padding()),
+            auth_member_repo=MySqlLoginAuthentication(get_db_padding()),
+            session_repo=MySqlMakeSaveMemberSession(get_db_padding()),
         )
-        cls.product_create_service = service
-        
-        
+        cls.login_service = service
+
+        service = ReadOrderService(
+            get_order_repo=MySqlGetOrder(get_db_padding()),
+            load_session_repo=load_storage,
+        )
+        cls.read_order_service = service
+
+        service = ReadProductService(
+            get_product_repo=MySqlGetProduct(get_db_padding()),
+            load_session_repo=load_storage,
+        )
+        cls.read_product_service = service
+
+        service = OrderPaymentService(
+            save_order=MySqlSaveOrder(get_db_padding()),
+            save_transition=MySqlSaveOrderTransition(get_db_padding()),
+            load_session=load_storage,
+        )
+        cls.order_and_payment_service = service
+
         mm.create_user()
         init_member()
         mp.create_product()
@@ -149,13 +165,85 @@ class test_order_builder(unittest.TestCase):
             case _:
                 assert False, "Fail Create Member"
         # login
-        match self
-        
+        match self.login_service.login("arst", "134"):
+            case Ok(session):
+                member_session = session
+                assert False, "Why Login Success?"
+            case Err(e):
+                self.assertEqual(e, "비밀번호가 틀렸습니다.")
+            case e:
+                assert False, f"DB Error? : {e}"
+
+        match self.login_service.login("arst", "123"):
+            case Ok(session):
+                member_session = session
+            case e:
+                assert False, f"{e}"
         # 주문조회
+        match self.read_order_service.get_order_data_for_buyer_page(
+            member_session.get_id()
+        ):
+            case Ok((0, none)):
+                self.assertEqual(len(none), 0)
+            case e:
+                assert False, f"{e}"
+
         # 상품 조회 및 선택
+        match self.read_product_service.get_product_data_for_main_page(page=0, size=3):
+            case Ok((_, products)):
+                assert len(products) == 3, "Why Not Products num 3"
+                target_product = products[0]
+                self.assertIsInstance(target_product, Product)
+            case e:
+                assert False, f"{e}"
+
         # 상품 트랜젝션 생성
+        match self.order_and_payment_service.publish_order_transition(
+            recipient_name="Lee Takgyun",
+            recipient_phone="01033452234",
+            recipient_address="guri",
+            product_id=target_product.id.get_id(),
+            buy_count=3,
+            single_price=target_product.price,
+            user_session_key=member_session.get_id(),
+        ):
+            case Ok(trans):
+                order_transition = trans
+            case e:
+                assert False, f"{e}"
+
         # 결제 완료
+        match self.order_and_payment_service.payment_and_approval_order(
+            order_transition_session=order_transition.get_id(),
+            payment_success=True,
+        ):
+            case Ok(id):
+                order_id = id
+            case e:
+                assert False, f"{e}"
         # 주문조회
+        match self.read_order_service.get_order_data_for_buyer_page(
+            member_session.get_id()
+        ):
+            case Ok((1, orders)):
+                self.assertEqual(len(orders), 1)
+
+                target_order = orders[0]
+                ic(target_order)
+
+                self.assertIsInstance(target_order, Order)
+            case e:
+                assert False, f"{e}"
+
+        self.assertEqual(target_order.id.get_id(), order_id.get_id())
+        self.assertEqual(target_order.recipient_name, "Lee Takgyun")
+        self.assertEqual(target_order.recipient_address, "guri")
+        self.assertEqual(target_order.recipient_phone, "01033452234")
+
+        self.assertEqual(target_order.total_price, target_product.price * 3)
+        self.assertEqual(target_order.buy_count, 3)
+        self.assertEqual(target_order.product_name, target_product.name)
+        self.assertEqual(target_order.product_id.get_id(), target_product.id.get_id())
 
 
 def main():
