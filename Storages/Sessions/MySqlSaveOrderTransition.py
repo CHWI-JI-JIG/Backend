@@ -16,7 +16,7 @@ import pymysql
 from icecream import ic
 
 
-class SaveOrderTransition(ISaveableOrderTransition):
+class MySqlSaveOrderTransition(ISaveableOrderTransition):
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
@@ -34,8 +34,7 @@ class SaveOrderTransition(ISaveableOrderTransition):
 
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
-    
-    
+
     def save_order_transition(
         self, transition: OrderTransitionSession
     ) -> Result[OrderTransitionSession, str]:
@@ -56,21 +55,19 @@ class SaveOrderTransition(ISaveableOrderTransition):
                     ),
                 )
                 connection.commit()
-                
+
                 return Ok(transition)
-                
+
         except Exception as e:
             connection.close()
             return Err(str(e))
-        
-        
+
     def update_order_transition(
         self, transition: OrderTransitionSession
     ) -> Result[OrderTransitionSession, str]:
         try:
             connection = self.connect()
             session_table_name = self.get_padding_name("session")
-            
 
             with connection.cursor() as cursor:
                 update_query = f"""
@@ -85,11 +82,11 @@ class SaveOrderTransition(ISaveableOrderTransition):
                         transition.serialize_key(),
                     ),
                 )
-                
+
                 connection.commit()
                 return Ok(transition)
 
         except Exception as e:
             ic()
             connection.close()
-            return Err(str(e))         
+            return Err(str(e))

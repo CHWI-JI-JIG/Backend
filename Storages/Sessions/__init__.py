@@ -10,11 +10,11 @@ if not (str(root_path) in sys.path):
 from Storages.Sessions.MakeSaveMemberSession import MakeSaveMemberSession
 from Storages.Sessions.MySqlSaveProductTempSession import MySqlSaveProductTempSession
 from Storages.Sessions.MySqlLoadSession import MySqlLoadSession
-from Storages.Sessions.SaveOrderTransition import SaveOrderTransition
+from Storages.Sessions.MySqlSaveOrderTransition import MySqlSaveOrderTransition
 
 __all__ = [
     "MakeSaveMemberSession",
     "MySqlLoadSession",
     "MySqlSaveProductTempSession",
-    "SaveOrderTransition",
+    "MySqlSaveOrderTransition",
 ]

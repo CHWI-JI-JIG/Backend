@@ -25,7 +25,7 @@ from Storages.Members.MySqlGetMember import MySqlGetMember
 from Storages.Members.MySqlSaveMember import MySqlSaveMember
 from Storages.Orders.MySqlGetOrder import MySqlGetOrder
 from Storages.Products import MySqlSaveProduct
-from Storages.Members.LoginVerifiableAuthentication import LoginVerifiableAuthentication
+from Storages.Members.MySqlLoginAuthentication import MySqlLoginAuthentication
 from Storages.Sessions import *
 from Storages.Products.MySqlGetProduct import MySqlGetProduct
 from result import Result, Ok, Err
@@ -314,7 +314,7 @@ def login():
     userId = data.get("userId")
     userPassword = data.get("userPassword")
 
-    auth_member_repo = LoginVerifiableAuthentication(get_db_padding())
+    auth_member_repo = MySqlLoginAuthentication(get_db_padding())
     session_repo = MakeSaveMemberSession(get_db_padding())
 
     login_pass = AuthenticationMemberService(auth_member_repo, session_repo)

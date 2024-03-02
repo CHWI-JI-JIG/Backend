@@ -8,9 +8,9 @@ if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
 from Storages.Members.MySqlSaveMember import MySqlSaveMember
-from Storages.Members.LoginVerifiableAuthentication import LoginVerifiableAuthentication
+from Storages.Members.MySqlLoginAuthentication import MySqlLoginAuthentication
 
 __all__ = [
     "MySqlSaveMember",
-    "LoginVerifiableAuthentication",
+    "MySqlLoginAuthentication",
 ]
