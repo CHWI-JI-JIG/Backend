@@ -31,7 +31,7 @@ class PandasCsvPaymentStorage(IPaymentRepo):
 
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
-        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.timestamp = datetime.now().strftime("%Y%m%d")
 
         # 데이터 로드
         file_path = self.get_padding_name(f"{self.timestamp}_payment_data.csv")

@@ -32,6 +32,7 @@ def parse_opt():
         "--test_file",
         nargs="*",
         default=[
+            r"Tests/Members/test_pravacy.py",
             r"Tests/Members/test_builder.py",
             r"Tests/Members/test_member_service.py",
             r"Tests/Members/test_user_migrate.py",
