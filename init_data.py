@@ -28,6 +28,21 @@ def init_member():
 
     service = CreateMemberService(MySqlSaveMember(get_db_padding()))
     match service.create(
+        account="1q2w",
+        passwd="123",
+        role="seller",
+        name="이호연",
+        phone="0105531273",
+        email="1q2w@naver.com",
+        address="서울특별시 강남구 테헤란로 70",
+        company_registration_number="26535793192709",
+        pay_account="1495943585566122",
+    ):
+        case Ok(member):
+            member_list.append(member)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+    match service.create(
         account="GreenGroveOrganics",
         passwd="1234",
         role="seller",
@@ -85,6 +100,20 @@ def init_member():
         address="서울특별시 강남구 영동대로 513",
         company_registration_number="48237239503827",
         pay_account="049837625673",
+    ):
+        case Ok(member):
+            member_list.append(member)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+
+    match service.create(
+        account="dfdf",
+        passwd="123",
+        role="buyer",
+        name="김지희",
+        phone="01052545077",
+        email="dfdf@naver.com",
+        address="대구광역시 수성구 달구벌대로 144",
     ):
         case Ok(member):
             member_list.append(member)
