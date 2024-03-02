@@ -51,6 +51,8 @@ def init_member():
         phone="01013903475",
         email="yousukhair@naver.com",
         address="광주 남구 송암로 73",
+        company_registration_number="114557136219462",
+        pay_account="9876544925564628",
     ):
         case Ok(member):
             member_list.append(member)
