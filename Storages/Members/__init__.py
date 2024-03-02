@@ -11,10 +11,12 @@ from Storages.Members.MySqlSaveMember import MySqlSaveMember
 from Storages.Members.MySqlLoginAuthentication import MySqlLoginAuthentication
 from Storages.Members.MySqlEditMember import MySqlEditMember
 from Storages.Members.MySqlGetMember import MySqlGetMember
+from Storages.Members.MySqlGetPrivacy import MySqlGetPrivacy
 
 __all__ = [
     "MySqlSaveMember",
     "MySqlLoginAuthentication",
     "MySqlGetMember",
     "MySqlEditMember",
+    "MySqlGetPrivacy",
 ]
