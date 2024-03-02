@@ -37,10 +37,9 @@ class MySqlGetOrder(IGetableOrder):
 
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
-    
+
     def get_order_by_order_id(self, order_id: OrderID) -> Optional[Order]: ...
-    
-    
+
     def get_orders_by_seller_id(
         self,
         seller_id: MemberID,
@@ -89,13 +88,25 @@ LIMIT
 
                 result = cursor.fetchall()
                 orders = []
-                
+
                 for row in result:
-                    order_id, product_id, buyer_id, recipient_name, recipient_phone, recipient_address, product_name, img_path, buy_count, total_price, order_date=row
+                    (
+                        order_id,
+                        product_id,
+                        buyer_id,
+                        recipient_name,
+                        recipient_phone,
+                        recipient_address,
+                        product_name,
+                        img_path,
+                        buy_count,
+                        total_price,
+                        order_date,
+                    ) = row
                     order = Order(
                         id=OrderIDBuilder().set_uuid(order_id).build(),
-                        product_id=product_id,
-                        buyer_id=buyer_id,
+                        product_id=ProductIDBuilder().set_uuid(product_id).build(),
+                        buyer_id=MemberIDBuilder().set_uuid(buyer_id).build(),
                         recipient_name=recipient_name,
                         recipient_phone=recipient_phone,
                         recipient_address=recipient_address,
@@ -106,19 +117,20 @@ LIMIT
                         order_date=order_date,
                     )
                     orders.append(order)
-                
-                cursor.execute(f"SELECT COUNT(*) FROM {order_table_name} o JOIN {product_table_name} p ON o.product_id = p.id WHERE p.seller_id = %s", (seller_id.get_id(),))
+
+                cursor.execute(
+                    f"SELECT COUNT(*) FROM {order_table_name} o JOIN {product_table_name} p ON o.product_id = p.id WHERE p.seller_id = %s",
+                    (seller_id.get_id(),),
+                )
                 total_count = cursor.fetchone()[0]
-                
+
                 connection.commit()
-                
+
                 return Ok((total_count, orders))
-            
+
         except Exception as e:
-            connection.close()  
+            connection.close()
             return Err(str(e))
-
-
 
     # 구매자 주문 목록 조회
     def get_orders_by_buyer_id(
@@ -170,11 +182,23 @@ LIMIT
                 result = cursor.fetchall()
                 orders = []
                 for row in result:
-                    order_id, product_id, buyer_id, recipient_name, recipient_phone, recipient_address, product_name, img_path, buy_count, total_price, order_date=row
+                    (
+                        order_id,
+                        product_id,
+                        buyer_id,
+                        recipient_name,
+                        recipient_phone,
+                        recipient_address,
+                        product_name,
+                        img_path,
+                        buy_count,
+                        total_price,
+                        order_date,
+                    ) = row
                     order = Order(
                         id=OrderIDBuilder().set_uuid(order_id).build(),
-                        product_id=product_id,
-                        buyer_id=buyer_id,
+                        product_id=ProductIDBuilder().set_uuid(product_id).build(),
+                        buyer_id=MemberIDBuilder().set_uuid(buyer_id).build(),
                         recipient_name=recipient_name,
                         recipient_phone=recipient_phone,
                         recipient_address=recipient_address,
@@ -185,25 +209,17 @@ LIMIT
                         order_date=order_date,
                     )
                     orders.append(order)
-                    
-                cursor.execute(f"SELECT COUNT(*) FROM {order_table_name} WHERE buyer_id = %s", (buyer_id,))
+
+                cursor.execute(
+                    f"SELECT COUNT(*) FROM {order_table_name} WHERE buyer_id = %s",
+                    (buyer_id,),
+                )
                 total_count = cursor.fetchone()[0]
-                
+
                 connection.commit()
-                
+
                 return Ok((total_count, orders))
-            
+
         except Exception as e:
-            connection.close()  
-            return Err(str(e)) 
-    
-
-        
-
-        
-        
-        
-        
-        
-
-
+            connection.close()
+            return Err(str(e))

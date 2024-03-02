@@ -13,7 +13,7 @@ import pymysql
 # from icecream import ic
 
 
-class LoginVerifiableAuthentication(IVerifiableAuthentication):
+class MySqlLoginAuthentication(IVerifiableAuthentication):
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
