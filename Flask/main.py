@@ -26,6 +26,7 @@ from Applications.Members import *
 from Applications.Orders import *
 from Applications.Comments import *
 from Applications.Products import *
+from Applications.Payments import *
 
 from Storages.Members import *
 from Storages.Orders import *
@@ -120,7 +121,7 @@ def search():
                     "seq": row[2],
                     "productName": row[3],
                     "productImageUrl": url_for(
-                        "send_image", filename=row[4]
+                    "send_image", filename=row[4]
                     ),  # /Images/image1.jpg
                     #'http://serveraddr/Images'+ v.img_path,
                     "productPrice": row[5],
@@ -270,7 +271,7 @@ def sellerProduct():
 
     size = 20
     result = get_product_info.get_product_data_for_seller_page(user_key, page, size)
-    ic(result)
+    #ic(result)
     response_data = {"page": page + 1, "size": size, "data": []}
 
     match result:
@@ -379,6 +380,7 @@ def bsignup():
     save_member_repo = MySqlSaveMember(get_db_padding())
     member_service = CreateMemberService(save_member_repo)
 
+    ic(account)
     result = member_service.create(
         account,
         passwd,
@@ -478,23 +480,21 @@ def orderHistroy():
 
     match result:
         case Ok((max, product)):
-            response_data["totalCount"] = max
             response_data["totalPage"] = math.ceil(max / size)
-
+            response_data['totalCount'] = max
             for v in product:
                 order_data = {
                     "productId": v.product_id,
                     "productName": v.product_name,
                     "productImageUrl": url_for(
-                        "send_image", filename=v.product_img_path
+                    "send_image", filename=v.product_img_path
                     ),
                     "orderQuantity": v.buy_count,
                     "orderPrice": v.total_price,
                     "orderDate": v.order_date,
                 }
                 response_data["data"].append(order_data)
-                ic(response_data["totalCount"])
-                ic(response_data["page"])
+                ic(response_data)
             return jsonify(response_data)
 
         case Err(e):
@@ -521,7 +521,6 @@ def sellerOrder():
         case Ok((max, members)):
             response_data["totalPage"] = math.ceil(max / size)
             for v in members:
-                ic(members)
                 order_data = {
                     "buyerId": v.buyer_id,
                     "buyerName": v.recipient_name,
@@ -586,7 +585,6 @@ def userProductInfo():
 def sendPayInfo():
     save_order = MySqlSaveOrder(get_db_padding())
     save_transition = MySqlSaveOrderTransition(get_db_padding())
-    save_transition = MySqlSaveOrderTransition(get_db_padding())
     load_session = MySqlLoadSession(get_db_padding())
 
     send_pay_info = OrderPaymentService(save_order, save_transition, load_session)
@@ -595,8 +593,16 @@ def sendPayInfo():
 
     order_transition_session = data.get("key")
     card_num = data.get("cardNum")
-    single_price = data.get("productPrice")
-    payment_success = data.get("paymentVerification")
+    total_price = data.get("productPrice")
+    payment_success = data.get("paymentVerification") 
+    
+    result = PaymentService().approval_and_logging(order_transition_session,total_price,card_num)
+    
+    match result:
+        case Ok(True):
+            pass
+        case Err(e):
+             return jsonify({"success" : False, "msg" : e})
 
     result = send_pay_info.payment_and_approval_order(
         order_transition_session=order_transition_session,
@@ -610,7 +616,150 @@ def sendPayInfo():
             return jsonify({"success": True})
 
         case Err(e):
+            return jsonify({'success': False})
+
+ 
+       
+@app.route('/api/answer', methods=['POST'])
+def qaAnswer():
+    save_comment = MySqlSaveComment(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+    
+    add_answer_info = CreateCommentService(save_comment, load_session)
+    
+    data = request.get_json()
+
+    answer = data.get('answer')
+    comment_id = data.get('qId')
+    user_key = data.get('key')
+
+    result = add_answer_info.add_answer(answer,comment_id,user_key)
+    ic(result)
+
+    match result:
+        case Ok():
+            return jsonify({'success': True})
+
+        case Err(e):
+            return jsonify({'success': False, 'message': str(e)})
+        
+
+        
+@app.route('/api/qa', methods=['POST'])
+def qaLoad():
+    get_comment_repo = MySqlGetComment(get_db_padding())
+    
+    qa_load_info = ReadCommentService(get_comment_repo)
+    
+    data = request.get_json()
+
+    product_id = data.get("productId")
+    
+    page = data.get("page")
+    page -= 1
+    size = 10
+
+    result = qa_load_info.get_comment_data_for_product_page(product_id, page, size)
+    response_data = {"page": page + 1, "size": size, "data": []}
+
+    ic(result)
+
+    match result:
+        case Ok((max, comments)):
+            response_data["totalPage"] = math.ceil(max / size)
+            for v in comments:
+                comment_data = {
+                    "productId": v.product_id,
+                    "qid" : v.id,
+                    "buyerKey" : v.writer_id,
+                    "buyerId" : v.writer_account,
+                    "question": v.question,
+                    "answer": v.answer
+                }
+                response_data["data"].append(comment_data)
+            return jsonify(response_data)
+
+        case Err(e):
+            return jsonify({'success': False})
+
+
+
+@app.route('/api/qa-question', methods=['POST'])
+def qaQuestion():
+    save_comment = MySqlSaveComment(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+    
+    create_qa_info = CreateCommentService(save_comment, load_session)
+    
+    data = request.get_json()
+    
+    question = data.get("question")
+    user_key = data.get("key")
+    product_id = data.get("productId")
+
+    result = create_qa_info.create_question(question,product_id, user_key)
+
+    ic(result)
+
+    match result:
+        case Ok():
+            return jsonify({'success' :True})
+
+        case Err(e):
             return jsonify({"success": False})
+
+
+
+
+# @app.route('/api/check-owner', methods=['POST'])
+# def checkOwner():
+#     save_comment = MySqlSaveComment(get_db_padding())
+#     load_session = MySqlLoadSession(get_db_padding())
+    
+#     add_answer_info = CreateCommentService(save_comment, load_session)
+    
+#     data = request.get_json()
+
+#     session_key = data.get("key")
+#     product_id = data.get("productId")
+
+#     result = add_answer_info.add_answer(answer, comment_id, user_key)
+#     ic(result)
+
+#     match result:
+#         case Ok():
+#             return jsonify({'owner': True})
+
+#         case Err(e):
+#             return jsonify({'owner': False})
+
+
+
+@app.route("/api/c-user", methods=["POST"])
+def cUser():
+    read_repo = ReadPrivacyService(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
+
+    c_user_info = ReadPrivacyService(read_repo, load_session_repo)
+
+    data = request.get_json()
+    
+    user_session_key = data.get("key")
+
+
+    result = c_user_info.read_privacy(user_session_key)
+
+    match result:
+        case Ok((member)):
+            userId = member.id.get_id()
+            userName = member.name
+            userPhone = member.phone
+            userAddr = member.address
+            return jsonify({'success': True, "userId" : userId, "userName" : userName, "userPhone" : userPhone, "userAddr" : userAddr})
+
+        case Err(e):
+            return jsonify({'success': False})
+
 
 
 if __name__ == "__main__":
