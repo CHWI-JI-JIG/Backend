@@ -373,9 +373,9 @@ def adminUser():
             for v in members:
                 ic(members)
                 user_data = {
-                    "userUUID" : v.id,
-                    "userID" : v.account,
-                    "userAuth" : v.role
+                    "userKey" : str (v.id.get_id()), #사용자 key
+                    "userId" : v.account, #사용자 아이디(로그인용)
+                    "userAuth" : v.role #사용자 권한
 
                 }
                 response_data["data"].append(user_data)
@@ -392,8 +392,8 @@ def updateUserRole():
     get_user_info = AdminService(read_repo, edit_repo)
     
     data = request.get_json()
-    user_key = data.get('key')
-    user_id = data.get('userUUID')  # 사용자 UUID
+    user_key = data.get('key') # 세션키(즉, 관리자 세션키)
+    user_id = data.get('userKey') # 사용자 key
     new_role = data.get('userAuth')  # 변경할 권한
 
     result = get_user_info.change_role(new_role, user_id)
