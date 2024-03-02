@@ -272,7 +272,7 @@ def sellerProduct():
 
     size = 20
     result = get_product_info.get_product_data_for_seller_page(user_key, page, size)
-    ic(result)
+    #ic(result)
     response_data = {"page": page + 1, "size": size, "data": []}
 
     match result:
@@ -381,6 +381,7 @@ def bsignup():
     save_member_repo = MySqlSaveMember(get_db_padding())
     member_service = CreateMemberService(save_member_repo)
 
+    ic(account)
     result = member_service.create(
         account,
         passwd,
@@ -468,7 +469,7 @@ def orderHistroy():
     user_id = data.get("key")
     page = data.get("page")
     page -= 1
-    size = 20
+    size = 3
 
     result = get_order_info.get_order_data_for_buyer_page(user_id, page, size)
     response_data = {"page": page + 1, "size": size, "data": []}
@@ -607,6 +608,121 @@ def sendPayInfo():
 
         case Err(e):
             return jsonify({'success': False})
+
+
+###        
+@app.route('/api/answer', methods=['POST'])
+def qaAnswer():
+    save_comment = MySqlSaveComment(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+    
+    add_answer_info = CreateCommentService(save_comment, load_session)
+    
+    data = request.get_json()
+
+    answer = data.get('key')
+    comment_id = data.get('key')
+    user_key = data.get('key')
+
+    result = add_answer_info.add_answer(answer, comment_id, user_key)
+    ic(result)
+
+    match result:
+        case Ok():
+            return jsonify({'success': True})
+
+        case Err(e):
+            return jsonify({'success': False, 'message': str(e)})
+        
+
+        
+@app.route('/api/qa', methods=['POST'])
+def qaLoad():
+    save_comment = MySqlSaveComment(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+    
+    add_answer_info = CreateCommentService(save_comment, load_session)
+    
+    data = request.get_json()
+    
+    session_key = data.get("key")
+    product_id = data.get("productId")
+    
+    page = data.get("page")
+    page -= 1
+    size = 20
+
+    result = add_answer_info.add_answer(answer, comment_id, user_key)
+    response_data = {"page": page + 1, "size": size, "data": []}
+
+    ic(result)
+
+    match result:
+        case Ok((max, comments)):
+            response_data["totalPage"] = math.ceil(max / size)
+            for v in comments:
+                ic(comments)
+                user_data = {
+                    "key": v.id, 
+                    "question": v.question, 
+                    "answer": v.answer
+                    }
+                response_data["data"].append(user_data)
+            return jsonify(response_data)
+
+        case Err(e):
+            return jsonify({"success": False})
+
+
+
+@app.route('/api/qa-question', methods=['POST'])
+def qaQuestion():
+    save_comment = MySqlSaveComment(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+    
+    add_answer_info = CreateCommentService(save_comment, load_session)
+    
+    data = request.get_json()
+
+    session_key = data.get("key")
+    product_id = data.get("productId")
+    question = data.get('question')
+
+    result = add_answer_info.add_answer(answer, comment_id, user_key)
+    ic(result)
+
+    match result:
+        case Ok():
+            return jsonify({'success': True})
+
+        case Err(e):
+            return jsonify({'success': False, 'message': str(e)})
+
+
+
+
+@app.route('/api/check-owner', methods=['POST'])
+def checkOwner():
+    save_comment = MySqlSaveComment(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+    
+    add_answer_info = CreateCommentService(save_comment, load_session)
+    
+    data = request.get_json()
+
+    session_key = data.get("key")
+    product_id = data.get("productId")
+
+    result = add_answer_info.add_answer(answer, comment_id, user_key)
+    ic(result)
+
+    match result:
+        case Ok():
+            return jsonify({'owner': True})
+
+        case Err(e):
+            return jsonify({'owner': False})
+
 
 
 
