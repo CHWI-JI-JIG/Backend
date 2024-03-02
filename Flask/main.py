@@ -517,7 +517,6 @@ def sellerOrder():
         case Ok((max, members)):
             response_data["totalPage"] = math.ceil(max / size)
             for v in members:
-                ic(members)
                 order_data = {
                     "buyerId": v.buyer_id,
                     "buyerName": v.recipient_name,
@@ -609,8 +608,7 @@ def sendPayInfo():
         case Err(e):
             return jsonify({'success': False})
 
-
-###        
+       
 @app.route('/api/answer', methods=['POST'])
 def qaAnswer():
     save_comment = MySqlSaveComment(get_db_padding())
