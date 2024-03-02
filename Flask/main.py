@@ -26,6 +26,7 @@ from Applications.Members import *
 from Applications.Orders import *
 from Applications.Comments import *
 from Applications.Products import *
+from Applications.Payments import *
 
 from Storages.Members import *
 from Storages.Orders import *
@@ -520,7 +521,6 @@ def sellerOrder():
         case Ok((max, members)):
             response_data["totalPage"] = math.ceil(max / size)
             for v in members:
-                ic(members)
                 order_data = {
                     "buyerId": v.buyer_id,
                     "buyerName": v.recipient_name,
@@ -585,7 +585,6 @@ def userProductInfo():
 def sendPayInfo():
     save_order = MySqlSaveOrder(get_db_padding())
     save_transition = MySqlSaveOrderTransition(get_db_padding())
-    save_transition = MySqlSaveOrderTransition(get_db_padding())
     load_session = MySqlLoadSession(get_db_padding())
 
     send_pay_info = OrderPaymentService(save_order, save_transition, load_session)
@@ -594,8 +593,16 @@ def sendPayInfo():
 
     order_transition_session = data.get("key")
     card_num = data.get("cardNum")
-    single_price = data.get("productPrice")
+    total_price = data.get("productPrice")
     payment_success = data.get("paymentVerification") 
+    
+    result = PaymentService().approval_and_logging(order_transition_session,total_price,card_num)
+    
+    match result:
+        case Ok(True):
+            pass
+        case Err(e):
+             return jsonify({"success" : False, "msg" : e})
 
     result = send_pay_info.payment_and_approval_order(
         order_transition_session=order_transition_session,
@@ -609,9 +616,10 @@ def sendPayInfo():
             return jsonify({"success": True})
 
         case Err(e):
-            return jsonify({"success": False})
+            return jsonify({'success': False})
 
-###        
+ 
+       
 @app.route('/api/answer', methods=['POST'])
 def qaAnswer():
     save_comment = MySqlSaveComment(get_db_padding())
@@ -738,16 +746,17 @@ def cUser():
     
     user_session_key = data.get("key")
 
-
     result = c_user_info.read_privacy(user_session_key)
+    
+    privacy = Privacy()
 
     match result:
-        case Ok((member)):
-            userId = member.id.get_id()
-            userName = member.name
-            userPhone = member.phone
-            userAddr = member.address
-            return jsonify({'success': True, "userId" : userId, "userName" : userName, "userPhone" : userPhone, "userAddr" : userAddr})
+        case Ok(privacy):
+            # userId = member.id.get_id()
+            # userName = member.name
+            # userPhone = member.phone
+            # userAddr = member.address
+            return jsonify(privacy)
 
         case Err(e):
             return jsonify({'success': False})
