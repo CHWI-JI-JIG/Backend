@@ -24,8 +24,8 @@ class CreateCommentService:
         load_session: ILoadableSession,
     ):
         assert issubclass(
-            type(save_comment), ISaveableMember
-        ), "save_member_repo must be a class that inherits from ISaveableMember."
+            type(save_comment), ISaveableComment
+        ), "save_member_repo must be a class that inherits from ISaveableComment."
 
         self.comment_repo = save_comment
 
@@ -33,16 +33,43 @@ class CreateCommentService:
             type(load_session), ILoadableSession
         ), "save_member_repo must be a class that inherits from ILoadableSession."
 
-        self.load_repo = load_session
+        self.load_session_repo = load_session
+        
 
     def create_question(
         self,
+        question : str,
         product_id: str,
         user_key: str,
-    ) -> Result[CommentID, str]: ...
+    ) -> Result[CommentID, str]:
+        builder = MemberSessionBuilder().set_deserialize_key(user_key)
+        match self.load_session_repo.load_session(user_key):
+                case Ok(json):
+                    match builder.set_deserialize_value(json):
+                        case Ok(session):
+                            user_session = session.build()
+                        case _:
+                            return Err("Invalid Member Session")
+                case _:
+                    return Err("plz login")
 
-    def Add_answer(
+    
+    def add_answer(
         self,
+        answer: str,
         comment_id: str,
         user_key: str,
-    ) -> Result[CommentID, str]: ...
+    ) -> Result[CommentID, str]:
+        builder = MemberSessionBuilder().set_deserialize_key(user_key)
+        match self.load_session_repo.load_session(user_key):
+                case Ok(json):
+                    match builder.set_deserialize_value(json):
+                        case Ok(session):
+                            user_session = session.build()
+                        case _:
+                            return Err("Invalid Member Session")
+                case _:
+                    return Err("plz login")
+        
+    
+    
