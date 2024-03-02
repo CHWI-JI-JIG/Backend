@@ -725,6 +725,32 @@ def checkOwner():
 
 
 
+@app.route("/api/c-user", methods=["POST"])
+def cUser():
+    read_repo = ReadPrivacyService(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
+
+    c_user_info = ReadPrivacyService(read_repo, load_session_repo)
+
+    data = request.get_json()
+    
+    user_session_key = data.get("key")
+
+
+    result = c_user_info.read_privacy(user_session_key)
+
+    match result:
+        case Ok((member)):
+            userId = member.id.get_id()
+            userName = member.name
+            userPhone = member.phone
+            userAddr = member.address
+            return jsonify({'success': True, "userId" : userId, "userName" : userName, "userPhone" : userPhone, "userAddr" : userAddr})
+
+        case Err(e):
+            return jsonify({'success': False})
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
