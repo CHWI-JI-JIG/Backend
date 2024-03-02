@@ -28,6 +28,8 @@ from Applications.Comments import *
 from Applications.Products import *
 
 from Storages.Members import *
+from Storages.Members.MySqlGetMember import MySqlGetMember
+from Storages.Members.MySqlEditMember import MySqlEditMember
 from Storages.Orders import *
 from Storages.Products import *
 from Storages.Comments import *
@@ -532,57 +534,75 @@ def sellerOrder():
         case Err(e):
             return jsonify({'success': False})
  
-        
-## 여기서부터 수정  (QA)      
-# answer        
-@app.route('/api/answer', methods=['POST'])
-def qaAnswer():
-    save_comment = MySqlSaveComment(get_db_padding())
-    load_session = MySqlLoadSession(get_db_padding())
-    
-    load_qa_info = CreateCommentService(save_comment, load_session)
-    
-    data = request.get_json()
 
-    answer = data.get('key')
-    comment_id = data.get('key')  # 사용자 UUID
-    user_key = data.get('key')
 
-    result = load_qa_info.add_answer(answer, comment_id, user_key)
-    ic(result)
-
-    match result:
-        case Ok(user_key):
-            return jsonify({'success': True, 'message': 'User role updated successfully'})
-
-        case Err(e):
-            return jsonify({'success': False, 'message': str(e)})
-        
-        
-        
 @app.route('/api/userproductinfo', methods=['POST'])
 def userProductInfo():
     save_order = MySqlSaveOrder(get_db_padding())
-    save_transition = SaveOrderTransition(get_db_padding())
+    save_transition = MySqlSaveOrderTransition(get_db_padding())
     load_session = MySqlLoadSession(get_db_padding())
     
-    load_qa_info = OrderPaymentService(save_comment, load_session)
+    save_trans_info = OrderPaymentService(save_order, save_transition, load_session)
     
     data = request.get_json()
+    
+    user_session_key = data.get('key')
+    recipient_name = data.get("userName")
+    recipient_phone = data.get("userPhone")
+    recipient_address = data.get("userAddr")
+    product_id = data.get("productId")
+    product_name = data.get("productName")
+    buy_count = data.get("productCount")
+    single_price = data.get("productPrice")
 
-    answer = data.get('key')
-    comment_id = data.get('key')  # 사용자 UUID
-    user_key = data.get('key')
-
-    result = load_qa_info.add_answer(answer, comment_id, user_key)
+    result = save_trans_info.publish_order_transition(
+        recipient_name=recipient_name,
+        recipient_phone=recipient_phone,
+        recipient_address=recipient_address,
+        product_id=product_id,
+        buy_count=buy_count,
+        single_price=single_price,
+        user_session_key=user_session_key)
+    
     ic(result)
 
     match result:
-        case Ok(user_key):
-            return jsonify({'success': True, 'message': 'User role updated successfully'})
+        case Ok(session):
+            return jsonify({'success': True, 'transId' : session.get_id()})
 
         case Err(e):
-            return jsonify({'success': False, 'message': str(e)})
+            return jsonify({'success': False})
+        
+  
+        
+@app.route('/api/PG/sendpayinfo', methods=['POST'])
+def sendPayInfo():
+    save_order = MySqlSaveOrder(get_db_padding())
+    save_transition = MySqlSaveOrderTransition(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+    
+    send_pay_info = OrderPaymentService(save_order, save_transition, load_session)
+    
+    data = request.get_json()
+    
+    order_transition_session = data.get('key')
+    card_num = data.get("cardNum")
+    single_price = data.get("productPrice")
+    payment_success = data.get("paymentVerification")
+
+    result = send_pay_info.payment_and_approval_order(
+        order_transition_session=order_transition_session,
+        payment_success=payment_success
+        )
+    
+    ic(result)
+
+    match result:
+        case Ok():
+            return jsonify({'success': True})
+
+        case Err(e):
+            return jsonify({'success': False})
 
 
 
