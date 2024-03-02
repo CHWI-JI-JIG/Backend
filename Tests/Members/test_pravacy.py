@@ -97,7 +97,7 @@ class test_privacy(unittest.TestCase):
             pay_account="6795943585566187",
         )
 
-        match self.login_service.login("asdf", "123"):
+        match self.login_service.login("GreenGroveOrganics", "1234"):
             case Ok(session):
                 self.login_session = session
             case e:
