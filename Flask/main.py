@@ -3,27 +3,27 @@ import __init__
 from flask import Flask, session, jsonify, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 
-from Applications.Members.CreateMemberService import CreateMemberService
-from Applications.Members.LoginMemberService import AuthenticationMemberService
-from Applications.Members.AdminService import AdminService
-from Applications.Products.ReadProductService import ReadProductService
-from Applications.Products.CreateProductService import CreateProductService
-from Applications.Orders.ReadOrderService import ReadOrderService
+from Applications.Members import *
+from Applications.Orders import *
+from Applications.Comments import *
+from Applications.Products import *
+
 from get_config_data import get_db_padding
 from icecream import ic
 
-from Storages.Members.MySqlEditMember import  MySqlEditMember
-from Storages.Members.MySqlGetMember import  MySqlGetMember
-from Storages.Members.MySqlSaveMember import  MySqlSaveMember
-from Storages.Orders.MySqlGetOrder import MySqlGetOrder
-from Storages.Products import MySqlSaveProduct
-from Storages.Members.LoginVerifiableAuthentication import LoginVerifiableAuthentication
+from Storages.Members import *
+from Storages.Orders import *
+from Storages.Products import *
+from Storages.Comments import *
 from Storages.Sessions import *
-from Storages.Products.MySqlGetProduct import MySqlGetProduct
+
 from result import Result, Ok, Err
 from Domains.Orders import *
-from Domains.Sessions import MemberSession
 from Domains.Products import *
+from Domains.Comments import *
+from Domains.Members import *
+from Domains.Sessions import *
+
 from mysql_config import mysql_db
 
 import os
@@ -444,10 +444,11 @@ def orderHistroy():
             response_data["totalPage"] = math.ceil(max/size)
             for v in members:
                 ic(members)
+                ic(v.buy_count)
                 order_data = {
                     "productId" : v.product_id,
                     "productName" : v.product_name,
-                    "productImageUrl" : v.product_img_path,
+                    "productImageUrl" : url_for('send_image', filename=v.product_img_path),
                     "orderQuantity" : v.buy_count,
                     "orderPrice" : v.total_price,
                     "orderDate" : v.order_date
@@ -483,11 +484,11 @@ def sellerOrder():
                 order_data = {
                     "buyerId" : v.buyer_id,
                     "buyerName" : v.recipient_name,
-                    "byuerPhoneNumber" : v.recipient_phone,
+                    "buyerPhoneNumber" : v.recipient_phone,
                     "buyerAddr" : v.recipient_address,
                     "productId" : v.product_id,
                     "productName" : v.product_name,
-                    "productImageUrl" : v.product_img_path,
+                    "productImageUrl" : url_for('send_image', filename=v.product_img_path),
                     "orderQuantity" : v.buy_count,
                     "orderPrice" : v.total_price,
                     "orderDate" : v.order_date
@@ -497,6 +498,58 @@ def sellerOrder():
             
         case Err(e):
             return jsonify({'success': False})
+ 
+        
+## 여기서부터 수정  (QA)      
+# answer        
+@app.route('/api/answer', methods=['POST'])
+def qaAnswer():
+    save_comment = MySqlSaveComment(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+    
+    load_qa_info = CreateCommentService(save_comment, load_session)
+    
+    data = request.get_json()
+
+    answer = data.get('key')
+    comment_id = data.get('key')  # 사용자 UUID
+    user_key = data.get('key')
+
+    result = load_qa_info.add_answer(answer, comment_id, user_key)
+    ic(result)
+
+    match result:
+        case Ok(user_key):
+            return jsonify({'success': True, 'message': 'User role updated successfully'})
+
+        case Err(e):
+            return jsonify({'success': False, 'message': str(e)})
+        
+        
+        
+@app.route('/api/userproductinfo', methods=['POST'])
+def userProductInfo():
+    save_order = MySqlSaveOrder(get_db_padding())
+    save_transition = SaveOrderTransition(get_db_padding())
+    load_session = MySqlLoadSession(get_db_padding())
+    
+    load_qa_info = OrderPaymentService(save_comment, load_session)
+    
+    data = request.get_json()
+
+    answer = data.get('key')
+    comment_id = data.get('key')  # 사용자 UUID
+    user_key = data.get('key')
+
+    result = load_qa_info.add_answer(answer, comment_id, user_key)
+    ic(result)
+
+    match result:
+        case Ok(user_key):
+            return jsonify({'success': True, 'message': 'User role updated successfully'})
+
+        case Err(e):
+            return jsonify({'success': False, 'message': str(e)})
 
 
 
