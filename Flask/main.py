@@ -292,6 +292,7 @@ def login():
     userId = data.get('userId')
     userPassword = data.get('userPassword')
 
+    ic(userPassword,userId)
     auth_member_repo = LoginVerifiableAuthentication(get_db_padding())
     session_repo = MakeSaveMemberSession(get_db_padding())
 
@@ -426,7 +427,7 @@ def updateUserRole():
             return jsonify({'success': False, 'message': str(e)})
 ## susujin code end
 
-@app.route('/api/order-histroy', methods = ['POST'])
+@app.route('/api/order-history', methods = ['POST'])
 def orderHistroy():
     get_order_Repo=MySqlGetOrder(get_db_padding())
     load_session_repo=MySqlLoadSession(get_db_padding())
@@ -438,6 +439,8 @@ def orderHistroy():
     page = data.get('page')
     page -= 1
     size = 20
+    ic(data)
+    
     
     result = get_order_info.get_order_data_for_buyer_page(user_id,page,size)
     response_data = {"page":page+1, "size": size,"data": []}
@@ -450,7 +453,7 @@ def orderHistroy():
                 order_data = {
                     "productId" : v.product_id,
                     "productName" : v.product_name,
-                    "productImageUrl" : v.product_img_path,
+                    "productImageUrl" :url_for("send_image", filename= v.product_img_path),# v.product_img_path,
                     "orderQuantity" : v.buy_count,
                     "orderPrice" : v.total_price,
                     "orderDate" : v.order_date
