@@ -359,7 +359,7 @@ def adminUser():
     load_session_repo = MySqlLoadSession(get_db_padding())
     
     
-    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
+    get_user_info = AdminService(read_repo, edit_repo)
     
     data = request.get_json()
     user_key = data.get('key')
@@ -400,8 +400,11 @@ def updateUserRole():
     #user_key = data.get('key')
     user_id = data.get('key')  # 사용자 UUID
     new_role = data.get('userAuth')  # 변경할 권한
+    
+    ic()
+    ic(new_role, user_id)
 
-    result = get_user_info.change_role(new_role, user_id, load_session_repo)
+    result = get_user_info.change_role(new_role, user_id)
     ic(result)
 
     match result:
