@@ -476,11 +476,14 @@ def orderHistroy():
     match result:
         case Ok((max, product)):
             response_data["totalPage"] = math.ceil(max / size)
+            response_data['totalCount'] = max
             for v in product:
                 order_data = {
                     "productId": v.product_id,
                     "productName": v.product_name,
-                    "productImageUrl": v.product_img_path,
+                    "productImageUrl": url_for(
+                    "send_image", filename=v.product_img_path
+                    ),
                     "orderQuantity": v.buy_count,
                     "orderPrice": v.total_price,
                     "orderDate": v.order_date,
