@@ -113,51 +113,51 @@ class test_comment(unittest.TestCase):
     def tearDown(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t", sys._getframe(0).f_code.co_name)
-        # 테스트 케이스마다 코멘트 테이블 삭제
-        # if self.comment_migrate.check_exist_comments():
-        #     self.comment_migrate.delete_comments()
+        #테스트 케이스마다 코멘트 테이블 삭제
+        if self.comment_migrate.check_exist_comments():
+            self.comment_migrate.delete_comments()
 
-    # def test_comment_detail_page(self):
-    #     "Hook method for deconstructing the test fixture after testing it."
-    #     print("\t\t", sys._getframe(0).f_code.co_name)
-    #     # 테스트 데이터의 코멘트 수를 사용하여 예상한 코멘트 수 설정
-    #     expected_comments_count = len(comment_list)
+    def test_comment_detail_page(self):
+        "Hook method for deconstructing the test fixture after testing it."
+        print("\t\t", sys._getframe(0).f_code.co_name)
+        # 테스트 데이터의 코멘트 수를 사용하여 예상한 코멘트 수 설정
+        expected_comments_count = len(comment_list)
         
-    #     # 코멘트 데이터를 조회하여 반환값을 확인
-    #     ret = self.comment_read_service.get_comment_data_for_product_page(
-    #         product_id='53eb346c07d144a0a7ee3c1257b4ea83',
-    #         page=0,
-    #         size=3,
-    #     )
-    #     match ret:
-    #         case Ok((total_comments, comments)):
-    #             # 실제 코멘트 수와 예상한 코멘트 수를 비교
-    #             self.assertEqual(expected_comments_count, total_comments)
-    #             # 추가적인 검증 코드 생략
-    #         case Err:
-    #             assert False, "false"
+        # 코멘트 데이터를 조회하여 반환값을 확인
+        ret = self.comment_read_service.get_comment_data_for_product_page(
+            product_id='53eb346c07d144a0a7ee3c1257b4ea83',
+            page=0,
+            size=3,
+        )
+        match ret:
+            case Ok((total_comments, comments)):
+                # 실제 코멘트 수와 예상한 코멘트 수를 비교
+                self.assertEqual(expected_comments_count, total_comments)
+                # 추가적인 검증 코드 생략
+            case Err:
+                assert False, "false"
                 
-    # def test_comment_create_question(self):
-    #         "Hook method for deconstructing the test fixture after testing it."
-    #         print("\t\t", sys._getframe(0).f_code.co_name)
+    def test_comment_create_question(self):
+            "Hook method for deconstructing the test fixture after testing it."
+            print("\t\t", sys._getframe(0).f_code.co_name)
             
-    #         # 테스트 이전의 comment 테이블의 행 수 저장
-    #         comments_before = self.comment_read_service.get_comment_data_for_product_page(
-    #             product_list[0].get_id(),
-    #         )
+            # 테스트 이전의 comment 테이블의 행 수 저장
+            comments_before = self.comment_read_service.get_comment_data_for_product_page(
+                product_list[0].get_id(),
+            )
             
-    #         # 코멘트를 생성하고
-    #         ret = self.comment_create_service.create_question(
-    #             "질문질문",
-    #             product_list[0].get_id(),
-    #             self.key,
-    #         )
+            # 코멘트를 생성하고
+            ret = self.comment_create_service.create_question(
+                "질문질문",
+                product_list[0].get_id(),
+                self.key,
+            )
             
-    #         comments_after = self.comment_read_service.get_comment_data_for_product_page(
-    #             product_list[0].get_id(), 
-    #         )
+            comments_after = self.comment_read_service.get_comment_data_for_product_page(
+                product_list[0].get_id(), 
+            )
             
-    #         self.assertEqual(comments_before.unwrap()[0]+1, comments_after.unwrap()[0])
+            self.assertEqual(comments_before.unwrap()[0]+1, comments_after.unwrap()[0])
             
             
             
