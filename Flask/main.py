@@ -402,8 +402,9 @@ def bsignup():
 def adminUser():
     read_repo = MySqlGetMember(get_db_padding())
     edit_repo = MySqlEditMember(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
 
-    get_user_info = AdminService(read_repo, edit_repo)
+    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
 
     data = request.get_json()
     user_key = data.get("key")
@@ -440,8 +441,7 @@ def updateUserRole():
     get_user_info = AdminService(read_repo, edit_repo)
 
     data = request.get_json()
-    user_key = data.get("key")  # 세션키(즉, 관리자 세션키)
-    user_id = data.get("userKey")  # 사용자 key
+    user_id = data.get("key")  # 사용자 UUID
     new_role = data.get("userAuth")  # 변경할 권한
 
     result = get_user_info.change_role(new_role, user_id)
@@ -460,7 +460,7 @@ def updateUserRole():
 ## susujin code end
 
 
-@app.route("/api/order-histroy", methods=["POST"])
+@app.route("/api/order-history", methods=["POST"])
 def orderHistroy():
     get_order_Repo = MySqlGetOrder(get_db_padding())
     load_session_repo = MySqlLoadSession(get_db_padding())
@@ -483,9 +483,7 @@ def orderHistroy():
                 order_data = {
                     "productId": v.product_id,
                     "productName": v.product_name,
-                    "productImageUrl": url_for(
-                        "send_image", filename=v.product_img_path
-                    ),
+                    "productImageUrl": v.product_img_path,
                     "orderQuantity": v.buy_count,
                     "orderPrice": v.total_price,
                     "orderDate": v.order_date,
