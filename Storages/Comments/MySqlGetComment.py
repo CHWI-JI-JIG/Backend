@@ -59,19 +59,20 @@ FROM {comment_table_name} AS comment
 WHERE comment.product_id = %s
 LIMIT %s, %s;
 """
-                cursor.execute(query, (product_id, offset, size))
+                cursor.execute(query, (product_id.get_id(), offset, size))
                 result = cursor.fetchall()
 
                 comments = []
                 for row in result:
-                    id, product_id, writer_id, writer_account, answer, question = row
+                    id,writer_id,writer_account,question , answer, _= row
+
                     comment = Comment(
                         id=CommentIDBuilder().set_uuid(id).build(),
                         writer_id=writer_id,
                         writer_account=writer_account,
                         answer=answer,
                         question=question,
-                        product_id=product_id,
+                        product_id=product_id.get_id(),
                     )
                     comments.append(comment)
                 cursor.execute(f"SELECT COUNT(*) FROM {comment_table_name}")
