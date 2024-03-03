@@ -669,8 +669,8 @@ def qaLoad():
             for v in comments:
                 comment_data = {
                     "productId": v.product_id.get_id(),
-                    "qId" : v.id,
-                    "buyerKey" : v.writer_id.get_id(),
+                    "qId" : v.id.get_id(),
+                    "buyerKey" : v.writer_id,
                     "buyerId" : v.writer_account,
                     "question": v.question,
                     "answer": v.answer

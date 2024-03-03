@@ -54,7 +54,7 @@ class CreateCommentService:
                             return Err("Invalid Member Session")
                 case _:
                     return Err("plz login")
-        ic()
+
         return self.comment_repo.save_comment(
             Comment(
                 id = CommentIDBuilder().set_uuid().build(),
