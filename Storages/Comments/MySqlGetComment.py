@@ -64,21 +64,22 @@ LIMIT %s, %s;
 
                 comments = []
                 for row in result:
-                    id,writer_id,writer_account,question , answer, _= row
+                    id, writer_id, writer_account, question, answer, _ = row
 
                     comment = Comment(
                         id=CommentIDBuilder().set_uuid(id).build(),
-                        #writer_id=MemberIDBuilder().set_uuid(writer_id).build(),
-                        writer_id=writer_id,
+                        writer_id=MemberIDBuilder().set_uuid(writer_id).build(),
                         writer_account=writer_account,
                         answer=answer,
                         question=question,
                         product_id=product_id,
-                        
                     )
                     comments.append(comment)
-                #cursor.execute(f"SELECT COUNT(*) FROM {comment_table_name}")
-                cursor.execute(f"SELECT COUNT(*) FROM {comment_table_name} WHERE product_id = %s",(product_id.get_id(),))
+                # cursor.execute(f"SELECT COUNT(*) FROM {comment_table_name}")
+                cursor.execute(
+                    f"SELECT COUNT(*) FROM {comment_table_name} WHERE product_id = %s",
+                    (product_id.get_id(),),
+                )
                 total_count = cursor.fetchone()[0]
 
                 connection.commit()

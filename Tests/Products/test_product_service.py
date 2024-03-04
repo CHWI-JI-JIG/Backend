@@ -337,7 +337,7 @@ class test_product_service(unittest.TestCase):
 
         login = self.login_service
 
-        match login.login("vbvb", "12"):
+        match login.login("GreenGroveOrganics", "1234"):
             case Ok(auth):
                 key = auth.get_id()
             case _:
