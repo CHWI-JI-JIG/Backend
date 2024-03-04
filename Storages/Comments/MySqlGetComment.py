@@ -68,13 +68,14 @@ LIMIT %s, %s;
 
                     comment = Comment(
                         id=CommentIDBuilder().set_uuid(id).build(),
-                        writer_id=writer_id,
+                        writer_id=MemberIDBuilder().set_uuid(writer_id).build(),
                         writer_account=writer_account,
                         answer=answer,
                         question=question,
-                        product_id=product_id.get_id(),
+                        product_id=product_id,
                     )
                     comments.append(comment)
+                # cursor.execute(f"SELECT COUNT(*) FROM {comment_table_name}")
                 cursor.execute(
                     f"SELECT COUNT(*) FROM {comment_table_name} WHERE product_id = %s",
                     (product_id.get_id(),),

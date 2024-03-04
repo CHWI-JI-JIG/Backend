@@ -141,6 +141,26 @@ class test_comment(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
 
+        match self.comment_read_service.get_comment_data_for_product_page(
+            product_id=product_list[0].get_id(),
+            page=0,
+            size=10,
+        ):
+            case Ok((max, _)):
+                beforemax = max
+            case e:
+                assert False, f"{e}"
+
+        match self.comment_read_service.get_comment_data_for_product_page(
+            product_id=product_list[0].get_id(),
+            page=0,
+            size=10,
+        ):
+            case Ok((max, _)):
+                beforemax = max
+            case e:
+                assert False, f"{e}"
+
         # 1. 새로운 코멘트 생성
         ret_create = self.comment_create_service.create_question(
             "질문질문",
@@ -162,9 +182,13 @@ class test_comment(unittest.TestCase):
             page=0,
             size=10,
         )
-        self.assertTrue(is_ok(ret_read_updated), "업데이트된 코멘트 읽기에 실패")
-        _, comments_updated = ret_read_updated.unwrap()
-        target = comments_updated[0]
+        match ret_read_updated:
+            case Ok((max, comments_updated)):
+                ic(max)
+                assert max == beforemax + 1, "max Error"
+                target = comments_updated[0]
+            case e:
+                assert False, f"{e}"
         self.assertEqual(target.id, ret_create.unwrap())
         self.assertEqual(target.answer, "답변답변")
         self.assertEqual(target.question, "질문질문")
