@@ -56,7 +56,7 @@ class test_comment(unittest.TestCase):
 
         m_p.create_product()
         init_product()
-        
+
         login = AuthenticationMemberService(
             auth_member_repo=MySqlLoginAuthentication(get_db_padding()),
             session_repo=MySqlMakeSaveMemberSession(get_db_padding()),
@@ -108,61 +108,58 @@ class test_comment(unittest.TestCase):
         ic(self.comment_migrate.check_exist_comments())
         assert self.comment_migrate.check_exist_comments(), "Not Init Comment table"
 
-
     def tearDown(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t", sys._getframe(0).f_code.co_name)
-        #테스트 케이스마다 코멘트 테이블 삭제
+        # 테스트 케이스마다 코멘트 테이블 삭제
         if self.comment_migrate.check_exist_comments():
             self.comment_migrate.delete_comments()
 
-    def test_comment_detail_page(self):
+    def test_comment_create_question(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
-        # 테스트 데이터의 코멘트 수를 사용하여 예상한 코멘트 수 설정
-        expected_comments_count = len(comment_list)
-        
-        # 코멘트 데이터를 조회하여 반환값을 확인
-        ret = self.comment_read_service.get_comment_data_for_product_page(
-            product_id='53eb346c07d144a0a7ee3c1257b4ea83',
-            page=0,
-            size=3,
+
+        # 테스트 이전의 comment 테이블의 행 수 저장
+        comments_before = self.comment_read_service.get_comment_data_for_product_page(
+            product_list[0].get_id(),
         )
-        match ret:
-            case Ok((total_comments, comments)):
-                # 실제 코멘트 수와 예상한 코멘트 수를 비교
-                self.assertEqual(expected_comments_count, total_comments)
-                # 추가적인 검증 코드 생략
-            case Err:
-                assert False, "false"
-                
-    def test_comment_create_question(self):
-            "Hook method for deconstructing the test fixture after testing it."
-            print("\t\t", sys._getframe(0).f_code.co_name)
-            
-            # 테스트 이전의 comment 테이블의 행 수 저장
-            comments_before = self.comment_read_service.get_comment_data_for_product_page(
-                product_list[0].get_id(),
-            )
-            
-            # 코멘트를 생성하고
-            ret = self.comment_create_service.create_question(
-                "질문질문",
-                product_list[0].get_id(),
-                self.key,
-            )
-            
-            comments_after = self.comment_read_service.get_comment_data_for_product_page(
-                product_list[0].get_id(), 
-            )
-            
-            self.assertEqual(comments_before.unwrap()[0]+1, comments_after.unwrap()[0])
-            
-            
-            
+
+        # 코멘트를 생성하고
+        ret = self.comment_create_service.create_question(
+            "질문질문",
+            product_list[0].get_id(),
+            self.key,
+        )
+
+        comments_after = self.comment_read_service.get_comment_data_for_product_page(
+            product_list[0].get_id(),
+        )
+
+        self.assertEqual(comments_before.unwrap()[0] + 1, comments_after.unwrap()[0])
+
     def test_comment_update_answer(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
+
+        match self.comment_read_service.get_comment_data_for_product_page(
+            product_id=product_list[0].get_id(),
+            page=0,
+            size=10,
+        ):
+            case Ok((max, _)):
+                beforemax = max
+            case e:
+                assert False, f"{e}"
+
+        match self.comment_read_service.get_comment_data_for_product_page(
+            product_id=product_list[0].get_id(),
+            page=0,
+            size=10,
+        ):
+            case Ok((max, _)):
+                beforemax = max
+            case e:
+                assert False, f"{e}"
 
         # 1. 새로운 코멘트 생성
         ret_create = self.comment_create_service.create_question(
@@ -170,7 +167,7 @@ class test_comment(unittest.TestCase):
             product_list[0].get_id(),
             self.key,
         )
-        
+
         # 2. 코멘트에 답변을 추가
         ret_answer = self.comment_create_service.add_answer(
             answer="답변답변",
@@ -183,18 +180,18 @@ class test_comment(unittest.TestCase):
         ret_read_updated = self.comment_read_service.get_comment_data_for_product_page(
             product_id=product_list[0].get_id(),
             page=0,
-            size=10, 
+            size=10,
         )
-        self.assertTrue(is_ok(ret_read_updated), "업데이트된 코멘트 읽기에 실패")
-        _, comments_updated = ret_read_updated.unwrap()
-        target = comments_updated[0]
+        match ret_read_updated:
+            case Ok((max, comments_updated)):
+                ic(max)
+                assert max == beforemax + 1, "max Error"
+                target = comments_updated[0]
+            case e:
+                assert False, f"{e}"
         self.assertEqual(target.id, ret_create.unwrap())
         self.assertEqual(target.answer, "답변답변")
         self.assertEqual(target.question, "질문질문")
-
-
-
-
 
 
 def main():
