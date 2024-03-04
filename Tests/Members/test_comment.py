@@ -115,7 +115,6 @@ class test_comment(unittest.TestCase):
         if self.comment_migrate.check_exist_comments():
             self.comment_migrate.delete_comments()
 
-<<<<<<< HEAD
     
                 
     def test_comment_create_question(self):
@@ -142,30 +141,6 @@ class test_comment(unittest.TestCase):
             
             
             
-=======
-    def test_comment_create_question(self):
-        "Hook method for deconstructing the test fixture after testing it."
-        print("\t\t", sys._getframe(0).f_code.co_name)
-
-        # 테스트 이전의 comment 테이블의 행 수 저장
-        comments_before = self.comment_read_service.get_comment_data_for_product_page(
-            product_list[0].get_id(),
-        )
-
-        # 코멘트를 생성하고
-        ret = self.comment_create_service.create_question(
-            "질문질문",
-            product_list[0].get_id(),
-            self.key,
-        )
-
-        comments_after = self.comment_read_service.get_comment_data_for_product_page(
-            product_list[0].get_id(),
-        )
-
-        self.assertEqual(comments_before.unwrap()[0] + 1, comments_after.unwrap()[0])
-
->>>>>>> 2ac52a384b71bd406614d1489e4f18152314e34f
     def test_comment_update_answer(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
