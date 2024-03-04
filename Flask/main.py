@@ -595,27 +595,32 @@ def sendPayInfo():
     card_num = data.get("cardNum")
     total_price = data.get("productPrice")
     payment_success = data.get("paymentVerification") 
-    
+
+    ic()
+
     result = PaymentService().approval_and_logging(order_transition_session,total_price,card_num)
-    
+    ic()
     match result:
         case Ok(True):
+            ic()
             pass
         case Err(e):
              return jsonify({"success" : False, "msg" : e})
 
     result = send_pay_info.payment_and_approval_order(
         order_transition_session=order_transition_session,
-        payment_success=payment_success,
+        payment_success=True,
     )
-
+    ic()
     ic(result)
 
     match result:
         case Ok():
+            ic()
             return jsonify({"success": True})
 
         case Err(e):
+            ic()
             return jsonify({'success': False})
 
  
