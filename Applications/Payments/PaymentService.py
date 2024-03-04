@@ -39,7 +39,7 @@ class Bank:
 
 class PaymentService:
     cards = [
-        Card(account="1111-1111-1111-1111", balance=500000),
+        Card(account="1111-1111-1111-1111", balance=100000),
         Card(account="2222-2222-2222-2222", balance=500000),
     ]
     banks = [
