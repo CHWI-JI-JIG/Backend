@@ -707,9 +707,6 @@ def qaQuestion():
         case Err(e):
             return jsonify({"success": False})
 
-
-
-
 # @app.route('/api/check-owner', methods=['POST'])
 # def checkOwner():
 #     save_comment = MySqlSaveComment(get_db_padding())
