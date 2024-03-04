@@ -475,9 +475,12 @@ def orderHistroy():
     page -= 1
     size = 3
 
+    ic(user_id, page, size)
+
     result = get_order_info.get_order_data_for_buyer_page(user_id, page, size)
     response_data = {"page": page + 1, "size": size, "data": []}
 
+    ic(result)
     match result:
         case Ok((max, product)):
             response_data["totalPage"] = math.ceil(max / size)
