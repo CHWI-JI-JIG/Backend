@@ -608,7 +608,7 @@ def sendPayInfo():
 
     result = send_pay_info.payment_and_approval_order(
         order_transition_session=order_transition_session,
-        payment_success=payment_success,
+        payment_success=True,
     )
 
     ic(result)
