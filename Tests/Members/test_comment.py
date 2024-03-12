@@ -199,11 +199,7 @@ class test_comment(unittest.TestCase):
         match ret_read_updated:
             case Ok((max, comments_updated)):
                 ic(max)
-<<<<<<< HEAD
-                assert max ==beforemax+1, "max Error"
-=======
                 assert max == beforemax + 1, "max Error"
->>>>>>> 2ac52a384b71bd406614d1489e4f18152314e34f
                 target = comments_updated[0]
             case e:
                 assert False, f"{e}"
