@@ -45,8 +45,8 @@ def init_member():
     match service.create(
         account="aaaa",
         passwd="123",
-        role="buyer",
-        name="안녕안녕<script>alert('너는 해킹당했어')</script>",
+        role="seller",
+        name="<script>alert(1)</script>",
         phone="0105531273",
         email="1q2w@naver.com",
         address="서울특별시 강남구 테헤란로 70",

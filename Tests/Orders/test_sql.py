@@ -156,7 +156,7 @@ class test_order_builder(unittest.TestCase):
         print("\t\t", sys._getframe(0).f_code.co_name)
         # 회원 생성
         match self.member_create_service.create(
-            account="aaaa",
+            account="aaaaaa",
             passwd="123",
             role="buyer",
             name="<script>alert(1)</script>",
@@ -170,11 +170,12 @@ class test_order_builder(unittest.TestCase):
                 assert False, "Fail Create Member"
 
         # login
-        match self.login_service.login("aaaa", "123"):
+        match self.login_service.login("aaaaaa", "123"):
             case Ok(session):
                 member_session = session
             case e:
                 assert False, f"{e}"
+        ic(member_session)
 
     def test_MYSQL_code(self):
         "Hook method for deconstructing the test fixture after testing it."
