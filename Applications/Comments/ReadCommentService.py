@@ -40,7 +40,6 @@ class ReadCommentService:
         page=0,
         size=10,
     ) -> Result[Tuple[int, List[Comment]], str]:
-        
         """_summary_
 
         Args:
@@ -52,12 +51,14 @@ class ReadCommentService:
                 Ok( int, list ): int=> count of list max, list=> result
                 Err(str): reason of Fail
         """
-        
+
         # ic()
         # ic("상품 관련된거 확인안했음")
-        
+        ic()
+        ic(product_id)
+
         return self.comment_repo.get_comments_by_product_id(
-            product_id = ProductIDBuilder().set_uuid(product_id).build(),
+            product_id=ProductIDBuilder().set_uuid(product_id).build(),
             page=page,
             size=size,
         )

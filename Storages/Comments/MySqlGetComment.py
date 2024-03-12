@@ -73,7 +73,7 @@ LIMIT %s, %s;
                         writer_account=writer_account,
                         answer=answer,
                         question=question,
-                        product_id=ProductIDBuilder().set_uuid(product_id).build(),
+                        product_id=product_id,
                     )
                     comments.append(comment)
                 cursor.execute(
