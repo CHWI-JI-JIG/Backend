@@ -46,6 +46,7 @@ class test_order_builder(unittest.TestCase):
         cls.driver = "test"
         print(sys._getframe(0).f_code.co_name, f"(test_order_builder)")
         set_db_padding("test_order_service_")
+        ic.disable()
 
         mm = MySqlCreateUser(get_db_padding())
         cls.user_migrate = mm
@@ -142,6 +143,7 @@ class test_order_builder(unittest.TestCase):
     def setUp(self):
         "Hook method for setting up the test fixture before exercising it."
         print("\t", sys._getframe(0).f_code.co_name)
+        ic.disable()
         # self.order_migrate.create_order()
         # init_order()
 
@@ -151,7 +153,7 @@ class test_order_builder(unittest.TestCase):
         # if self.order_migrate.check_exist_order():
         #     self.order_migrate.delete_order()
 
-    def test_sql_injection_drop_user_table(self):
+    def test_sql_injection(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         # 회원 생성
@@ -169,8 +171,69 @@ class test_order_builder(unittest.TestCase):
             case _:
                 assert False, "Fail Create Member"
 
+        auth_member_repo = MySqlLoginAuthentication(get_db_padding())
+
+        match auth_member_repo.identify_and_authenticate(
+            "' or seq='9", hashing_passwd("123")
+        ):
+            case Ok(auto):
+                ic(auto)
+            case e:
+                ic(e)
+
+    def test_sql_injection2(self):
+        "Hook method for deconstructing the test fixture after testing it."
+        print("\t\t", sys._getframe(0).f_code.co_name)
+        ic.enable()
+        ic()
+        # 회원 생성
+        match self.member_create_service.create(
+            account="aaaaa",
+            passwd="123",
+            role="buyer",
+            name="lee tak', '2024-03-12 13:20:54 ', 0);\nINSERT INTO test_order_service_user(\nid,account,pay_account,passwd,email,role,company_registration_number,phone,address,name,last_access,fail_count\n) VALUES (\n'930fc8c25535499ab7d3517d66b5891b', '111111', NULL,'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', '1111@daum.com', 'admin',NULL, '01023459087', 'guri', 'lee Tak', '2024-03-12 13:20:54 ', 0\n);#', '2024-03-12 13:44:05 ', 0);",
+            phone="01023459087",
+            email="arst@daum.com",
+            address="guri",
+        ):
+            case Ok(member_id):
+                ic()
+                mid = member_id
+            case e:
+                ic(e)
+
+        auth_member_repo = MySqlLoginAuthentication(get_db_padding())
+        ic()
+
+        match auth_member_repo.identify_and_authenticate(
+            "111111", hashing_passwd("123")
+        ):
+            case Ok(auto):
+                ic(auto)
+            case e:
+                ic(e)
+        ic.disable()
+
+    def test_xxs(self):
+        "Hook method for deconstructing the test fixture after testing it."
+        print("\t\t", sys._getframe(0).f_code.co_name)
+        # 회원 생성
+        match self.member_create_service.create(
+            account="aaaaa",
+            passwd="123",
+            role="buyer",
+            name="<script>alert(1)</script>",
+            phone="01023459087",
+            email="arst@daum.com",
+            address="guri",
+        ):
+            case Ok(member_id):
+                mid = member_id
+            case _:
+                assert False, "Fail Create Member"
+
         # login
-        match self.login_service.login("aaaaaa", "123"):
+        match self.login_service.login("aaaaa", "123"):
             case Ok(session):
                 member_session = session
             case e:
