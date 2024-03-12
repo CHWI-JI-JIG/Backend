@@ -475,9 +475,12 @@ def orderHistroy():
     page -= 1
     size = 3
 
+    ic(user_id, page, size)
+
     result = get_order_info.get_order_data_for_buyer_page(user_id, page, size)
     response_data = {"page": page + 1, "size": size, "data": []}
 
+    ic(result)
     match result:
         case Ok((max, product)):
             response_data["totalPage"] = math.ceil(max / size)
@@ -608,7 +611,7 @@ def sendPayInfo():
 
     result = send_pay_info.payment_and_approval_order(
         order_transition_session=order_transition_session,
-        payment_success=payment_success,
+        payment_success=True,
     )
 
     ic(result)
@@ -671,7 +674,7 @@ def qaLoad():
             for v in comments:
                 comment_data = {
                     "productId": v.product_id.get_id(),
-                    "qId": v.id,
+                    "qId": v.id.get_id(),
                     "buyerKey": v.writer_id.get_id(),
                     "buyerId": v.writer_account,
                     "question": v.question,
