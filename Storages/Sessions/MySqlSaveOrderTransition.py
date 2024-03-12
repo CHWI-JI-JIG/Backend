@@ -30,6 +30,7 @@ class MySqlSaveOrderTransition(ISaveableOrderTransition):
             password=sql_config["password"],
             db=sql_config["database"],
             charset=sql_config["charset"],
+            client_flag=pymysql.constants.CLIENT.MULTI_STATEMENTS,
         )
 
     def get_padding_name(self, name: str) -> str:
