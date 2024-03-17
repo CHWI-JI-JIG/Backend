@@ -120,7 +120,8 @@ class test_product_service(unittest.TestCase):
         match service.publish_temp_product_id(key):
             case Ok(session):
                 key_session = session
-            case _:
+            case e:
+                print(e)
                 assert False, "False"
 
         match service.check_upload_image_path("img01.png", key_session.get_id()):
@@ -128,6 +129,7 @@ class test_product_service(unittest.TestCase):
                 ...
             case e:
                 ic(e)
+                print(e)
                 assert False, "False"
 
         match service.create(key_session.get_id()):
@@ -162,7 +164,8 @@ class test_product_service(unittest.TestCase):
                 self.assertEqual(product.description, "쿠쿠하세요. 쿠쿠")
                 self.assertEqual(product.price, 12341234)
                 self.assertEqual(product.seller_id.get_id(), user_id.get_id())
-            case _:
+            case e:
+                print(e)
                 assert False, "False"
 
     def test_product_main_page(self):
@@ -300,7 +303,8 @@ class test_product_service(unittest.TestCase):
         match login.login("1q2w", "123"):
             case Ok(auth):
                 key = auth.get_id()
-            case _:
+            case e:
+                print(e)
                 assert False, "fail"
 
         page = 0
@@ -345,16 +349,16 @@ class test_product_service(unittest.TestCase):
 
         page = 0
         size = 10
-        ret = self.product_read_service.get_product_data_for_seller_page(
+        match self.product_read_service.get_product_data_for_seller_page(
             user_key=key,
             page=page,
             size=size,
-        )
-        match ret:
+        ):
             case Ok((max, products)):
                 for v, a in zip(list_o, products):
                     self.assertNotEqual(v, a)
-            case _:
+            case e:
+                print(e)
                 assert False, "False"
 
 

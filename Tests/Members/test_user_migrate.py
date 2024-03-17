@@ -63,7 +63,7 @@ class test_user_migrate(unittest.TestCase):
         self.assertTrue(self.user_migrate.check_exist_user())
 
         ######## MySqlSaveMember.py 테스트코드 자리  #################
-        id = MemberIDBuilder().set_uuid().set_seqence(1).build()
+        id = MemberIDBuilder().set_uuid().unwrap().set_seqence(1).build()
 
         member = Member(id=id, account="jihee", passwd="jh1234@", role=RoleType.BUYER)
         privacy = Privacy(
