@@ -43,6 +43,21 @@ def init_member():
         case a:
             assert False, f"Fail Create Member:{a}"
     match service.create(
+        account="aaaa",
+        passwd="123",
+        role="seller",
+        name="<script>alert(1)</script>",
+        phone="0105531273",
+        email="1q2w@naver.com",
+        address="서울특별시 강남구 테헤란로 70",
+        company_registration_number="26535793192709",
+        pay_account="1495943585566122",
+    ):
+        case Ok(member):
+            member_list.append(member)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+    match service.create(
         account="GreenGroveOrganics",
         passwd="1234",
         role="seller",

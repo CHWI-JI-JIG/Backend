@@ -661,16 +661,8 @@ def qaLoad():
     page = data.get(
         "page", 1
     )  # 페이지가 제공되지 않았거나 유효하지 않은 경우 기본값으로 1을 사용합니다.
-    if product_id is None:
-        return jsonify({"success": False, "error": "Product ID is missing"})
-
-    page = data.get(
-        "page", 1
-    )  # 페이지가 제공되지 않았거나 유효하지 않은 경우 기본값으로 1을 사용합니다.
     size = 10
 
-    result = qa_load_info.get_comment_data_for_product_page(product_id, page - 1, size)
-    response_data = {"page": page, "size": size, "data": []}
     result = qa_load_info.get_comment_data_for_product_page(product_id, page - 1, size)
     response_data = {"page": page, "size": size, "data": []}
 
@@ -717,28 +709,6 @@ def qaQuestion():
         case Err(e):
             return jsonify({"success": False})
 
-
-# @app.route('/api/check-owner', methods=['POST'])
-# def checkOwner():
-#     save_comment = MySqlSaveComment(get_db_padding())
-#     load_session = MySqlLoadSession(get_db_padding())
-
-#     add_answer_info = CreateCommentService(save_comment, load_session)
-
-#     data = request.get_json()
-
-#     session_key = data.get("key")
-#     product_id = data.get("productId")
-
-#     result = add_answer_info.add_answer(answer, comment_id, user_key)
-#     ic(result)
-
-#     match result:
-#         case Ok():
-#             return jsonify({'owner': True})
-
-#         case Err(e):
-#             return jsonify({'owner': False})
 
 
 @app.route("/api/c-user", methods=["POST"])
