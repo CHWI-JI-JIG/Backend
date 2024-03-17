@@ -114,22 +114,28 @@ class MemberSessionBuilder(ISesseionBuilder):
 
         return self
 
-    def set_member_id(self, member_id: Optional[str] = None) -> Self:
+    def set_member_id(self, member_id: Optional[str] = None) -> Result[Self,str]:
         assert self.mid is None, "member id is already set."
 
         if member_id is None:
-            id = MemberIDBuilder().set_uuid().build()
+            id = MemberIDBuilder().set_uuid().map(lambda b: b.build())
         elif isinstance(member_id, str):
-            id = MemberIDBuilder().set_uuid(member_id).build()
+            id = MemberIDBuilder().set_uuid(member_id).map(lambda b: b.build())
         else:
             assert False, "Type of member_id is str."
+        
+        match id:
+            case Ok(id):
+                id=id
+            case e:
+                return e
 
         assert isinstance(
             id, MemberID
         ), "ValueType Error: Initialize the id via MemberIDBuilder."
 
         self.mid = id
-        return self
+        return Ok(self)
 
     def build(self) -> MemberSession:
         assert isinstance(self.mid, MemberID), "You didn't set the member_id."

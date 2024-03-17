@@ -192,20 +192,25 @@ class ProductSessionBuilder(ISesseionBuilder):
 
         return self
 
-    def set_seller_id(self, seller_id: str) -> Self:
+    def set_seller_id(self, seller_id: str) -> Result[Self, str]:
         assert self.seller_id is None, "seller id is already set."
 
         if isinstance(seller_id, str):
-            id = MemberIDBuilder().set_uuid(seller_id).build()
+            match MemberIDBuilder().set_uuid(seller_id).map(lambda b: b.build()):
+                case Ok(ret):
+                    id = ret
+                case e:
+                    return e
         else:
             assert False, "Type of seller_id is str."
+            return Err("Type of seller_id is str.")
 
         assert isinstance(
             id, MemberID
         ), "ValueType Error: Initialize the id via MemberIDBuilder."
 
         self.seller_id = id
-        return self
+        return Ok(self)
 
     def set_img_path(self, img_path: str) -> Result[Self, str]:
         from Commons.format import IMG_PATH
@@ -225,7 +230,7 @@ class ProductSessionBuilder(ISesseionBuilder):
         self.img_path = img_path
         return Ok(self)
 
-    def build(self) -> ProductTempSession:
+    def build(self) -> Result[ProductTempSession, str]:
         assert isinstance(self.seller_id, MemberID), "Not Set seller_id"
 
         match (self.name, self.price, self.description, self.seller_id):
@@ -237,18 +242,22 @@ class ProductSessionBuilder(ISesseionBuilder):
                 and isinstance(description, str)
                 and isinstance(seller_id, MemberID)
             ):
-                id = ProductIDBuilder().set_uuid().build()
-                product = Product(
-                    id=id,
-                    seller_id=seller_id,
-                    name=name,
-                    description=description,
-                    img_path="Dump",
-                    register_day=datetime.now(),
-                    price=price,
-                )
+                match ProductIDBuilder().set_uuid().map(lambda b: b.build()):
+                    case Ok(id):
+                        product = Product(
+                            id=id,
+                            seller_id=seller_id,
+                            name=name,
+                            description=description,
+                            img_path="Dump",
+                            register_day=datetime.now(),
+                            price=price,
+                        )
+                    case e:
+                        return e
             case _:
                 assert False, "Not Set name, price, description, seller_id."
+                return Err("Not Set name, price, description, seller_id.")
 
         match self.img_path:
             case None:
@@ -257,10 +266,11 @@ class ProductSessionBuilder(ISesseionBuilder):
                 img_path = img_path
             case _:
                 assert False, "img path don't set."
+                return Err("img path don't set.")
 
-        return ProductTempSession(
+        return Ok(ProductTempSession(
             key=self.key,
             seller_id=self.seller_id,
             product=product,
             img_path=img_path,
-        )
+        ))
