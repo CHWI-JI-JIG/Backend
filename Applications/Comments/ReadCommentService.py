@@ -57,8 +57,12 @@ class ReadCommentService:
         ic()
         ic(product_id)
 
-        return self.comment_repo.get_comments_by_product_id(
-            product_id=ProductIDBuilder().set_uuid(product_id).build(),
-            page=page,
-            size=size,
-        )
+        match ProductIDBuilder().set_uuid(product_id).map(lambda b:b.build()):
+            case Ok(id):
+                return self.comment_repo.get_comments_by_product_id(
+                    product_id=id,
+                    page=page,
+                    size=size,
+                )
+            case e:
+                return e

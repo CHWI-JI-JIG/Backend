@@ -54,18 +54,26 @@ class CreateCommentService:
                             return Err("Invalid Member Session")
                 case _:
                     return Err("plz login")
-
-        return self.comment_repo.save_comment(
-            Comment(
-                id = CommentIDBuilder().set_uuid().build(),
-                product_id= ProductIDBuilder().set_uuid(product_id).build(),
-                writer_id=user_session.member_id,
-                writer_account = "",
-                answer= None,
-                question=question,    
-            )
-        )
-
+        match (
+            CommentIDBuilder().set_uuid().map(lambda b:b.build()),
+            ProductIDBuilder().set_uuid(product_id).map(lambda b:b.build()),
+        ):
+            case Ok(cid), Ok(pid):
+                return self.comment_repo.save_comment(
+                    Comment(
+                        id = cid,
+                        product_id= pid,
+                        writer_id=user_session.member_id,
+                        writer_account = "",
+                        answer= None,
+                        question=question,    
+                    )
+                )
+            case c,p:
+                ic()
+                ic(c,p)
+                assert False, f"c:{c} / p:{p}"
+                return Err("Not Convert ID")
     
     def add_answer(
         self,
@@ -83,9 +91,15 @@ class CreateCommentService:
                             return Err("Invalid Member Session")
                 case _:
                     return Err("plz login")
-        return self.comment_repo.update_comment(
-            Comment_id=CommentIDBuilder().set_uuid(comment_id).build(),
-            answer= answer,
-        )
     
-    
+        match CommentIDBuilder().set_uuid(comment_id).map(lambda b:b.build()) :
+            case Ok(cid):
+                return self.comment_repo.update_comment(
+                    Comment_id=cid,
+                    answer= answer,
+                )
+            case c,p:
+                ic()
+                ic(c,p)
+                assert False, f"c:{c} / p:{p}"
+                return Err("Not Convert ID")

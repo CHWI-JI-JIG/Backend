@@ -42,11 +42,12 @@ class ReadProductService:
         product_id: str,
     ) -> Optional[Product]:
         assert check_hex_string(product_id), "The product_id is not in hex format."
-        id = ProductIDBuilder().set_uuid(product_id).build()
-
-        assert isinstance(id, ProductID), "Type of product_id is ProductID."
-
-        return self.product_repo.get_product_by_product_id(product_id=id)
+        match ProductIDBuilder().set_uuid(product_id).map(lambda b: b.build()):
+            case Ok(id):
+                assert isinstance(id, ProductID), "Type of product_id is ProductID."
+                return self.product_repo.get_product_by_product_id(product_id=id)
+            case e:
+                return e
 
     def get_product_data_for_main_page(
         self,
