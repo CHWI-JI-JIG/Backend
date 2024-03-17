@@ -123,7 +123,7 @@ class test_product_service(unittest.TestCase):
             case _:
                 assert False, "False"
 
-        match service.check_upload_image_path("img.jpg", key_session.get_id()):
+        match service.check_upload_image_path("img01.png", key_session.get_id()):
             case Ok(_):
                 ...
             case e:

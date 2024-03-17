@@ -37,14 +37,14 @@ class test_product_builder(unittest.TestCase):
         product_id = ProductIDBuilder().set_uuid(id).build()
         new_session = (
             ProductSessionBuilder()
-            .set_img_path("img.jpg")
+            .set_img_path("img01.png")
             .unwrap()
             .set_key()
             .set_seller_id(id)
             .build()
         )
         self.assertEqual(
-            '{"check_product": false, "check_img": true, "seller_id": "d697b39f733a426f96a13fc40c8bf061", "img_path": "img.jpg"}',
+            '{"check_product": false, "check_img": true, "seller_id": "d697b39f733a426f96a13fc40c8bf061", "img_path": "img01.png"}',
             new_session.serialize_value(),
         )
 
@@ -98,13 +98,13 @@ class test_product_builder(unittest.TestCase):
             .set_seller_id("82090bfba6d04a84a669c2a97c0ef283")
             .set_name("오븐")
             .set_price(9513)
-            .set_img_path("img.jpg")
+            .set_img_path("img01.png")
             .unwrap()
             .set_key()
             .build()
         )
         self.assertEqual(
-            r'{"check_product": true, "check_img": true, "seller_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "오븐", "price": 9513, "description": "이 오븐은 효율적이고 안전한 방식으로 음식을 구워줍니다.", "img_path": "img.jpg"}',
+            r'{"check_product": true, "check_img": true, "seller_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "오븐", "price": 9513, "description": "이 오븐은 효율적이고 안전한 방식으로 음식을 구워줍니다.", "img_path": "img01.png"}',
             new_session.serialize_value(),
         )
 
@@ -151,13 +151,13 @@ class test_product_builder(unittest.TestCase):
             .set_deserialize_key(read_session.get_id())
             .set_deserialize_value(read_session.serialize_value())
             .unwrap()
-            .set_img_path("img.jpg")
+            .set_img_path("img01.png")
             .unwrap()
             .build()
         )
 
         self.assertEqual(
-            '{"check_product": true, "check_img": true, "seller_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "오븐", "price": 9513, "description": "이 오븐은 효율적이고 안전한 방식으로 음식을 구워줍니다.", "img_path": "img.jpg"}',
+            '{"check_product": true, "check_img": true, "seller_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "오븐", "price": 9513, "description": "이 오븐은 효율적이고 안전한 방식으로 음식을 구워줍니다.", "img_path": "img01.png"}',
             read_read_session.serialize_value(),
         )
 
