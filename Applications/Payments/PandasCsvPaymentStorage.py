@@ -1,5 +1,5 @@
 import __init__
-from abc import ABCMeta, abstractmethod
+from dataclasses import dataclass
 from typing import Optional, Tuple, List
 from result import Result, Ok, Err
 from uuid import UUID
@@ -14,6 +14,10 @@ import pymysql
 from Applications.Payments import PayData
 from Applications.Payments import IPaymentRepo
 
+@dataclass(frozen=True)
+class User:
+    id:str
+    name:str
 
 class PandasCsvPaymentStorage(IPaymentRepo):
     dict_header = [
@@ -57,6 +61,8 @@ class PandasCsvPaymentStorage(IPaymentRepo):
 
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
+
+    def load_id
 
     def save_pay_data(self, data: PayData) -> Result[PayData, str]:
         # 기존 데이터 로드
