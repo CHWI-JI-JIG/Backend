@@ -132,11 +132,6 @@ def migrate(clear_db_init=False):
     assert s.check_exist_session(), "Dont't exsist Session Table."
 
 
-# def set_storage(storage_type: str):
-#     from Infrastructures.IOC import select_strage
-
-
-#     select_strage(storage_type)
 def flask(debug=True, host="127.0.0.1", port=5000):
     from Flask.main import app
 
@@ -149,12 +144,12 @@ def main(opt):
 
     global db_name
     debug = not opt.not_debug
+    set_db_padding(opt.db_attach)
 
     if debug:
         ic.enable()
     else:
         ic.disable()
-        set_db_padding(opt.db_attach)
 
     print(f"Run {opt.run}")
     # set_storage(opt.storage_type)

@@ -223,12 +223,16 @@ class OrderTransitionBuilder(ISesseionBuilder):
         self.total_price = total_price
         return self
 
-    def set_buyer_id(self, buyer_id: str) -> Self:
+    def set_buyer_id(self, buyer_id: str) -> Result[Self, str]:
         assert self.buyer_id is None, "buyer id is already set."
         assert isinstance(buyer_id, str), "Type of buyer_id is str."
         assert check_hex_string(buyer_id), "The buyer is not in hex format."
 
-        id = MemberIDBuilder().set_uuid(buyer_id).build()
+        match MemberIDBuilder().set_uuid(buyer_id).map(lambda b: b.build()):
+            case Ok(id):
+                id = id
+            case e:
+                return e
 
         assert isinstance(
             id, MemberID
@@ -237,12 +241,16 @@ class OrderTransitionBuilder(ISesseionBuilder):
         self.buyer_id = id
         return self
 
-    def set_product_id(self, product_id: str) -> Self:
+    def set_product_id(self, product_id: str) -> Result[Self, str]:
         assert self.product_id is None, "product id is already set."
         assert isinstance(product_id, str), "Type of product_id is str."
         assert check_hex_string(product_id), "The product is not in hex format."
 
-        id = ProductIDBuilder().set_uuid(product_id).build()
+        match ProductIDBuilder().set_uuid(product_id).map(lambda b: b.build()):
+            case Ok(id):
+                id = id
+            case e:
+                return e
 
         assert isinstance(
             id, ProductID
@@ -251,7 +259,7 @@ class OrderTransitionBuilder(ISesseionBuilder):
         self.product_id = id
         return self
 
-    def build(self) -> OrderTransitionSession:
+    def build(self) -> Result[OrderTransitionSession, str]:
         key = "key"
         assert isinstance(self.key, UUID), f"Not Set {key}."
         key = "buyer_id"
@@ -269,22 +277,24 @@ class OrderTransitionBuilder(ISesseionBuilder):
         key = "total_price"
         assert isinstance(self.total_price, int), f"Not Set {key}."
 
-        oid = OrderIDBuilder().set_uuid().build()
-
-        return OrderTransitionSession(
-            key=self.key,
-            order=Order(
-                id=oid,
-                product_id=self.product_id,
-                buyer_id=self.buyer_id,
-                recipient_name=self.recipient_name,
-                recipient_phone=self.recipient_phone,
-                recipient_address=self.recipient_address,
-                product_name="dump",
-                product_img_path="dump",
-                buy_count=self.buy_count,
-                total_price=self.total_price,
-                order_date=datetime.now(),
-            ),
-            is_success=self.is_success,
-        )
+        match OrderIDBuilder().set_uuid().map(lambda b: b.build()):
+            case Ok(oid):
+                return OrderTransitionSession(
+                    key=self.key,
+                    order=Order(
+                        id=oid,
+                        product_id=self.product_id,
+                        buyer_id=self.buyer_id,
+                        recipient_name=self.recipient_name,
+                        recipient_phone=self.recipient_phone,
+                        recipient_address=self.recipient_address,
+                        product_name="dump",
+                        product_img_path="dump",
+                        buy_count=self.buy_count,
+                        total_price=self.total_price,
+                        order_date=datetime.now(),
+                    ),
+                    is_success=self.is_success,
+                )
+            case e:
+                return e

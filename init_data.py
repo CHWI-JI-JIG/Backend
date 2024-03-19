@@ -226,7 +226,7 @@ def init_comment():
     comment_list.clear()
     create = MySqlSaveComment(get_db_padding())
 
-    id = CommentIDBuilder().set_uuid().set_seqence(1).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(1).build()
 
     match create.save_comment(
         Comment(
@@ -243,7 +243,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(2).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(2).build()
 
     match create.save_comment(
         Comment(
@@ -260,7 +260,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(3).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(3).build()
 
     match create.save_comment(
         Comment(
@@ -277,7 +277,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(4).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(4).build()
 
     match create.save_comment(
         Comment(
@@ -294,7 +294,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(5).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(5).build()
 
     match create.save_comment(
         Comment(
@@ -311,7 +311,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(6).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(6).build()
 
     match create.save_comment(
         Comment(
@@ -328,7 +328,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(7).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(7).build()
 
     match create.save_comment(
         Comment(
@@ -345,7 +345,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(8).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(8).build()
 
     match create.save_comment(
         Comment(
@@ -362,7 +362,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(9).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(9).build()
 
     match create.save_comment(
         Comment(
@@ -379,7 +379,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(10).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(10).build()
 
     match create.save_comment(
         Comment(
@@ -396,7 +396,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(11).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(11).build()
 
     match create.save_comment(
         Comment(
@@ -413,7 +413,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(12).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(12).build()
 
     match create.save_comment(
         Comment(
@@ -430,7 +430,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(13).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(13).build()
 
     match create.save_comment(
         Comment(
@@ -447,7 +447,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(14).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(14).build()
 
     match create.save_comment(
         Comment(
@@ -464,7 +464,7 @@ def init_comment():
         case a:
             assert False, f"Fail Create Comment:{a}"
 
-    id = CommentIDBuilder().set_uuid().set_seqence(15).build()
+    id = CommentIDBuilder().set_uuid().unwrap().set_seqence(15).build()
 
     match create.save_comment(
         Comment(
@@ -491,7 +491,7 @@ def init_order():
     order_list.clear()
     create = MySqlSaveOrder(get_db_padding())
 
-    id = OrderIDBuilder().set_uuid().set_seqence(1).build()
+    id = OrderIDBuilder().set_uuid().unwrap().set_seqence(1).build()
     match create.save_order(
         Order(
             id=id,
@@ -512,7 +512,7 @@ def init_order():
         case a:
             assert False, f"Fail Create Member:{a}"
 
-    id = OrderIDBuilder().set_uuid().set_seqence(2).build()
+    id = OrderIDBuilder().set_uuid().unwrap().set_seqence(2).build()
     match create.save_order(
         Order(
             id=id,
@@ -533,7 +533,7 @@ def init_order():
         case a:
             assert False, f"Fail Create Member:{a}"
 
-    id = OrderIDBuilder().set_uuid().set_seqence(3).build()
+    id = OrderIDBuilder().set_uuid().unwrap().set_seqence(3).build()
     match create.save_order(
         Order(
             id=id,
@@ -554,7 +554,7 @@ def init_order():
         case a:
             assert False, f"Fail Create Member:{a}"
 
-    id = OrderIDBuilder().set_uuid().set_seqence(4).build()
+    id = OrderIDBuilder().set_uuid().unwrap().set_seqence(4).build()
     match create.save_order(
         Order(
             id=id,
@@ -575,7 +575,7 @@ def init_order():
         case a:
             assert False, f"Fail Create Member:{a}"
 
-    id = OrderIDBuilder().set_uuid().set_seqence(5).build()
+    id = OrderIDBuilder().set_uuid().unwrap().set_seqence(5).build()
     match create.save_order(
         Order(
             id=id,
@@ -596,7 +596,7 @@ def init_order():
         case a:
             assert False, f"Fail Create Member:{a}"
 
-    id = OrderIDBuilder().set_uuid().set_seqence(6).build()
+    id = OrderIDBuilder().set_uuid().unwrap().set_seqence(6).build()
     match create.save_order(
         Order(
             id=id,
@@ -617,7 +617,7 @@ def init_order():
         case a:
             assert False, f"Fail Create Member:{a}"
 
-    id = OrderIDBuilder().set_uuid().set_seqence(7).build()
+    id = OrderIDBuilder().set_uuid().unwrap().set_seqence(7).build()
     match create.save_order(
         Order(
             id=id,
@@ -638,7 +638,7 @@ def init_order():
         case a:
             assert False, f"Fail Create Member:{a}"
 
-    id = OrderIDBuilder().set_uuid().set_seqence(8).build()
+    id = OrderIDBuilder().set_uuid().unwrap().set_seqence(8).build()
     match create.save_order(
         Order(
             id=id,
@@ -659,7 +659,7 @@ def init_order():
         case a:
             assert False, f"Fail Create Member:{a}"
 
-    id = OrderIDBuilder().set_uuid().set_seqence(9).build()
+    id = OrderIDBuilder().set_uuid().unwrap().set_seqence(9).build()
     match create.save_order(
         Order(
             id=id,
@@ -680,7 +680,7 @@ def init_order():
         case a:
             assert False, f"Fail Create Member:{a}"
 
-    id = OrderIDBuilder().set_uuid().set_seqence(10).build()
+    id = OrderIDBuilder().set_uuid().unwrap().set_seqence(10).build()
     match create.save_order(
         Order(
             id=id,
@@ -701,7 +701,7 @@ def init_order():
         case a:
             assert False, f"Fail Create Member:{a}"
 
-    id = OrderIDBuilder().set_uuid().set_seqence(11).build()
+    id = OrderIDBuilder().set_uuid().unwrap().set_seqence(11).build()
     match create.save_order(
         Order(
             id=id,

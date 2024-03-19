@@ -18,10 +18,4 @@ class CommentID(ID):
 
 class ICommentIDBuilder(metaclass=ABCMeta):
     @abstractmethod
-    def set_seqence(self, seq: int) -> Self: ...
-
-    @abstractmethod
-    def set_uuid(self, uuid_hex: Optional[str] = None) -> Self: ...
-
-    @abstractmethod
     def build(self) -> CommentID: ...

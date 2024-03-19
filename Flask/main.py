@@ -23,9 +23,9 @@ from icecream import ic
 from result import Result, Ok, Err
 
 from Applications.Members import *
+from Applications.Products import *
 from Applications.Orders import *
 from Applications.Comments import *
-from Applications.Products import *
 from Applications.Payments import *
 
 from Storages.Members import *
@@ -34,10 +34,10 @@ from Storages.Products import *
 from Storages.Comments import *
 from Storages.Sessions import *
 
-from Domains.Orders import *
-from Domains.Products import *
-from Domains.Comments import *
 from Domains.Members import *
+from Domains.Products import *
+from Domains.Orders import *
+from Domains.Comments import *
 from Domains.Sessions import *
 
 from get_config_data import get_db_padding
@@ -158,7 +158,6 @@ def productRegistration():
     filename = secure_filename(file.filename)
     file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-    member_save_repo = MySqlSaveMember(get_db_padding())
     save_product = MySqlSaveProduct(get_db_padding())
     save_product_session = MySqlSaveProductTempSession(get_db_padding())
     load_session = MySqlLoadSession(get_db_padding())
@@ -254,6 +253,7 @@ def product():
             return jsonify(response_data)
 
         case Err(e):
+            ic(e)
             return jsonify({"success": False})
 
 
