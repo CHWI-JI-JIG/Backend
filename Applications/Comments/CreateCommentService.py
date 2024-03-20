@@ -94,7 +94,7 @@ class CreateCommentService:
     
         match CommentIDBuilder().set_uuid(comment_id).map(lambda b:b.build()) :
             case Ok(cid):
-                return self.comment_repo.update_comment(
+                return self.comment_repo.update_answer(
                     Comment_id=cid,
                     answer= answer,
                 )

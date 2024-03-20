@@ -6,6 +6,7 @@ from uuid import UUID
 
 from Domains.Members import *
 from Domains.Comments import *
+from Domains.Sessions import *
 
 
 class ISaveableComment(metaclass=ABCMeta):
@@ -15,6 +16,6 @@ class ISaveableComment(metaclass=ABCMeta):
     ) -> Result[CommentID, str]: ...
     
     @abstractmethod
-    def update_comment(self, Comment_id: CommentID, anwser:str,) -> Result[CommentID, str]:...
+    def update_answer(self, Comment_id: CommentID, answer:str, member_id: MemberSession) -> Result[CommentID, str]:...
     
     
