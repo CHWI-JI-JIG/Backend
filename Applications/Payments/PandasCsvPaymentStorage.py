@@ -62,7 +62,7 @@ class PandasCsvPaymentStorage(IPaymentRepo):
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
 
-    def load_id
+    # def load_id
 
     def save_pay_data(self, data: PayData) -> Result[PayData, str]:
         # 기존 데이터 로드

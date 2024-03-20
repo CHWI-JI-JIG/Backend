@@ -138,7 +138,7 @@ LIMIT %s, %s
                         case p, m:
                             ic()
                             ic(p, m)
-                            assert False, f"p:{p} \ m:{m}"
+                            assert False, f"p:{p} | m:{m}"
 
                 cursor.execute(f"SELECT COUNT(*) FROM {product_table_name}")
                 total_count = cursor.fetchone()[0]
