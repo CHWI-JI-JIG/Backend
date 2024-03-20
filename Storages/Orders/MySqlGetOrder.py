@@ -33,6 +33,7 @@ class MySqlGetOrder(IGetableOrder):
             password=sql_config["password"],
             db=sql_config["database"],
             charset=sql_config["charset"],
+            client_flag=pymysql.constants.CLIENT.MULTI_STATEMENTS,
         )
 
     def get_padding_name(self, name: str) -> str:
@@ -185,7 +186,7 @@ LIMIT
                     (
                         order_id,
                         product_id,
-                        buyer_id,
+                        _,
                         recipient_name,
                         recipient_phone,
                         recipient_address,
@@ -195,24 +196,35 @@ LIMIT
                         total_price,
                         order_date,
                     ) = row
-                    order = Order(
-                        id=OrderIDBuilder().set_uuid(order_id).build(),
-                        product_id=ProductIDBuilder().set_uuid(product_id).build(),
-                        buyer_id=MemberIDBuilder().set_uuid(buyer_id).build(),
-                        recipient_name=recipient_name,
-                        recipient_phone=recipient_phone,
-                        recipient_address=recipient_address,
-                        product_name=product_name,
-                        product_img_path=img_path,
-                        buy_count=buy_count,
-                        total_price=total_price,
-                        order_date=order_date,
-                    )
-                    orders.append(order)
+                    match (
+                        OrderIDBuilder().set_uuid(order_id).map(lambda b: b.build()),
+                        ProductIDBuilder()
+                        .set_uuid(product_id)
+                        .map(lambda b: b.build()),
+                    ):
+                        case Ok(oid), Ok(pid):
+                            order = Order(
+                                id=oid,
+                                product_id=pid,
+                                buyer_id=buyer_id,
+                                recipient_name=recipient_name,
+                                recipient_phone=recipient_phone,
+                                recipient_address=recipient_address,
+                                product_name=product_name,
+                                product_img_path=img_path,
+                                buy_count=buy_count,
+                                total_price=total_price,
+                                order_date=order_date,
+                            )
+                            orders.append(order)
+                        case o, p:
+                            ic()
+                            ic(o, p)
+                            assert False, "Not Convert ID"
 
                 cursor.execute(
                     f"SELECT COUNT(*) FROM {order_table_name} WHERE buyer_id = %s",
-                    (buyer_id,),
+                    (buyer_id.get_id(),),
                 )
                 total_count = cursor.fetchone()[0]
 

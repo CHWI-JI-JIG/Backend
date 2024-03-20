@@ -264,7 +264,7 @@ class test_order_builder(unittest.TestCase):
         match self.pay_service.approval_and_logging(
             order_transition,
             order_transition.order.total_price,
-            "1111-1111-1111-1111",
+            "2222-2222-2222-2222",
         ):
             case Ok(True):
                 pass

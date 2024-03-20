@@ -7,8 +7,9 @@ root_path = now_path.parent
 if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
-from Domains.ID import ID
+from Domains.ID import ID, IDBuilder
 
 __all__ = [
     "ID",
+    "IDBuilder",
 ]

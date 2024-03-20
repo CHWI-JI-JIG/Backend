@@ -32,6 +32,7 @@ class MySqlGetComment(IGetableComment):
             password=sql_config["password"],
             db=sql_config["database"],
             charset=sql_config["charset"],
+            client_flag=pymysql.constants.CLIENT.MULTI_STATEMENTS,
         )
 
     def get_padding_name(self, name: str) -> str:
@@ -64,18 +65,30 @@ LIMIT %s, %s;
 
                 comments = []
                 for row in result:
-                    id,writer_id,writer_account,question , answer, _= row
+                    id, writer_id, writer_account, question, answer, _ = row
 
-                    comment = Comment(
-                        id=CommentIDBuilder().set_uuid(id).build(),
-                        writer_id=writer_id,
-                        writer_account=writer_account,
-                        answer=answer,
-                        question=question,
-                        product_id=product_id.get_id(),
-                    )
-                    comments.append(comment)
-                cursor.execute(f"SELECT COUNT(*) FROM {comment_table_name}")
+                    match (
+                        CommentIDBuilder().set_uuid(id).map(lambda b: b.build()),
+                        MemberIDBuilder().set_uuid(writer_id).map(lambda b: b.build()),
+                    ):
+                        case Ok(cid), Ok(mid):
+                            comment = Comment(
+                                id=cid,
+                                writer_id=mid,
+                                writer_account=writer_account,
+                                answer=answer,
+                                question=question,
+                                product_id=product_id,
+                            )
+                            comments.append(comment)
+                        case c, m:
+                            ic()
+                            ic(c, m)
+                            assert False, "Not Convert ID"
+                cursor.execute(
+                    f"SELECT COUNT(*) FROM {comment_table_name} WHERE product_id = %s",
+                    (product_id.get_id(),),
+                )
                 total_count = cursor.fetchone()[0]
 
                 connection.commit()
