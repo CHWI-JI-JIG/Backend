@@ -10,7 +10,7 @@ from Domains.Sessions import *
 
 class ILoadableSession(metaclass=ABCMeta):
     @abstractmethod
-    def load_session(self, session_key: str) -> Result[str, str]:
+    def load_session(self, session_key: str) -> Result[SessionToken, str]:
         """_summary_
 
         Args:
@@ -18,7 +18,7 @@ class ILoadableSession(metaclass=ABCMeta):
 
         Returns:
             Result[str, str]:
-                Ok(str) : session value
+                Ok(SessionToken) : session token
                 Err(str) : str is seasion of error
         """
         ...

@@ -11,8 +11,14 @@ from datetime import datetime
 from Commons.helpers import check_hex_string
 
 from Domains import ID
+from Domains.Sessions import (
+    ISessionSerializeable,
+    ISesseionBuilder,
+    SecuritySession,
+    SecuritySessionBuilder,
+    SessionToken,
+)
 from Domains.Products import *
-from Domains.Sessions import ISessionSerializeable, ISesseionBuilder
 from Domains.Members import *
 from Domains.Orders import *
 
@@ -25,13 +31,12 @@ from icecream import ic
 
 
 @dataclass(frozen=True)
-class OrderTransitionSession(ID, ISessionSerializeable):
-    key: UUID
+class OrderTransitionSession(ID, ISessionSerializeable, SecuritySession):
     order: Order
     is_success: Optional[bool] = None
 
     def get_id(self) -> str:
-        return self.key.hex
+        return self.get_key()
 
     def serialize_key(self) -> str:
         return self.get_id()
@@ -74,14 +79,22 @@ class OrderTransitionSession(ID, ISessionSerializeable):
                 )
 
 
-class OrderTransitionBuilder(ISesseionBuilder):
+class OrderTransitionBuilder(ISesseionBuilder, SecuritySessionBuilder):
     def __init__(
         self,
         recipient_name: Optional[str] = None,
         recipient_phone: Optional[str] = None,
         recipient_description: Optional[str] = None,
+        owner_id: Optional[UUID] = None,
+        use_count: Optional[int] = None,
+        create_time: Optional[datetime] = None,
     ):
-        self.key: Optional[UUID] = None
+        super().__init__(
+            key=None,
+            owner_id=owner_id,
+            use_count=use_count,
+            create_time=create_time,
+        )
         self.buyer_id: Optional[MemberID] = None
         self.recipient_name: Optional[str] = recipient_name
         self.recipient_phone = recipient_phone
@@ -95,10 +108,10 @@ class OrderTransitionBuilder(ISesseionBuilder):
         self.set_key(key)
         return self
 
-    def set_deserialize_value(self, value: str) -> Result[Self, str]:
-        assert isinstance(value, str), "Type of value is str."
+    def set_deserialize_value(self, token: SessionToken) -> Result[Self, str]:
+        assert isinstance(token, SessionToken), "Type of token is SessionToken."
         try:
-            to_dict = json.loads(value)
+            to_dict = json.loads(token.value)
         except:
             return Err("fail read json")
         assert isinstance(to_dict, dict), "Type of convert value is Dict."
@@ -148,7 +161,11 @@ class OrderTransitionBuilder(ISesseionBuilder):
             return Err(f"Not Exists {dict_key}")
         self.set_total_price(to_dict.get(dict_key))
 
-        return Ok(self)
+        return (
+            self.set_use_count(token.use_count)
+            .set_create_time(token.create_time)
+            .set_owner_id(token.owner_id)
+        )
 
     def check_set_success(self) -> bool:
         return isinstance
@@ -239,7 +256,7 @@ class OrderTransitionBuilder(ISesseionBuilder):
         ), "ValueType Error: Initialize the id via MemberIDBuilder."
 
         self.buyer_id = id
-        return self
+        return Ok(self)
 
     def set_product_id(self, product_id: str) -> Result[Self, str]:
         assert self.product_id is None, "product id is already set."
@@ -257,7 +274,7 @@ class OrderTransitionBuilder(ISesseionBuilder):
         ), "ValueType Error: Initialize the id via ProductIDBuilder."
 
         self.product_id = id
-        return self
+        return Ok(self)
 
     def build(self) -> Result[OrderTransitionSession, str]:
         key = "key"
@@ -276,25 +293,31 @@ class OrderTransitionBuilder(ISesseionBuilder):
         assert isinstance(self.buy_count, int), f"Not Set {key}."
         key = "total_price"
         assert isinstance(self.total_price, int), f"Not Set {key}."
+        self.assert_and_check_about_setting()
 
         match OrderIDBuilder().set_uuid().map(lambda b: b.build()):
             case Ok(oid):
-                return OrderTransitionSession(
-                    key=self.key,
-                    order=Order(
-                        id=oid,
-                        product_id=self.product_id,
-                        buyer_id=self.buyer_id,
-                        recipient_name=self.recipient_name,
-                        recipient_phone=self.recipient_phone,
-                        recipient_address=self.recipient_address,
-                        product_name="dump",
-                        product_img_path="dump",
-                        buy_count=self.buy_count,
-                        total_price=self.total_price,
-                        order_date=datetime.now(),
-                    ),
-                    is_success=self.is_success,
+                return Ok(
+                    OrderTransitionSession(
+                        key=self.key,
+                        order=Order(
+                            id=oid,
+                            product_id=self.product_id,
+                            buyer_id=self.buyer_id,
+                            recipient_name=self.recipient_name,
+                            recipient_phone=self.recipient_phone,
+                            recipient_address=self.recipient_address,
+                            product_name="dump",
+                            product_img_path="dump",
+                            buy_count=self.buy_count,
+                            total_price=self.total_price,
+                            order_date=datetime.now(),
+                        ),
+                        owner_id=self.owner_id,
+                        create_time=self.create_time,
+                        use_count=self.use_count,
+                        is_success=self.is_success,
+                    )
                 )
             case e:
                 return e

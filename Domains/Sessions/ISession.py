@@ -1,14 +1,22 @@
 import __init__
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Self, Optional,Union
+from typing import Self, Optional, Union
 from result import Result, Err, Ok
 from uuid import UUID, uuid4
 from datetime import datetime
 
 from Commons.helpers import check_hex_string
 from Commons.format import KOREA_TIME_FORMAT
+from icecream import ic
 
+
+@dataclass(frozen=True)
+class SessionToken:
+    value:str
+    owner_id: str
+    create_time: datetime
+    use_count: int
 
 @dataclass(frozen=True)
 class SecuritySession:
@@ -17,9 +25,20 @@ class SecuritySession:
     create_time: datetime
     use_count: int
 
+    def get_key(self) -> str:
+        return self.key.hex
+
+    def get_owner_id(self) -> str:
+        return self.owner_id.hex
+
+    def get_create_time(self) -> datetime:
+        return self.create_time
+
+    def get_use_count(self) -> int:
+        return self.use_count
+
 
 class SecuritySessionBuilder:
-    # TODO
     def __init__(
         self,
         key: Optional[UUID] = None,
@@ -45,14 +64,14 @@ class SecuritySessionBuilder:
     def set_use_count(self, count: Optional[int] = None) -> Self:
         if count is None:
             count = 0
-        assert count < 0, "Use count must be a non-negative integer."
+        assert count >= 0, "Use count must be a non-negative integer."
         self.use_count = count
         return self
 
     def set_create_time(self, time: Union[datetime, str, None] = None) -> Self:
         # write code
         if time is None:
-            time = datetime.now()
+            time = datetime.now().replace(microsecond=0)
         elif isinstance(time, str):
             try:
                 time = datetime.strptime(time, KOREA_TIME_FORMAT)
@@ -78,9 +97,9 @@ class SecuritySessionBuilder:
             case _:
                 assert False, "Type of key is str."
 
-        return Result(self)
-    
-    def assert_and_check_about_setting(self)->bool:
+        return Ok(self)
+
+    def assert_and_check_about_setting(self) -> bool:
         if not isinstance(self.key, UUID):
             assert False, "You didn't set the key."
             return False
@@ -91,11 +110,21 @@ class SecuritySessionBuilder:
             assert False, "You didn't set the use_count."
             return False
         if not isinstance(self.create_time, datetime):
-            assert False, "You didn't set the create_time."
-            return False
-        return True
-        
-        
+            return True
+
+
+class ISucuritySessionGetable(metaclass=ABCMeta):
+    @abstractmethod
+    def get_id(self) -> str: ...
+
+    @abstractmethod
+    def get_owner_id(self) -> str: ...
+
+    @abstractmethod
+    def get_create_time(self) -> datetime: ...
+
+    @abstractmethod
+    def get_use_count(self) -> int: ...
 
 
 class ISessionSerializeable(metaclass=ABCMeta):
@@ -111,4 +140,4 @@ class ISesseionBuilder(metaclass=ABCMeta):
     def set_deserialize_key(self, key: str) -> Self: ...
 
     @abstractmethod
-    def set_deserialize_value(self, value: str) -> Result[Self, str]: ...
+    def set_deserialize_value(self, token: SessionToken) -> Result[Self, str]: ...

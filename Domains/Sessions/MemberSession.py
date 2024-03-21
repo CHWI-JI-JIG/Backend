@@ -3,11 +3,18 @@ from dataclasses import dataclass
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Self
 from uuid import uuid4, UUID
+from datetime import datetime
 import json
 
 
 from Commons.helpers import check_hex_string
-from Domains.Sessions import ISessionSerializeable, ISesseionBuilder
+from Domains.Sessions import (
+    ISessionSerializeable,
+    ISesseionBuilder,
+    SecuritySession,
+    SecuritySessionBuilder,
+    SessionToken,
+)
 from Domains import ID
 from Domains.Members import *
 from Builders.Members import *
@@ -16,14 +23,13 @@ from icecream import ic
 
 
 @dataclass(frozen=True)
-class MemberSession(ISessionSerializeable, ID):
-    key: UUID
+class MemberSession(ISessionSerializeable, ID, SecuritySession):
     name: str
     role: RoleType
     member_id: MemberID
 
     def get_id(self) -> str:
-        return self.key.hex
+        return self.get_key()
 
     def serialize_key(self) -> str:
         return self.get_id()
@@ -39,14 +45,22 @@ class MemberSession(ISessionSerializeable, ID):
         )
 
 
-class MemberSessionBuilder(ISesseionBuilder):
+class MemberSessionBuilder(ISesseionBuilder, SecuritySessionBuilder):
     def __init__(
         self,
         key: Optional[UUID] = None,
         member_id: Optional[MemberID] = None,
         name: Optional[str] = None,
+        owner_id: Optional[UUID] = None,
+        use_count: Optional[int] = None,
+        create_time: Optional[datetime] = None,
     ):
-        self.key = key
+        super().__init__(
+            key=key,
+            owner_id=owner_id,
+            use_count=use_count,
+            create_time=create_time,
+        )
         self.mid = member_id
         self.name: Optional[str] = name
         self.role: Optional[RoleType] = None
@@ -55,10 +69,10 @@ class MemberSessionBuilder(ISesseionBuilder):
         self.set_key(key)
         return self
 
-    def set_deserialize_value(self, value: str) -> Result[Self, str]:
-        assert isinstance(value, str), "Type of value is str."
+    def set_deserialize_value(self, token: SessionToken) -> Result[Self, str]:
+        assert isinstance(token, SessionToken), "Type of token is SessionToken."
         try:
-            to_dict = json.loads(value)
+            to_dict = json.loads(token.value)
         except:
             return Err("fali read json")
         assert isinstance(to_dict, dict), "Type of convert value is Dict."
@@ -80,8 +94,13 @@ class MemberSessionBuilder(ISesseionBuilder):
         if not isinstance(to_dict.get(dict_key), str):
             return Err(f"Not Exists {dict_key}")
         self.set_role(to_dict.get(dict_key))
+        
+        return (
+            self.set_use_count(token.use_count)
+            .set_create_time(token.create_time)
+            .set_owner_id(token.owner_id)
+        )
 
-        return Ok(self)
 
     def set_name(self, name: str) -> Self:
         assert self.name is None, "name is already set."
@@ -101,20 +120,7 @@ class MemberSessionBuilder(ISesseionBuilder):
 
         return self
 
-    def set_key(self, key: Optional[str] = None) -> Self:
-        assert self.key is None, "The Key is already set."
-        match key:
-            case None:
-                self.key = uuid4()
-            case k if isinstance(key, str):
-                assert check_hex_string(k), "The uuid_hex is not in hex format."
-                self.key = UUID(hex=key)
-            case _:
-                assert False, "Type of key is str."
-
-        return self
-
-    def set_member_id(self, member_id: Optional[str] = None) -> Result[Self,str]:
+    def set_member_id(self, member_id: Optional[str] = None) -> Result[Self, str]:
         assert self.mid is None, "member id is already set."
 
         if member_id is None:
@@ -123,10 +129,10 @@ class MemberSessionBuilder(ISesseionBuilder):
             id = MemberIDBuilder().set_uuid(member_id).map(lambda b: b.build())
         else:
             assert False, "Type of member_id is str."
-        
+
         match id:
             case Ok(id):
-                id=id
+                id = id
             case e:
                 return e
 
@@ -139,13 +145,16 @@ class MemberSessionBuilder(ISesseionBuilder):
 
     def build(self) -> MemberSession:
         assert isinstance(self.mid, MemberID), "You didn't set the member_id."
-        assert isinstance(self.key, UUID), "You didn't set the key."
         assert isinstance(self.role, RoleType), "You didn't set the rule."
         assert isinstance(self.name, str), "You didn't set the name."
+        self.assert_and_check_about_setting()
 
         return MemberSession(
             key=self.key,
-            member_id=self.mid,
-            role=self.role,
+            owner_id=self.owner_id,
             name=self.name,
+            role=self.role,
+            member_id=self.mid,
+            create_time=self.create_time,
+            use_count=self.use_count,
         )
