@@ -52,6 +52,8 @@ class AdminService:
             return Err("Invalid role type")
         except Exception as e:
             return Err(str(e))
-        member_id = MemberIDBuilder().set_uuid(user_id).build()
-
-        return self.edit_repo.update_role(member_id, role_type)
+        match MemberIDBuilder().set_uuid(user_id).map(lambda b: b.build()):
+            case Ok(member_id):
+                return self.edit_repo.update_role(member_id, role_type)
+            case e:
+                return e
