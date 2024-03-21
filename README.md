@@ -42,7 +42,8 @@ mysql_db = {
    ```sql
     CREATE DATABASE "DATABASE_NAME" DEFAULT character SET UTF8 COLLATE utf8_general_ci;
     CREATE user "USER_NAME"@localhost identified by 'DB_PASSWORD';
-    GRANT all privilege on "DATABASE_NAME".* to 'USER_NAME'@'localhost';
+    GRANT ALL PRIVILEGE on "DATABASE_NAME".* to 'USER_NAME'@'localhost';
+    GRANT ALL PRIVILEGES ON "DATABASE_NAME".* TO 'USER_NAME'@'localhost';
    ```
 3. `run` manage.py (DB 테이블 생성과, 초기 계정&일기 생성)
     ```bash

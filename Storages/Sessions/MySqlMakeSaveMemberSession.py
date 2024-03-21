@@ -30,6 +30,7 @@ class MySqlMakeSaveMemberSession(IMakeSaveMemberSession):
             password=sql_config["password"],
             db=sql_config["database"],
             charset=sql_config["charset"],
+            client_flag=pymysql.constants.CLIENT.MULTI_STATEMENTS,
         )
 
     def get_padding_name(self, name: str) -> str:
@@ -64,18 +65,21 @@ WHERE id = %s
                     return Err("회원정보가 없습니다.")
 
                 name, role = result
-                session = (
+                match (
                     MemberSessionBuilder()
                     .set_key()
-                    .set_member_id(member_id.get_id())
                     .set_name(name)
                     .set_role(role)
-                    .build()
-                )
-
-                # MemberSession
-                serialized_key = session.serialize_key()
-                serialized_value = session.serialize_value()
+                    .set_member_id(member_id.get_id())
+                    .map(lambda b: b.build())
+                ):
+                    case Ok(ret):
+                        # MemberSession
+                        serialized_key = ret.serialize_key()
+                        serialized_value = ret.serialize_value()
+                        session = ret
+                    case e:
+                        return e
 
                 cursor.execute(
                     f"INSERT INTO {session_table_name} (id, value) VALUES (%s, %s)",

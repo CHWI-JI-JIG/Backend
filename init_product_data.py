@@ -20,16 +20,14 @@ def init_product():
     product_list.clear()
     create = MySqlSaveProduct(get_db_padding())
 
-    id = ProductIDBuilder().set_uuid().set_seqence(1).build()
-
     # CSV 파일 경로
     csv_path = "docs/init_product_list.csv"
 
     with open(csv_path, "r", encoding="utf-8") as csvfile:
         csvreader = csv.DictReader(csvfile)
 
-        for row in csvreader:
-            id = ProductIDBuilder().set_uuid().set_seqence(1).build()
+        for i, row in enumerate(csvreader):
+            id = ProductIDBuilder().set_uuid().unwrap().set_seqence(i).build()
 
             random_seller_index = random.randint(0, 4)
             seller_member = member_list[random_seller_index]

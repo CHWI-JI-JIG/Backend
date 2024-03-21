@@ -29,6 +29,7 @@ class MySqlGetProduct(IGetableProduct):
             password=sql_config["password"],
             db=sql_config["database"],
             charset=sql_config["charset"],
+            client_flag=pymysql.constants.CLIENT.MULTI_STATEMENTS,
         )
 
     def get_padding_name(self, name: str) -> str:
@@ -53,15 +54,25 @@ WHERE id = %s
 
                 id, seller_id, name, img_path, price, description, register_day = result
 
-                product = Product(
-                    id=product_id,
-                    seller_id=MemberIDBuilder().set_uuid(seller_id).build(),
-                    name=name,
-                    img_path=img_path,
-                    price=price,
-                    description=description,
-                    register_day=register_day,
-                )
+                match (
+                    MemberIDBuilder()
+                    .set_uuid(seller_id)
+                    .map(lambda b:b.build())
+                ):
+                    case Ok(mid):
+                        product = Product(
+                            id=product_id,
+                            seller_id=mid,
+                            name=name,
+                            img_path=img_path,
+                            price=price,
+                            description=description,
+                            register_day=register_day,
+                        )
+                    case e:
+                        ic()
+                        ic(e)
+                        return None
 
                 connection.commit()
 
@@ -109,16 +120,25 @@ LIMIT %s, %s
                     id, seller_id, name, img_path, price, description, register_day = (
                         row
                     )
-                    product = Product(
-                        id=ProductIDBuilder().set_uuid(id).build(),
-                        seller_id=MemberIDBuilder().set_uuid(seller_id).build(),
-                        name=name,
-                        img_path=img_path,
-                        price=price,
-                        description=description,
-                        register_day=register_day,
-                    )
-                    products.append(product)
+                    match (
+                        ProductIDBuilder().set_uuid(id).map(lambda b: b.build()),
+                        MemberIDBuilder().set_uuid(seller_id).map(lambda b: b.build()),
+                    ):
+                        case Ok(pid), Ok(mid):
+                            product = Product(
+                                id=pid,
+                                seller_id=mid,
+                                name=name,
+                                img_path=img_path,
+                                price=price,
+                                description=description,
+                                register_day=register_day,
+                            )
+                            products.append(product)
+                        case p, m:
+                            ic()
+                            ic(p, m)
+                            assert False, f"p:{p} | m:{m}"
 
                 cursor.execute(f"SELECT COUNT(*) FROM {product_table_name}")
                 total_count = cursor.fetchone()[0]
@@ -153,7 +173,7 @@ LIMIT %s, %s
             with connection.cursor() as cursor:
                 offset = page * size
                 query = f"""
-SELECT id, seller_id, name, img_path, price, description, register_day
+SELECT seq,id, seller_id, name, img_path, price, description, register_day
 FROM {product_table_name}
 WHERE seller_id = %s
 ORDER BY register_day DESC
@@ -164,17 +184,28 @@ LIMIT %s, %s
 
                 products = []
                 for row in result:
-                    id, _, name, img_path, price, description, register_day = row
-                    product = Product(
-                        id=ProductIDBuilder().set_uuid(id).build(),
-                        seller_id=seller_id,
-                        name=name,
-                        img_path=img_path,
-                        price=price,
-                        description=description,
-                        register_day=register_day,
-                    )
-                    products.append(product)
+                    seq, id, _, name, img_path, price, description, register_day = row
+                    match (
+                        ProductIDBuilder()
+                        .set_seqence(seq)
+                        .set_uuid(id)
+                        .map(lambda b:b.build())
+                    ):
+                        case Ok(pid):
+                            product = Product(
+                                id=pid,
+                                seller_id=seller_id,
+                                name=name,
+                                img_path=img_path,
+                                price=price,
+                                description=description,
+                                register_day=register_day,
+                            )
+                            products.append(product)
+                        case p:
+                            ic()
+                            ic(p)
+                            assert False, "Not Convert ID"
 
                 cursor.execute(
                     f"SELECT COUNT(*) FROM {product_table_name} WHERE seller_id = %s",

@@ -59,15 +59,19 @@ class CreateProductService:
                 return Err("plz login")
 
         # publish
-        product_session = (
+        match (
             ProductSessionBuilder()
             .set_key()
             .set_seller_id(user_session.member_id.get_id())
-            .build()
-        )
-        return self.save_session_repo.update_or_save_product_temp_session(
-            product_session
-        )
+            .map(lambda b: b.build())
+        ):
+            case Ok(Ok(product_session)):
+                return self.save_session_repo.update_or_save_product_temp_session(
+                    product_session
+                )
+            case e:
+                print(e)
+                return e
 
     def check_upload_image_path(
         self,
@@ -88,9 +92,9 @@ class CreateProductService:
                 return Err("Not Exist Session")
 
         # set product Session
-        match product_builder.set_img_path(img_path):
-            case Ok(session):
-                product = session.build()
+        match product_builder.set_img_path(img_path).map(lambda b:b.build()):
+            case Ok(Ok(session)):
+                product = session
             case _:
                 return Err("Not Exist Image")
 
@@ -116,14 +120,16 @@ class CreateProductService:
                 return Err("Not Exist Session")
 
         # set product Session
-        product = (
+        match (
             product_builder.set_name(product_name)
             .set_price(price)
             .set_description(description)
             .build()
-        )
-
-        return self.save_session_repo.update_or_save_product_temp_session(product)
+        ):
+            case Ok(product):
+                return self.save_session_repo.update_or_save_product_temp_session(product)
+            case e:
+                return e
 
     def create(
         self,
@@ -144,11 +150,15 @@ class CreateProductService:
             product_builder.check_set_img() and product_builder.check_set_product()
         ):
             return Err("Not Set Data")
-        product = product_builder.build()
-        img_path = product.img_path
-        seller_id = product.seller_id
-        product = product.product
-        id = ProductIDBuilder().set_uuid().build()
+        match product_builder.build():
+            case Ok(product):
+                img_path = product.img_path
+                seller_id = product.seller_id
+                product = product.product
+            case e:
+                return e
+        
+        id = ProductIDBuilder().set_uuid().unwrap().build()
 
         return self.product_repo.save_product(
             Product(

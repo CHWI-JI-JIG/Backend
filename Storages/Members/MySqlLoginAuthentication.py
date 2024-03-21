@@ -27,6 +27,7 @@ class MySqlLoginAuthentication(IVerifiableAuthentication):
             password=sql_config["password"],
             db=sql_config["database"],
             charset=sql_config["charset"],
+            client_flag=pymysql.constants.CLIENT.MULTI_STATEMENTS,
         )
 
     def get_padding_name(self, name: str) -> str:
@@ -51,7 +52,12 @@ WHERE account = %s;
 
             if not result:
                 return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
-            id = MemberIDBuilder().set_uuid(result[1]).set_seqence(1).build()
+            match MemberIDBuilder().set_seqence(result[0]).set_uuid(result[1]).map(lambda b:b.build()):
+                case Ok(ret):
+                    id = ret
+                case e:
+                    return e
+
             b = (
                 AuthenticationBuilder()
                 .set_last_access(result[3])

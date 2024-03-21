@@ -35,7 +35,7 @@ class test_order_builder(unittest.TestCase):
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
         uid = "365b77a0a6b34fe28c7112d6c1bb64ca"
-        product_id = ProductIDBuilder().set_uuid(id).build()
+        product_id = ProductIDBuilder().set_uuid(id).unwrap().build()
         new_order_transition = (
             OrderTransitionBuilder()
             .set_key()
