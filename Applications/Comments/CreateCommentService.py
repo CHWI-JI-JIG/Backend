@@ -97,6 +97,7 @@ class CreateCommentService:
                 return self.comment_repo.update_answer(
                     Comment_id=cid,
                     answer= answer,
+                    member_id=user_session.member_id,
                 )
             case c,p:
                 ic()

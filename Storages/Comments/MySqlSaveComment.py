@@ -8,6 +8,7 @@ from Domains.Comments import *
 from Repositories.Comments import *
 from Builders.Members import *
 from Domains.Sessions import *
+from Domains.Members import *
 from uuid import UUID
 
 import pymysql
@@ -73,7 +74,7 @@ class MySqlSaveComment(ISaveableComment):
     
     
     
-    def update_answer(self, Comment_id: CommentID, answer:str, member_id: MemberSession) -> Result[CommentID, str]:
+    def update_answer(self, Comment_id: CommentID, answer:str, member_id: MemberID) -> Result[CommentID, str]:
             connection = self.connect()
             comment_table_name = self.get_padding_name("comments")
             product_table_name = self.get_padding_name("product")
