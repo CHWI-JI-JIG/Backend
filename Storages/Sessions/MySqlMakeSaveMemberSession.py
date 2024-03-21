@@ -68,8 +68,13 @@ WHERE id = %s
                 match (
                     MemberSessionBuilder()
                     .set_key()
+                    .unwrap() # 오류날 확률이 없어서 unwrap()
                     .set_name(name)
                     .set_role(role)
+                    .set_use_count()
+                    .set_create_time()
+                    .set_owner_id(member_id.get_id())
+                    .unwrap()
                     .set_member_id(member_id.get_id())
                     .map(lambda b: b.build())
                 ):
@@ -82,8 +87,18 @@ WHERE id = %s
                         return e
 
                 cursor.execute(
-                    f"INSERT INTO {session_table_name} (id, value) VALUES (%s, %s)",
-                    (serialized_key, serialized_value),
+                    f"""
+INSERT INTO {session_table_name} (
+    id, value, owner_id, create_time, use_count
+) VALUES (%s, %s,%s,%s,%s);
+""",
+                    (
+                        serialized_key,
+                        serialized_value,
+                        session.get_owner_id(),
+                        session.get_create_time(),
+                        session.get_use_count(),
+                    ),
                 )
                 connection.commit()
 
