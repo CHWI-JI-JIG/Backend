@@ -13,10 +13,11 @@ from icecream import ic
 
 @dataclass(frozen=True)
 class SessionToken:
-    value:str
+    value: str
     owner_id: str
     create_time: datetime
     use_count: int
+
 
 @dataclass(frozen=True)
 class SecuritySession:
@@ -135,9 +136,27 @@ class ISessionSerializeable(metaclass=ABCMeta):
     def serialize_value(self) -> str: ...
 
 
-class ISesseionBuilder(metaclass=ABCMeta):
+class ISessionBuilder(metaclass=ABCMeta):
     @abstractmethod
     def set_deserialize_key(self, key: str) -> Self: ...
 
     @abstractmethod
     def set_deserialize_value(self, token: SessionToken) -> Result[Self, str]: ...
+
+
+def make_session_token(token_builder: ISessionSerializeable) -> SessionToken:
+    # assert isinstance(
+    #     token_builder, ISessionSerializeable
+    # ), "Parent of token_builder is ISessionBuilder."
+    # assert isinstance(
+    #     token_builder, SecuritySession
+    # ), "Parent of token_builder is SecuritySession."
+    assert issubclass(type(token_builder), ISessionSerializeable), "token_builder must inherit from ISessionSerializeable"
+    assert issubclass(type(token_builder), SecuritySession), "token_builder must inherit from SecuritySession"
+
+    return SessionToken(
+        value=token_builder.serialize_value(),
+        owner_id=token_builder.get_owner_id(),
+        create_time=token_builder.get_create_time(),
+        use_count=token_builder.get_use_count(),
+    )

@@ -189,19 +189,6 @@ class ProductSessionBuilder(ISessionBuilder, SecuritySessionBuilder):
         self.price = price
         return self
 
-    def set_key(self, key: Optional[str] = None) -> Self:
-        assert self.key is None, "The Key is already set."
-        match key:
-            case None:
-                self.key = uuid4()
-            case k if isinstance(key, str):
-                assert check_hex_string(k), "The uuid_hex is not in hex format."
-                self.key = UUID(hex=key)
-            case _:
-                assert False, "Type of key is str."
-
-        return self
-
     def set_seller_id(self, seller_id: str) -> Result[Self, str]:
         assert self.seller_id is None, "seller id is already set."
 

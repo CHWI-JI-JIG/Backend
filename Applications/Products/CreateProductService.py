@@ -62,6 +62,7 @@ class CreateProductService:
         match (
             ProductSessionBuilder()
             .set_key()
+            .unwrap() # 오류가 생길 확률이 없으므로 unwrap
             .set_seller_id(user_session.member_id.get_id())
             .map(lambda b: b.build())
         ):
@@ -92,7 +93,7 @@ class CreateProductService:
                 return Err("Not Exist Session")
 
         # set product Session
-        match product_builder.set_img_path(img_path).map(lambda b:b.build()):
+        match product_builder.set_img_path(img_path).map(lambda b: b.build()):
             case Ok(Ok(session)):
                 product = session
             case _:
@@ -127,7 +128,9 @@ class CreateProductService:
             .build()
         ):
             case Ok(product):
-                return self.save_session_repo.update_or_save_product_temp_session(product)
+                return self.save_session_repo.update_or_save_product_temp_session(
+                    product
+                )
             case e:
                 return e
 
@@ -157,7 +160,7 @@ class CreateProductService:
                 product = product.product
             case e:
                 return e
-        
+
         id = ProductIDBuilder().set_uuid().unwrap().build()
 
         return self.product_repo.save_product(
