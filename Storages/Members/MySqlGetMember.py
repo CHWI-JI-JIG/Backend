@@ -10,7 +10,6 @@ from Builders.Members import *
 from uuid import UUID
 
 import pymysql
-
 from icecream import ic
 
 
@@ -59,12 +58,18 @@ LIMIT %s, %s
                 users = []
                 for row in result:
                     id, account, role = row
-                    member = Member(
-                        id=MemberIDBuilder().set_uuid(id).build(),
-                        account=account,  # Member 클래스에 account 인자가 있는지 확인
-                        role=role
-                    )
-                    users.append(member)
+                    match MemberIDBuilder().set_uuid(id).map(lambda b:b.build()):
+                        case Ok(memder_id):
+                            member = Member(
+                                id=memder_id,
+                                account=account,  # Member 클래스에 account 인자가 있는지 확인
+                                role=role
+                            )
+                            users.append(member)
+                        case e:
+                            ic()
+                            ic(e)
+                            assert False, "Not Convert ID"
 
                 cursor.execute(f"SELECT COUNT(*) FROM {user_table_name}")
                 total_count = cursor.fetchone()[0]
