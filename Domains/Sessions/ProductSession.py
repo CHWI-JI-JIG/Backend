@@ -12,7 +12,7 @@ from datetime import datetime
 from Commons.helpers import check_hex_string
 from Domains.Sessions import (
     ISessionSerializeable,
-    ISesseionBuilder,
+    ISessionBuilder,
     SecuritySession,
     SecuritySessionBuilder,
     SessionToken,
@@ -88,7 +88,7 @@ class ProductTempSession(ID, ISessionSerializeable, SecuritySession):
                 )
 
 
-class ProductSessionBuilder(ISesseionBuilder, SecuritySessionBuilder):
+class ProductSessionBuilder(ISessionBuilder, SecuritySessionBuilder):
     def __init__(
         self,
         key: Optional[UUID] = None,

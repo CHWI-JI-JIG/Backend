@@ -10,7 +10,7 @@ import json
 from Commons.helpers import check_hex_string
 from Domains.Sessions import (
     ISessionSerializeable,
-    ISesseionBuilder,
+    ISessionBuilder,
     SecuritySession,
     SecuritySessionBuilder,
     SessionToken,
@@ -45,7 +45,7 @@ class MemberSession(ISessionSerializeable, ID, SecuritySession):
         )
 
 
-class MemberSessionBuilder(ISesseionBuilder, SecuritySessionBuilder):
+class MemberSessionBuilder(ISessionBuilder, SecuritySessionBuilder):
     def __init__(
         self,
         key: Optional[UUID] = None,
@@ -94,13 +94,12 @@ class MemberSessionBuilder(ISesseionBuilder, SecuritySessionBuilder):
         if not isinstance(to_dict.get(dict_key), str):
             return Err(f"Not Exists {dict_key}")
         self.set_role(to_dict.get(dict_key))
-        
+
         return (
             self.set_use_count(token.use_count)
             .set_create_time(token.create_time)
             .set_owner_id(token.owner_id)
         )
-
 
     def set_name(self, name: str) -> Self:
         assert self.name is None, "name is already set."

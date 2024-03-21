@@ -13,7 +13,7 @@ from Commons.helpers import check_hex_string
 from Domains import ID
 from Domains.Sessions import (
     ISessionSerializeable,
-    ISesseionBuilder,
+    ISessionBuilder,
     SecuritySession,
     SecuritySessionBuilder,
     SessionToken,
@@ -79,7 +79,7 @@ class OrderTransitionSession(ID, ISessionSerializeable, SecuritySession):
                 )
 
 
-class OrderTransitionBuilder(ISesseionBuilder, SecuritySessionBuilder):
+class OrderTransitionBuilder(ISessionBuilder, SecuritySessionBuilder):
     def __init__(
         self,
         recipient_name: Optional[str] = None,
