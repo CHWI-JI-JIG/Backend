@@ -404,8 +404,9 @@ def bsignup():
 def adminUser():
     read_repo = MySqlGetMember(get_db_padding())
     edit_repo = MySqlEditMember(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
 
-    get_user_info = AdminService(read_repo, edit_repo)
+    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
 
     data = request.get_json()
     user_key = data.get("key")
@@ -438,15 +439,16 @@ def adminUser():
 def updateUserRole():
     read_repo = MySqlGetMember(get_db_padding())
     edit_repo = MySqlEditMember(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
 
-    get_user_info = AdminService(read_repo, edit_repo)
+    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
 
     data = request.get_json()
     user_key = data.get("key")  # 세션키(즉, 관리자 세션키)
     user_id = data.get("userKey")  # 사용자 key
     new_role = data.get("userAuth")  # 변경할 권한
 
-    result = get_user_info.change_role(new_role, user_id)
+    result = get_user_info.change_role(user_key, new_role, user_id)
     ic(result)
 
     match result:
