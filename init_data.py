@@ -74,22 +74,6 @@ def init_member():
             assert False, f"Fail Create Member:{a}"
 
     match service.create(
-        account="yousukhair",
-        passwd="1234",
-        role="seller",
-        name="Go Young Hee",
-        phone="01013903475",
-        email="yousukhair@naver.com",
-        address="광주 남구 송암로 73",
-        company_registration_number="114557136219462",
-        pay_account="9876544925564628",
-    ):
-        case Ok(member):
-            member_list.append(member)
-        case a:
-            assert False, f"Fail Create Member:{a}"
-
-    match service.create(
         account="NatureNookMarket",
         passwd="1234",
         role="seller",

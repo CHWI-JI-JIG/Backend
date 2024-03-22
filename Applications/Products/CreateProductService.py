@@ -53,6 +53,8 @@ class CreateProductService:
                 match builder.set_deserialize_value(json):
                     case Ok(session):
                         user_session = session.build()
+                        if user_session.role != RoleType.SELLER:
+                            return Err("Permission Deny")
                     case _:
                         return Err("Invalid Member Session")
             case _:

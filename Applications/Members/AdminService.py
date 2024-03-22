@@ -23,7 +23,7 @@ class AdminService:
         self,
         read_repo: IReadableMemberList,
         edit_repo: IEditableMember,
-        load_session_repo: ILoadableSession,        
+        load_session_repo: ILoadableSession
     ):
         assert issubclass(
             type(read_repo), IReadableMemberList
@@ -41,10 +41,27 @@ class AdminService:
 
     def read_members(
         self,
+        admin_key: str,
         page=0,
         size=10,
     ) -> Result[Tuple[int, List[Member]], str]:
-        return self.read_repo.get_members(page=page, size=size)
+
+        builder = MemberSessionBuilder().set_deserialize_key(admin_key)
+        match self.session_repo.load_session(admin_key):
+            case Ok(json):
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        admin_session = session.build()
+
+                        if admin_session.role == RoleType.ADMIN:
+                            return self.read_repo.get_members(page=page, size=size)
+                        else:
+                            return Err("Access Denied: User is not admin")
+                    case _ :
+                        return Err('err')
+
+            case _:
+                return Err("Session load or build failed")
 
     def change_role(
         self,

@@ -7,6 +7,8 @@ from result import Result, Err, Ok
 from Domains.Comments import *
 from Repositories.Comments import *
 from Builders.Members import *
+from Domains.Sessions import *
+from Domains.Members import *
 from uuid import UUID
 
 import pymysql
@@ -70,23 +72,28 @@ class MySqlSaveComment(ISaveableComment):
                 connection.close()
                 return Err(str(e))
     
-    def update_comment(self, Comment_id: CommentID, answer:str) -> Result[CommentID, str]:
+    
+    
+    def update_answer(self, Comment_id: CommentID, answer:str, member_id: MemberID) -> Result[CommentID, str]:
             connection = self.connect()
             comment_table_name = self.get_padding_name("comments")
+            product_table_name = self.get_padding_name("product")
             
             try:
                     # 커서 생성
                     with connection.cursor() as cursor:
                         update_query = f"""
-    UPDATE {comment_table_name}
-    SET answer = %s
-    WHERE id = %s;
-                        """
+    UPDATE {comment_table_name} AS c
+    JOIN {product_table_name} AS p ON c.product_id = p.id
+    SET c.answer = %s
+    WHERE c.id = %s AND p.seller_id = %s;
+                    """
                         cursor.execute(
                             update_query,                                                               
                             (
                                 answer,
                                 Comment_id.get_id(),
+                                member_id.get_id(),
                             ),
                         )
                         # 변경 사항을 커밋
