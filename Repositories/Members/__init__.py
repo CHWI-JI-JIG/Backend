@@ -10,12 +10,14 @@ if not (str(root_path) in sys.path):
 from Repositories.Members.ISaveableMember import ISaveableMember
 from Repositories.Members.IVerifiableAuthentication import IVerifiableAuthentication
 from Repositories.Members.IEditableMember import IEditableMember
+from Repositories.Members.IChangeablePasswd import IChangeablePasswd
 from Repositories.Members.IReadableMember import IReadableMember
 from Repositories.Members.IReadableMemberList import IReadableMemberList
 
 __all__ = [
     "ISaveableMember",
     "IEditableMember",
+    "IChangeablePasswd",
     "IReadableMember",
     "IVerifiableAuthentication",
     "IReadableMemberList",

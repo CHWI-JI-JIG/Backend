@@ -24,6 +24,8 @@ class MySqlCreateUser:
         return f"{self.name_padding}{name}"
 
     def create_user(self):
+        #TODO
+        # ADD last_chaged_date
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
 
