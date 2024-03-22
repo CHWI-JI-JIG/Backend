@@ -34,14 +34,20 @@ class test_product_builder(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
+        mid = "1297b39f733a421296a13fc40c8bf012"
         product_id = ProductIDBuilder().set_uuid(id).unwrap().build()
         new_session = (
             ProductSessionBuilder()
             .set_img_path("img01.png")
             .unwrap()
             .set_key()
+            .unwrap()
             .set_seller_id(id)
             .unwrap()
+            .set_use_count()
+            .set_owner_id(mid)
+            .unwrap()
+            .set_create_time()
             .build()
             .unwrap()
         )
@@ -53,7 +59,7 @@ class test_product_builder(unittest.TestCase):
         read_session = (
             ProductSessionBuilder()
             .set_deserialize_key(new_session.get_id())
-            .set_deserialize_value(new_session.serialize_value())
+            .set_deserialize_value(make_session_token(new_session))
             .unwrap()
             .build()
             .unwrap()
@@ -64,6 +70,7 @@ class test_product_builder(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
+        mid = "1297b39f733a421296a13fc40c8bf012"
 
         product_id = ProductIDBuilder().set_uuid(id).unwrap().build()
         new_session = (
@@ -74,6 +81,11 @@ class test_product_builder(unittest.TestCase):
             .set_name("오븐")
             .set_price(9513)
             .set_key()
+            .unwrap()
+            .set_use_count()
+            .set_owner_id(mid)
+            .unwrap()
+            .set_create_time()
             .build()
             .unwrap()
         )
@@ -85,7 +97,7 @@ class test_product_builder(unittest.TestCase):
         read_session = (
             ProductSessionBuilder()
             .set_deserialize_key(new_session.get_id())
-            .set_deserialize_value(new_session.serialize_value())
+            .set_deserialize_value(make_session_token(new_session))
             .unwrap()
             .build()
             .unwrap()
@@ -96,6 +108,7 @@ class test_product_builder(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
+        mid = "1297b39f733a421296a13fc40c8bf012"
 
         product_id = ProductIDBuilder().set_uuid(id).unwrap().build()
         new_session = (
@@ -108,6 +121,11 @@ class test_product_builder(unittest.TestCase):
             .set_img_path("img01.png")
             .unwrap()
             .set_key()
+            .unwrap()
+            .set_use_count()
+            .set_owner_id(mid)
+            .unwrap()
+            .set_create_time()
             .build()
             .unwrap()
         )
@@ -119,7 +137,7 @@ class test_product_builder(unittest.TestCase):
         read_session = (
             ProductSessionBuilder()
             .set_deserialize_key(new_session.get_id())
-            .set_deserialize_value(new_session.serialize_value())
+            .set_deserialize_value(make_session_token(new_session))
             .unwrap()
             .build()
             .unwrap()
@@ -130,6 +148,7 @@ class test_product_builder(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
+        mid = "1297b39f733a421296a13fc40c8bf012"
 
         product_id = ProductIDBuilder().set_uuid(id).unwrap().build()
         new_session = (
@@ -140,6 +159,11 @@ class test_product_builder(unittest.TestCase):
             .set_name("오븐")
             .set_price(9513)
             .set_key()
+            .unwrap()
+            .set_use_count()
+            .set_owner_id(mid)
+            .unwrap()
+            .set_create_time()
             .build()
             .unwrap()
         )
@@ -151,7 +175,7 @@ class test_product_builder(unittest.TestCase):
         read_session = (
             ProductSessionBuilder()
             .set_deserialize_key(new_session.get_id())
-            .set_deserialize_value(new_session.serialize_value())
+            .set_deserialize_value(make_session_token(new_session))
             .unwrap()
             .build()
             .unwrap()
@@ -161,7 +185,7 @@ class test_product_builder(unittest.TestCase):
         read_read_session = (
             ProductSessionBuilder()
             .set_deserialize_key(read_session.get_id())
-            .set_deserialize_value(read_session.serialize_value())
+            .set_deserialize_value(make_session_token(read_session))
             .unwrap()
             .set_img_path("img01.png")
             .unwrap()

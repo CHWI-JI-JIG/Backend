@@ -35,17 +35,26 @@ class test_order_builder(unittest.TestCase):
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
         uid = "365b77a0a6b34fe28c7112d6c1bb64ca"
+        mid = "1297b39f733a421296a13fc40c8bf012"
         product_id = ProductIDBuilder().set_uuid(id).unwrap().build()
         new_order_transition = (
             OrderTransitionBuilder()
             .set_key()
+            .unwrap()
             .set_buyer_id(uid)
+            .unwrap()
             .set_recipient_name("test name")
             .set_recipient_phone("01033458312")
             .set_recipient_address("guri suteak")
             .set_product_id(id)
+            .unwrap()
             .set_count_and_price(3, 2000)
+            .set_use_count()
+            .set_owner_id(mid)
+            .unwrap()
+            .set_create_time()
             .build()
+            .unwrap()
         )
 
         self.assertEqual(
@@ -56,9 +65,10 @@ class test_order_builder(unittest.TestCase):
         read_session = (
             OrderTransitionBuilder()
             .set_deserialize_key(new_order_transition.get_id())
-            .set_deserialize_value(new_order_transition.serialize_value())
+            .set_deserialize_value(make_session_token(new_order_transition))
             .unwrap()
             .build()
+            .unwrap()
         )
         self.assertEqual(new_order_transition.key, read_session.key)
         self.assertEqual(
@@ -89,10 +99,11 @@ class test_order_builder(unittest.TestCase):
         success_session = (
             OrderTransitionBuilder()
             .set_deserialize_key(read_session.get_id())
-            .set_deserialize_value(read_session.serialize_value())
+            .set_deserialize_value(make_session_token(read_session))
             .unwrap()
             .set_is_success(True)
             .build()
+            .unwrap()
         )
 
         self.assertEqual(new_order_transition.key, success_session.key)

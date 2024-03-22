@@ -101,6 +101,8 @@ class test_privacy(unittest.TestCase):
             case Ok(session):
                 self.login_session = session
             case e:
+                ic()
+                ic(e)
                 assert False, f"{e}"
 
     def tearDown(self):
