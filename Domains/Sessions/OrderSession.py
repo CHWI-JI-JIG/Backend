@@ -239,7 +239,7 @@ class OrderTransitionBuilder(ISesseionBuilder):
         ), "ValueType Error: Initialize the id via MemberIDBuilder."
 
         self.buyer_id = id
-        return self
+        return Ok(self)
 
     def set_product_id(self, product_id: str) -> Result[Self, str]:
         assert self.product_id is None, "product id is already set."
@@ -257,7 +257,7 @@ class OrderTransitionBuilder(ISesseionBuilder):
         ), "ValueType Error: Initialize the id via ProductIDBuilder."
 
         self.product_id = id
-        return self
+        return Ok(self)
 
     def build(self) -> Result[OrderTransitionSession, str]:
         key = "key"

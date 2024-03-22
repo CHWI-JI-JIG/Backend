@@ -1,3 +1,5 @@
+from _curses import OK
+from Builders.Products.BasicProductBuilder import ProductIDBuilder
 import __init__
 from abc import ABCMeta, abstractmethod
 from typing import Optional
@@ -33,6 +35,7 @@ class OrderPaymentService:
         save_order: ISaveableOrder,
         save_transition: ISaveableOrderTransition,
         load_session: ILoadableSession,
+        get_product:IGetableProduct,
     ):
         assert issubclass(
             type(save_order), ISaveableOrder
@@ -51,6 +54,12 @@ class OrderPaymentService:
         ), "save_member_repo must be a class that inherits from ILoadableSession."
 
         self.load_repo = load_session
+        
+        assert issubclass(
+            type(get_product), IGetableProduct
+        ), "save_member_repo must be a class that inherits from IGetableProduct."
+
+        self.product_repo = get_product
 
     def publish_order_transition(
         self,
@@ -59,7 +68,6 @@ class OrderPaymentService:
         recipient_address: str,
         product_id: str,
         buy_count: int,
-        single_price: int,
         user_session_key: str,
     ) -> Result[OrderTransitionSession, str]:
         # check member session
@@ -74,6 +82,22 @@ class OrderPaymentService:
                         return Err("Invalid Member Session")
             case _:
                 return Err("plz login")
+        match (
+                ProductIDBuilder()
+                .set_uuid(product_id)
+                .map(lambda b:b.build())
+            ):
+            case Ok(pid):
+                match self.product_repo.get_product_by_product_id(pid):
+                    case product if isinstance(product,Product):
+                        ic()
+                        single_price = product.price
+                    case e:
+                        ic()
+                        ic(e)
+                        return Err("Failed to fetch product information")
+            case e:
+                return e
 
         # publish
         return self.transition_repo.save_order_transition(
@@ -82,14 +106,18 @@ class OrderPaymentService:
             .set_recipient_name(recipient_name)
             .set_recipient_phone(recipient_phone)
             .set_recipient_address(recipient_address)
-            .set_product_id(product_id)
-            .set_buyer_id(buyer_id)
+            .set_product_id(product_id).unwrap()
+            .set_buyer_id(buyer_id).unwrap()
             .set_count_and_price(
                 buy_count=buy_count,
                 price=single_price,
             )
             .build()
+            
         )
+        
+
+
 
     def payment_and_approval_order(
         self,
