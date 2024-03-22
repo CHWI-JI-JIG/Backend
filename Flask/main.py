@@ -46,7 +46,7 @@ from mysql_config import mysql_db
 
 SECRETSPATH = __init__.root_path / "secrets.json"
 IMG_PATH = __init__.root_path / "Images"
-# ALLOWED_EXTENSIONS = {'png', 'jpeg', 'jpg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpeg', 'jpg', 'gif'}
 
 
 with SECRETSPATH.open("r") as f:
@@ -57,10 +57,10 @@ CORS(app)
 app.secret_key = secrets["SECRET_KEY"]
 app.config["UPLOAD_FOLDER"] = IMG_PATH
 
-# def allowed_file(filename):
-#    return '.' in filename and \
-#           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def allowed_file(filename):
+   return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def check_id_duplicate(account):
     db = pymysql.connect(**mysql_db)
@@ -81,8 +81,10 @@ def check_id_duplicate(account):
 
 @app.route("/api/Images/<path:filename>")
 def send_image(filename):  # /Images/img102.png
-    ic(filename)
-    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+    if allowed_file(filename):
+        return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+    else:
+        return "File not allowed", 403
 
 
 @app.route("/api/search", methods=["GET"])
@@ -404,8 +406,9 @@ def bsignup():
 def adminUser():
     read_repo = MySqlGetMember(get_db_padding())
     edit_repo = MySqlEditMember(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
 
-    get_user_info = AdminService(read_repo, edit_repo)
+    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
 
     data = request.get_json()
     user_key = data.get("key")
@@ -413,8 +416,11 @@ def adminUser():
     page -= 1
 
     size = 20
-    result = get_user_info.read_members(page, size)
+    result = get_user_info.read_members(user_key, page, size)
     ic(result)
+
+
+
     response_data = {"page": page + 1, "size": size, "data": []}
 
     match result:
