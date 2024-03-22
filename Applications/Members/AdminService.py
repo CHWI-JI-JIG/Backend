@@ -57,6 +57,8 @@ class AdminService:
                             return self.read_repo.get_members(page=page, size=size)
                         else:
                             return Err("Access Denied: User is not admin")
+                    case _ :
+                        return Err('err')
 
             case _:
                 return Err("Session load or build failed")
