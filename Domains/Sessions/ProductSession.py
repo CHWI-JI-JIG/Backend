@@ -97,6 +97,7 @@ class ProductSessionBuilder(ISessionBuilder, SecuritySessionBuilder):
         description: Optional[str] = None,
         img_path: Optional[str] = None,
     ):
+        super().__init__(key=key)
         self.key = key
         self.seller_id: Optional[MemberID] = None
         self.name: Optional[name] = name

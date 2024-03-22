@@ -52,17 +52,25 @@ class SecuritySessionBuilder:
         self.use_count = use_count
         self.create_time = create_time
 
-    def set_owner_id(self, owner_id: str) -> Result[Self, str]:
-        assert isinstance(owner_id, str), "Type of owner_id is hex"
-        if not check_hex_string(owner_id):
-            return Err("The owner_id is not in hex format.")
-        try:
-            self.owner_id = UUID(hex=owner_id)
-        except:
-            return Err("Not Convert UUID")
+    def set_owner_id(self, owner_id: Union[UUID, str]) -> Result[Self, str]:
+        assert self.owner_id is None, "The owner is already set."
+
+        if isinstance(owner_id, str):
+            if not check_hex_string(owner_id):
+                return Err("The owner_id is not in hex format.")
+            try:
+                self.owner_id = UUID(hex=owner_id)
+            except:
+                return Err("Not Convert UUID")
+        elif isinstance(owner_id, UUID):
+            self.owner_id = owner_id
+        else:
+            assert False, "Type of owner_id is hex or UUID"
+        assert isinstance(self.owner_id, UUID), "Type of owner_id is UUID"
         return Ok(self)
 
     def set_use_count(self, count: Optional[int] = None) -> Self:
+        assert self.use_count is None, "use_count is already set."
         if count is None:
             count = 0
         assert count >= 0, "Use count must be a non-negative integer."
@@ -70,7 +78,7 @@ class SecuritySessionBuilder:
         return self
 
     def set_create_time(self, time: Union[datetime, str, None] = None) -> Self:
-        # write code
+        assert self.create_time is None, "create_time is already set."
         if time is None:
             time = datetime.now().replace(microsecond=0)
         elif isinstance(time, str):
@@ -111,7 +119,9 @@ class SecuritySessionBuilder:
             assert False, "You didn't set the use_count."
             return False
         if not isinstance(self.create_time, datetime):
-            return True
+            assert False, "You didn't set the create_time."
+            return False
+        return True
 
 
 class ISucuritySessionGetable(metaclass=ABCMeta):
@@ -151,8 +161,12 @@ def make_session_token(token_builder: ISessionSerializeable) -> SessionToken:
     # assert isinstance(
     #     token_builder, SecuritySession
     # ), "Parent of token_builder is SecuritySession."
-    assert issubclass(type(token_builder), ISessionSerializeable), "token_builder must inherit from ISessionSerializeable"
-    assert issubclass(type(token_builder), SecuritySession), "token_builder must inherit from SecuritySession"
+    assert issubclass(
+        type(token_builder), ISessionSerializeable
+    ), "token_builder must inherit from ISessionSerializeable"
+    assert issubclass(
+        type(token_builder), SecuritySession
+    ), "token_builder must inherit from SecuritySession"
 
     return SessionToken(
         value=token_builder.serialize_value(),

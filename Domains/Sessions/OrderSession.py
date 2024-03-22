@@ -1,7 +1,7 @@
 import __init__
 from dataclasses import dataclass
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Self
+from typing import Optional, Self, Union
 from uuid import uuid4, UUID
 import json
 from pathlib import Path
@@ -177,20 +177,6 @@ class OrderTransitionBuilder(ISessionBuilder, SecuritySessionBuilder):
 
         return self
 
-    def set_key(self, key: Optional[str] = None) -> Self:
-        assert self.key is None, "The Key is already set."
-        match key:
-            case None:
-                self.key = uuid4()
-            case k if isinstance(key, str):
-                assert check_hex_string(k), "The uuid_hex is not in hex format."
-                self.key = UUID(hex=key)
-            case _:
-                assert False, "Type of key is str."
-        assert isinstance(self.key, UUID), "Not set key."
-
-        return self
-
     def set_recipient_name(self, name: str) -> Self:
         assert self.recipient_name is None, "name is already set."
         assert isinstance(name, str), "Type of name is str"
@@ -240,10 +226,8 @@ class OrderTransitionBuilder(ISessionBuilder, SecuritySessionBuilder):
         self.total_price = total_price
         return self
 
-    def set_buyer_id(self, buyer_id: str) -> Result[Self, str]:
+    def set_buyer_id(self, buyer_id:Union[UUID,str]) -> Result[Self, str]:
         assert self.buyer_id is None, "buyer id is already set."
-        assert isinstance(buyer_id, str), "Type of buyer_id is str."
-        assert check_hex_string(buyer_id), "The buyer is not in hex format."
 
         match MemberIDBuilder().set_uuid(buyer_id).map(lambda b: b.build()):
             case Ok(id):
