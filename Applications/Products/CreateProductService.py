@@ -53,25 +53,31 @@ class CreateProductService:
                 match builder.set_deserialize_value(json):
                     case Ok(session):
                         user_session = session.build()
+                        
+                        if user_session.role == RoleType.SELLER:                           
+                            # publish
+                            match (
+                                ProductSessionBuilder()
+                                .set_key()
+                                .set_seller_id(user_session.member_id.get_id())
+                                .map(lambda b: b.build())
+                            ):
+                                case Ok(Ok(product_session)):
+                                    return self.save_session_repo.update_or_save_product_temp_session(
+                                        product_session
+                                    )
+                                case e:
+                                    print(e)
+                                    return e
+                                
+                        else:
+                            return Err("User does not have seller role")
                     case _:
                         return Err("Invalid Member Session")
+                    
             case _:
                 return Err("plz login")
-
-        # publish
-        match (
-            ProductSessionBuilder()
-            .set_key()
-            .set_seller_id(user_session.member_id.get_id())
-            .map(lambda b: b.build())
-        ):
-            case Ok(Ok(product_session)):
-                return self.save_session_repo.update_or_save_product_temp_session(
-                    product_session
-                )
-            case e:
-                print(e)
-                return e
+                 
 
     def check_upload_image_path(
         self,
