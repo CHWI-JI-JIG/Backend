@@ -60,15 +60,24 @@ class MySqlSaveProductTempSession(IUptadeORSaveProductTempSession):
                 count = cursor.fetchone()[0]
                 if count > 0:
                     cursor.execute(
-                        f"UPDATE {session_table_name} SET value = %s WHERE id = %s",
+                        f"""
+UPDATE {session_table_name} SET value = %s, use_count = use_count+1 WHERE id = %s """,
                         (session.serialize_value(), session.serialize_key()),
                     )
                 else:
                     cursor.execute(
-                        f"INSERT INTO {session_table_name} (id, value) VALUES (%s, %s)",
-                        (session.serialize_key(), session.serialize_value()),
+                        f"""
+INSERT INTO {session_table_name} (
+    id, value, owner_id, create_time, use_count
+) VALUES (%s, %s,%s,%s,0);
+""",
+                        (
+                            session.serialize_key(),
+                            session.serialize_value(),
+                            session.get_owner_id(),
+                            session.get_create_time(),
+                        ),
                     )
-
                 connection.commit()
                 return Ok(session)
 
