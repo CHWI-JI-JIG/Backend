@@ -11,11 +11,12 @@ from Domains.Sessions import *
 
 class ISaveableComment(metaclass=ABCMeta):
     @abstractmethod
-    def save_comment(
-        self, Comment: Comment
-    ) -> Result[CommentID, str]: ...
-    
+    def save_comment(self, Comment: Comment) -> Result[CommentID, str]: ...
+
     @abstractmethod
-    def update_answer(self, Comment_id: CommentID, answer:str, member_id: MemberID) -> Result[CommentID, str]:...
-    
-    
+    def update_answer(
+        self,
+        Comment_id: CommentID,
+        answer: str,
+        member_id: MemberID,
+    ) -> Result[CommentID, str]: ...

@@ -44,15 +44,17 @@ class MySqlSaveOrderTransition(ISaveableOrderTransition):
             session_table_name = self.get_padding_name("session")
 
             with connection.cursor() as cursor:
-                insert_query = f"""
-                INSERT INTO {session_table_name} (id, value)
-                VALUES (%s, %s)
-                """
                 cursor.execute(
-                    insert_query,
+                    f"""
+INSERT INTO {session_table_name} (
+id, value, owner_id, create_time, use_count
+) VALUES (%s, %s,%s,%s,0);
+""",
                     (
                         transition.serialize_key(),
                         transition.serialize_value(),
+                        transition.get_owner_id(),
+                        transition.get_create_time(),
                     ),
                 )
                 connection.commit()
@@ -72,15 +74,12 @@ class MySqlSaveOrderTransition(ISaveableOrderTransition):
 
             with connection.cursor() as cursor:
                 update_query = f"""
-                UPDATE {session_table_name}
-                SET value = %s
-                WHERE id = %s
-                """
+UPDATE {session_table_name} SET value = %s, use_count = use_count+1 WHERE id = %s """,
                 cursor.execute(
                     update_query,
                     (
-                        transition.serialize_value(),
                         transition.serialize_key(),
+                        transition.serialize_value(),
                     ),
                 )
 

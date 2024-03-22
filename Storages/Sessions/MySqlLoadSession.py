@@ -36,7 +36,7 @@ class MySqlLoadSession(ILoadableSession):
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
 
-    def load_session(self, session_key: str) -> Result[str, str]:
+    def load_session(self, session_key: str) -> Result[SessionToken, str]:
         """_summary_
 
         Args:
@@ -52,7 +52,7 @@ class MySqlLoadSession(ILoadableSession):
         try:
             with connection.cursor() as cursor:
                 query = f"""
-SELECT value
+SELECT value, owner_id, create_time, use_count
 FROM {session_table_name}
 WHERE id = %s
 """
@@ -63,15 +63,20 @@ WHERE id = %s
 
                 if result is None:
                     return Err("세션 데이터가 존재하지 않습니다.")
+                
 
-                session_value = result[0]
-
+                session_token = SessionToken(
+                    value=result[0],
+                    owner_id=result[1],
+                    create_time=result[2],
+                    use_count=result[3],
+                )
                 connection.commit()
 
                 cursor.close()
                 connection.close()
 
-                return Ok(session_value)
+                return Ok(session_token)
 
         except Exception as e:
             return Err(str(e))

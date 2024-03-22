@@ -2,6 +2,7 @@ import __init__
 import unittest
 import sys
 
+from Commons.format import KOREA_TIME_FORMAT
 from Domains.Members import *
 from Builders.Members import *
 from Domains.Sessions import *
@@ -49,14 +50,20 @@ class test_builder(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         id = "d697b39f733a426f96a13fc40c8bf061"
+        mid = "1297b39f733a421296a13fc40c8bf012"
         member_id = MemberIDBuilder().set_uuid(id).unwrap().build()
         new_session = (
             MemberSessionBuilder()
             .set_key()
+            .unwrap()
             .set_member_id(id)
             .unwrap()
             .set_role("buyer")
             .set_name("이탁균")
+            .set_use_count()
+            .set_owner_id(mid)
+            .unwrap()
+            .set_create_time()
             .build()
         )
         self.assertEqual(
@@ -67,7 +74,16 @@ class test_builder(unittest.TestCase):
         read_session = (
             MemberSessionBuilder()
             .set_deserialize_key(new_session.get_id())
-            .set_deserialize_value(new_session.serialize_value())
+            .set_deserialize_value(make_session_token(new_session))
+            .unwrap()
+            .build()
+        )
+        self.assertEqual(new_session, read_session)
+
+        read_session = (
+            MemberSessionBuilder()
+            .set_deserialize_key(new_session.get_id())
+            .set_deserialize_value(make_session_token(new_session))
             .unwrap()
             .build()
         )

@@ -31,10 +31,10 @@ class AdminService:
         assert issubclass(
             type(edit_repo), IEditableMember
         ), "save_member_repo must be a class that inherits from  IEditableMember."
-
         assert issubclass(
             type(load_session_repo), ILoadableSession
         ), "load_session_repo must be a class that inherits from ILoadableSession."
+        
         self.session_repo = load_session_repo
         self.read_repo = read_repo
         self.edit_repo = edit_repo
@@ -65,16 +65,31 @@ class AdminService:
 
     def change_role(
         self,
+        admin_key: str,
         role: str,
-        user_id: str,
+        target_user_id: str,
     ) -> Result[MemberID, str]:
+        
+        builder = MemberSessionBuilder().set_deserialize_key(admin_key)
+        match self.session_repo.load_session(admin_key):
+            case Ok(json):
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        admin_session = session.build()
+                        if admin_session.role != RoleType.ADMIN:                        
+                            return Err("Permission denied")
+                    case _:
+                        return Err("Invalid Member Session")
+            case _:
+                return Err("Session load failed")
+                            
         try:
             role_type = RoleType(role)
         except ValueError:
             return Err("Invalid role type")
         except Exception as e:
             return Err(str(e))
-        match MemberIDBuilder().set_uuid(user_id).map(lambda b: b.build()):
+        match MemberIDBuilder().set_uuid(target_user_id).map(lambda b: b.build()):
             case Ok(member_id):
                 return self.edit_repo.update_role(member_id, role_type)
             case e:

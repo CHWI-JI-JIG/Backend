@@ -46,7 +46,7 @@ from mysql_config import mysql_db
 
 SECRETSPATH = __init__.root_path / "secrets.json"
 IMG_PATH = __init__.root_path / "Images"
-ALLOWED_EXTENSIONS = {'png', 'jpeg', 'jpg', 'gif'}
+ALLOWED_EXTENSIONS = {"png", "jpeg", "jpg", "gif"}
 
 
 with SECRETSPATH.open("r") as f:
@@ -57,6 +57,9 @@ CORS(app)
 app.secret_key = secrets["SECRET_KEY"]
 app.config["UPLOAD_FOLDER"] = IMG_PATH
 
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def allowed_file(filename):
    return '.' in filename and \
@@ -419,8 +422,6 @@ def adminUser():
     result = get_user_info.read_members(user_key, page, size)
     ic(result)
 
-
-
     response_data = {"page": page + 1, "size": size, "data": []}
 
     match result:
@@ -431,7 +432,7 @@ def adminUser():
                 user_data = {
                     "userKey": v.id.get_id(),  # 사용자 key
                     "userId": v.account,  # 사용자 아이디(로그인용)
-                    "userAuth": v.role,  # 사용자 권한
+                    "userAuth": v.role.value,  # 사용자 권한
                 }
                 response_data["data"].append(user_data)
             return jsonify(response_data)
@@ -444,15 +445,16 @@ def adminUser():
 def updateUserRole():
     read_repo = MySqlGetMember(get_db_padding())
     edit_repo = MySqlEditMember(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
 
-    get_user_info = AdminService(read_repo, edit_repo)
+    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
 
     data = request.get_json()
     user_key = data.get("key")  # 세션키(즉, 관리자 세션키)
     user_id = data.get("userKey")  # 사용자 key
     new_role = data.get("userAuth")  # 변경할 권한
 
-    result = get_user_info.change_role(new_role, user_id)
+    result = get_user_info.change_role(user_key, new_role, user_id)
     ic(result)
 
     match result:
@@ -603,11 +605,13 @@ def sendPayInfo():
     order_transition_session = data.get("key")
     card_num = data.get("cardNum")
     total_price = data.get("productPrice")
-    payment_success = data.get("paymentVerification") 
+    payment_success = data.get("paymentVerification")
 
     ic()
 
-    result = PaymentService().approval_and_logging(order_transition_session,total_price,card_num)
+    result = PaymentService().approval_and_logging(
+        order_transition_session, total_price, card_num
+    )
     ic()
     match result:
         case Ok(True):
@@ -630,11 +634,10 @@ def sendPayInfo():
 
         case Err(e):
             ic()
-            return jsonify({'success': False})
+            return jsonify({"success": False})
 
- 
-       
-@app.route('/api/answer', methods=['POST'])
+
+@app.route("/api/answer", methods=["POST"])
 def qaAnswer():
     save_comment = MySqlSaveComment(get_db_padding())
     load_session = MySqlLoadSession(get_db_padding())
@@ -720,7 +723,6 @@ def qaQuestion():
 
         case Err(e):
             return jsonify({"success": False})
-
 
 
 @app.route("/api/c-user", methods=["POST"])
