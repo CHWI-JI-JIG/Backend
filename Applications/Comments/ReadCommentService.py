@@ -54,8 +54,6 @@ class ReadCommentService:
 
         # ic()
         # ic("상품 관련된거 확인안했음")
-        ic()
-        ic(product_id)
 
         match ProductIDBuilder().set_uuid(product_id).map(lambda b:b.build()):
             case Ok(id):

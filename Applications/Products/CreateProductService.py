@@ -62,6 +62,10 @@ class CreateProductService:
         match (
             ProductSessionBuilder()
             .set_key()
+            .unwrap()  # 오류가 생길 확률이 없으므로 unwrap
+            .set_use_count()
+            .set_create_time()
+            .set_owner_id(user_session.owner_id)
             .unwrap() # 오류가 생길 확률이 없으므로 unwrap
             .set_seller_id(user_session.member_id.get_id())
             .map(lambda b: b.build())
