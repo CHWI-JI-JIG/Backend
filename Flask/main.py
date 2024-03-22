@@ -425,7 +425,7 @@ def adminUser():
                 user_data = {
                     "userKey": v.id.get_id(),  # 사용자 key
                     "userId": v.account,  # 사용자 아이디(로그인용)
-                    "userAuth": v.role,  # 사용자 권한
+                    "userAuth": v.role.value,  # 사용자 권한
                 }
                 response_data["data"].append(user_data)
             return jsonify(response_data)
