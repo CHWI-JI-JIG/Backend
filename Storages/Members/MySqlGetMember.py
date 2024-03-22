@@ -10,7 +10,6 @@ from Builders.Members import *
 from uuid import UUID
 
 import pymysql
-
 from icecream import ic
 
 
@@ -39,10 +38,10 @@ class MySqlGetMember(IReadableMemberList):
         page=0,
         size=10,
     ) -> Result[Tuple[int, List[Member]], str]:
-        
+
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
-        #여기부터 수정 중
+        # 여기부터 수정 중
         try:
             # 커서 생성
             with connection.cursor() as cursor:
@@ -52,19 +51,27 @@ SELECT id, account, role
 FROM {user_table_name}
 ORDER BY seq DESC
 LIMIT %s, %s
-"""                
+"""
                 cursor.execute(query, (offset, size))
                 result = cursor.fetchall()
 
                 users = []
                 for row in result:
                     id, account, role = row
-                    member = Member(
-                        id=MemberIDBuilder().set_uuid(id).build(),
-                        account=account,  # Member 클래스에 account 인자가 있는지 확인
-                        role=role
-                    )
-                    users.append(member)
+                    match MemberIDBuilder().set_uuid(id).map(lambda b: b.build()):
+                        case Ok(memder_id):
+                            member = (
+                                NoFilterMemberBuilder()
+                                .set_id(memder_id)
+                                .set_account(account)
+                                .set_role(role)
+                                .build()
+                            )
+                            users.append(member)
+                        case e:
+                            ic()
+                            ic(e)
+                            assert False, "Not Convert ID"
 
                 cursor.execute(f"SELECT COUNT(*) FROM {user_table_name}")
                 total_count = cursor.fetchone()[0]
@@ -75,5 +82,5 @@ LIMIT %s, %s
             # 여기 아래로 수정 안해도됨
         except Exception as e:
             print(e)
-            connection.close()  
-            return Err(str(e)) 
+            connection.close()
+            return Err(str(e))

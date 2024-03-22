@@ -105,7 +105,6 @@ class test_comment(unittest.TestCase):
             self.comment_migrate.create_comments()
             init_comment()
         # 코멘트 테이블 생성 여부 확인
-        ic(self.comment_migrate.check_exist_comments())
         assert self.comment_migrate.check_exist_comments(), "Not Init Comment table"
 
     def tearDown(self):
@@ -115,41 +114,37 @@ class test_comment(unittest.TestCase):
         if self.comment_migrate.check_exist_comments():
             self.comment_migrate.delete_comments()
 
-    
-                
     def test_comment_create_question(self):
-            "Hook method for deconstructing the test fixture after testing it."
-            print("\t\t", sys._getframe(0).f_code.co_name)
-            
-            # 테스트 이전의 comment 테이블의 행 수 저장
-            comments_before = self.comment_read_service.get_comment_data_for_product_page(
-                product_list[0].get_id(),
-            )
-            
-            # 코멘트를 생성하고
-            ret = self.comment_create_service.create_question(
-                "질문질문",
-                product_list[0].get_id(),
-                self.key,
-            )
-            
-            comments_after = self.comment_read_service.get_comment_data_for_product_page(
-                product_list[0].get_id(), 
-            )
-            
-            self.assertEqual(comments_before.unwrap()[0]+1, comments_after.unwrap()[0])
-            
-            
-            
+        "Hook method for deconstructing the test fixture after testing it."
+        print("\t\t", sys._getframe(0).f_code.co_name)
+
+        # 테스트 이전의 comment 테이블의 행 수 저장
+        comments_before = self.comment_read_service.get_comment_data_for_product_page(
+            product_list[0].get_id(),
+        )
+
+        # 코멘트를 생성하고
+        ret = self.comment_create_service.create_question(
+            "질문질문",
+            product_list[0].get_id(),
+            self.key,
+        )
+
+        comments_after = self.comment_read_service.get_comment_data_for_product_page(
+            product_list[0].get_id(),
+        )
+
+        self.assertEqual(comments_before.unwrap()[0] + 1, comments_after.unwrap()[0])
+
     def test_comment_update_answer(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
-        
+
         match self.comment_read_service.get_comment_data_for_product_page(
             product_id=product_list[0].get_id(),
             page=0,
-            size=10, 
-        ): 
+            size=10,
+        ):
             case Ok((max, _)):
                 beforemax = max
             case e:
@@ -198,7 +193,6 @@ class test_comment(unittest.TestCase):
         )
         match ret_read_updated:
             case Ok((max, comments_updated)):
-                ic(max)
                 assert max == beforemax + 1, "max Error"
                 target = comments_updated[0]
             case e:

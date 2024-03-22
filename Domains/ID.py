@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Self
+from typing import Optional, Self, Union
 from result import Result, Ok, Err
 from uuid import UUID, uuid4
 
@@ -35,16 +35,21 @@ class IDBuilder(IIDBuilder):
         self.sequence = seq
         return self
 
-    def set_uuid(self, uuid_hex: Optional[str] = None) -> Result[Self, str]:
+    def set_uuid(self, uid: Union[UUID, str, None] = None) -> Result[Self, str]:
         assert self.uuid is None, "The uuid_hex is already set."
-        match uuid_hex:
+        match uid:
             case None:
                 self.uuid = uuid4()
-            case k if isinstance(uuid_hex, str):
+            case k if isinstance(uid, str):
                 assert check_hex_string(k), "The uuid_hex is not in hex format."
                 if not check_hex_string(k):
                     return Err("not hex format")
-                self.uuid = UUID(hex=uuid_hex)
+                try:
+                    self.uuid = UUID(hex=uid)
+                except:
+                    return Err("Not Convert UUID")
+            case id if isinstance(id, UUID):
+                self.uuid = id
             case _:
                 assert False, "Type of uuid_hex is str."
 

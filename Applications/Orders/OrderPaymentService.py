@@ -1,5 +1,3 @@
-from _curses import OK
-from Builders.Products.BasicProductBuilder import ProductIDBuilder
 import __init__
 from abc import ABCMeta, abstractmethod
 from typing import Optional
@@ -10,6 +8,7 @@ from Domains.Products import *
 from Domains.Orders import *
 from Domains.Sessions import *
 from Builders.Members import *
+from Builders.Products import *
 
 from Repositories.Members import *
 from Repositories.Products import *
@@ -100,21 +99,29 @@ class OrderPaymentService:
                 return e
 
         # publish
-        return self.transition_repo.save_order_transition(
-            OrderTransitionBuilder()
+        match (
+            OrderTransitionBuilder(owner_id=user_session.owner_id)
             .set_key()
+            .unwrap()
             .set_recipient_name(recipient_name)
             .set_recipient_phone(recipient_phone)
             .set_recipient_address(recipient_address)
-            .set_product_id(product_id).unwrap()
-            .set_buyer_id(buyer_id).unwrap()
+            .set_use_count()
+            .set_create_time()
+            .set_buyer_id(user_session.owner_id)
+            .unwrap()
             .set_count_and_price(
                 buy_count=buy_count,
                 price=single_price,
             )
-            .build()
-            
-        )
+            .set_product_id(product_id)
+            .map(lambda b: b.build())
+        ):
+            case Ok(Ok(order_temp)):
+                # publish
+                return self.transition_repo.save_order_transition(order_temp)
+            case e:
+                return e
         
 
 
@@ -128,9 +135,14 @@ class OrderPaymentService:
         bulider = OrderTransitionBuilder().set_deserialize_key(order_transition_session)
         match self.load_repo.load_session(order_transition_session):
             case Ok(json):
-                match bulider.set_deserialize_value(json):
-                    case Ok(session):
-                        order_session = session.set_is_success(payment_success).build()
+                match (
+                    bulider
+                    .set_is_success(payment_success)
+                    .set_deserialize_value(json)
+                    .map(lambda b : b.build())
+                ):
+                    case Ok(Ok(session)):
+                        order_session = session
                     case e:
                         ic(e)
                         return Err("Invalid Order Transition")

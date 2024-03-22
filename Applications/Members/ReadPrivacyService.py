@@ -1,4 +1,3 @@
-
 import __init__
 
 
@@ -44,13 +43,13 @@ class ReadPrivacyService:
 
         match self.load_session_repo.load_session(user_session_key):
             case Ok(json):
-                match builder.set_deserialize_value(json):
+                match builder.set_deserialize_value(json).map(lambda b: b.build()):
                     case Ok(session):
-                        user_session = session.build()
-                        seller_id = user_session.member_id
+                        seller_id = session.member_id
                     case _:
                         return Err("Invalid Member Session")
-            case _:
+            case e:
+                ic(e)
                 return Err("Please log in")
 
         privacy_result = self.read_repo.get_privacy(seller_id)

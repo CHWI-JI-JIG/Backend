@@ -35,7 +35,10 @@ class MySqlCreateSession:
 CREATE TABLE IF NOT EXISTS {session_table_name} (
     seq INT AUTO_INCREMENT PRIMARY KEY,
     id VARCHAR(255) UNIQUE NOT NULL,
-    value VARCHAR(500) NOT NULL  
+    value VARCHAR(500) NOT NULL,
+    owner_id VARCHAR(255) NOT NULL,
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    use_count INT NOT NULL DEFAULT 0
 );
                 """
                 # session 생성

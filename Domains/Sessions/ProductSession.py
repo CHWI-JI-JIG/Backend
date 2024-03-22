@@ -10,7 +10,13 @@ from datetime import datetime
 
 
 from Commons.helpers import check_hex_string
-from Domains.Sessions import ISessionSerializeable, ISesseionBuilder
+from Domains.Sessions import (
+    ISessionSerializeable,
+    ISessionBuilder,
+    SecuritySession,
+    SecuritySessionBuilder,
+    SessionToken,
+)
 from Domains import ID
 from Domains.Members import *
 from Builders.Members import *
@@ -21,7 +27,7 @@ from icecream import ic
 
 
 @dataclass(frozen=True)
-class ProductTempSession(ID, ISessionSerializeable):
+class ProductTempSession(ID, ISessionSerializeable, SecuritySession):
     key: UUID
     seller_id: MemberID
     product: Optional[Product]
@@ -82,7 +88,7 @@ class ProductTempSession(ID, ISessionSerializeable):
                 )
 
 
-class ProductSessionBuilder(ISesseionBuilder):
+class ProductSessionBuilder(ISessionBuilder, SecuritySessionBuilder):
     def __init__(
         self,
         key: Optional[UUID] = None,
@@ -91,6 +97,7 @@ class ProductSessionBuilder(ISesseionBuilder):
         description: Optional[str] = None,
         img_path: Optional[str] = None,
     ):
+        super().__init__(key=key)
         self.key = key
         self.seller_id: Optional[MemberID] = None
         self.name: Optional[name] = name
@@ -114,10 +121,10 @@ class ProductSessionBuilder(ISesseionBuilder):
         self.set_key(key)
         return self
 
-    def set_deserialize_value(self, value: str) -> Result[Self, str]:
-        assert isinstance(value, str), "Type of value is str."
+    def set_deserialize_value(self, token: SessionToken) -> Result[Self, str]:
+        assert isinstance(token, SessionToken), "Type of token is SessionToken."
         try:
-            to_dict = json.loads(value)
+            to_dict = json.loads(token.value)
         except:
             return Err("fail read json")
         assert isinstance(to_dict, dict), "Type of convert value is Dict."
@@ -155,7 +162,11 @@ class ProductSessionBuilder(ISesseionBuilder):
                 return Err(f"Not Exists {dict_key}")
             self.set_img_path(to_dict.get(dict_key))
 
-        return Ok(self)
+        return (
+            self.set_use_count(token.use_count)
+            .set_create_time(token.create_time)
+            .set_owner_id(token.owner_id)
+        )
 
     def set_name(self, name: str) -> Self:
         assert self.name is None, "name is already set."
@@ -177,19 +188,6 @@ class ProductSessionBuilder(ISesseionBuilder):
         assert price >= 100, "price >= 0"
 
         self.price = price
-        return self
-
-    def set_key(self, key: Optional[str] = None) -> Self:
-        assert self.key is None, "The Key is already set."
-        match key:
-            case None:
-                self.key = uuid4()
-            case k if isinstance(key, str):
-                assert check_hex_string(k), "The uuid_hex is not in hex format."
-                self.key = UUID(hex=key)
-            case _:
-                assert False, "Type of key is str."
-
         return self
 
     def set_seller_id(self, seller_id: str) -> Result[Self, str]:
@@ -232,6 +230,7 @@ class ProductSessionBuilder(ISesseionBuilder):
 
     def build(self) -> Result[ProductTempSession, str]:
         assert isinstance(self.seller_id, MemberID), "Not Set seller_id"
+        self.assert_and_check_about_setting()
 
         match (self.name, self.price, self.description, self.seller_id):
             case (None, None, None, _):
@@ -268,9 +267,14 @@ class ProductSessionBuilder(ISesseionBuilder):
                 assert False, "img path don't set."
                 return Err("img path don't set.")
 
-        return Ok(ProductTempSession(
-            key=self.key,
-            seller_id=self.seller_id,
-            product=product,
-            img_path=img_path,
-        ))
+        return Ok(
+            ProductTempSession(
+                key=self.key,
+                seller_id=self.seller_id,
+                product=product,
+                img_path=img_path,
+                owner_id=self.owner_id,
+                create_time=self.create_time,
+                use_count=self.use_count,
+            )
+        )
