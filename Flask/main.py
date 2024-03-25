@@ -10,7 +10,6 @@ from flask import (
     send_from_directory,
 )
 
-from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
 import random
 import os
