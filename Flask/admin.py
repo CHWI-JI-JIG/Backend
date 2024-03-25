@@ -62,6 +62,16 @@ app = Flask(__name__)
 CORS(app)
 app.secret_key = secrets["SECRET_KEY"]
 app.config["UPLOAD_FOLDER"] = IMG_PATH
+app.config["SESSION_REFRESH_EACH_REQUEST"] = False
+
+from config import Mail_Config
+
+app.config.from_object(Mail_Config)
+mail = Mail(app)
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def allowed_file(filename):
@@ -83,6 +93,86 @@ def check_id_duplicate(account):
         return True
     else:
         return False
+
+
+def generate_otp():
+    return random.randint(100000, 999999)
+
+
+def get_create_time_by_key(key):
+    # 데이터베이스 연결 설정
+    conn = pymysql.connect(**mysql_db)
+
+    try:
+        with conn.cursor() as cursor:
+            # id 값이 key와 일치하는 행의 create_time 값을 조회하는 SQL 쿼리
+            sql = "SELECT create_time FROM log_otp WHERE id = %s"
+            cursor.execute(sql, (key,))
+            result = cursor.fetchone()
+
+            if result:
+                return result[0]  # create_time 값 반환
+            else:
+                return None  # 일치하는 행이 없는 경우
+    finally:
+        conn.close()
+
+
+def send_otp_email(email, otp):
+    msg = Message("Your OTP", sender=Mail_Config.MAIL_USERNAME, recipients=[email])
+    msg.body = f"Your OTP is: {otp}"
+    mail.send(msg)
+
+
+@app.route("/api/send-otp", methods=["POST"])
+def send_otp():
+    data = request.json  # JSON 데이터를 파이썬 딕셔너리로 변환
+    key = data.get("key")
+    if not key:
+        return jsonify({"error": "Key is required"}), 400
+
+    email = data.get("email")
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+
+    create_time = get_create_time_by_key(key)
+    ic(create_time)
+
+    otp = generate_otp()
+    ic(otp)
+    send_otp_email(email, otp)
+    session["otp"] = str(otp)
+    return "OTP sent!"
+
+
+@app.route("/api/verify-otp", methods=["POST"])
+def verify_otp():
+    user_otp = request.json.get("otp")  # 사용자가 제출한 OTP
+    key = request.json.get("key")
+
+    otp_key = session.get("otp")
+    if not otp_key:
+        return "Session expired or invalid!", 400
+
+    create_time = get_create_time_by_key(
+        key
+    )  # 이제 create_time은 datetime.datetime 객체
+
+    # 현재 시간 구하기
+    current_time = datetime.now()
+
+    # create_time으로부터 10분 후의 시간 계산
+    expiration_time = create_time + timedelta(minutes=10)
+
+    # 현재 시간이 create_time으로부터 10분 이내인지 확인
+    if current_time <= expiration_time:
+        # OTP 값이 세션에 저장된 값과 일치하는지 확인
+        if "otp" in session and session["otp"] == user_otp:
+            return "OTP verified!"
+        else:
+            return "Invalid OTP!"
+    else:
+        return "OTP expired!"
 
 
 @app.route("/api/Images/<path:filename>")
@@ -312,10 +402,10 @@ def login():
     session_repo = MySqlMakeSaveMemberSession(get_db_padding())
 
     login_pass = AuthenticationMemberService(auth_member_repo, session_repo)
-    result = login_pass.login(userId, userPassword)
+    result, _ = login_pass.login(userId, userPassword)
 
     match result:
-        case Ok((member_session,_)):
+        case Ok(member_session):
 
             ic(member_session)
             session["key"] = member_session.get_id()
