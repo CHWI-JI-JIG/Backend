@@ -27,6 +27,7 @@ from Applications.Products import *
 from Applications.Orders import *
 from Applications.Comments import *
 from Applications.Payments import *
+from Applications.Sessions import *
 
 from Storages.Members import *
 from Storages.Orders import *
@@ -729,6 +730,24 @@ def cUser():
 
         case Err(e):
             return jsonify({"success": False})
+        
+        
+@app.route("/api/logout", methods=["POST"])
+def logout():
+    
+    data = request.get_json()
+    
+    user_key = data.get("key")
+    
+    del_session_repo = MySqlDeleteSession(get_db_padding())
+    logout = MemberSessionService(del_session_repo)
+    
+    result = logout.logout(user_key)
+    
+    if result:
+        return jsonify({"success": True}), 200
+    else:
+        return jsonify({"success": False})
 
 
 if __name__ == "__main__":
