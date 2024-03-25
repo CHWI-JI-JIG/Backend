@@ -35,6 +35,10 @@ class OrderTransitionSession(ID, ISessionSerializeable, SecuritySession):
     order: Order
     is_success: Optional[bool] = None
 
+    def MAX_USE_COUNT(self) -> int:
+        return 10
+    def VALIDE_MINUTE(self) -> int:
+        return 3600
     def get_id(self) -> str:
         return self.get_key()
 
