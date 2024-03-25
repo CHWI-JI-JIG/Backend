@@ -555,8 +555,9 @@ def userProductInfo():
     save_order = MySqlSaveOrder(get_db_padding())
     save_transition = MySqlSaveOrderTransition(get_db_padding())
     load_session = MySqlLoadSession(get_db_padding())
+    get_product = MySqlGetProduct(get_db_padding())
 
-    save_trans_info = OrderPaymentService(save_order, save_transition, load_session)
+    save_trans_info = OrderPaymentService(save_order, save_transition, load_session, get_product)
 
     data = request.get_json()
 
@@ -575,7 +576,6 @@ def userProductInfo():
         recipient_address=recipient_address,
         product_id=product_id,
         buy_count=buy_count,
-        single_price=single_price,
         user_session_key=user_session_key,
     )
 
@@ -594,8 +594,9 @@ def sendPayInfo():
     save_order = MySqlSaveOrder(get_db_padding())
     save_transition = MySqlSaveOrderTransition(get_db_padding())
     load_session = MySqlLoadSession(get_db_padding())
+    get_product = MySqlGetProduct(get_db_padding())
 
-    send_pay_info = OrderPaymentService(save_order, save_transition, load_session)
+    send_pay_info = OrderPaymentService(save_order, save_transition, load_session, get_product)
 
     data = request.get_json()
 
