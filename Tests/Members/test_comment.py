@@ -76,16 +76,18 @@ class test_comment(unittest.TestCase):
         )
 
         match login.login("dfdf", "123"):
-            case Ok(auth):
+            case Ok((auth,b)):
                 cls.buyer_key = auth
                 cls.buyer_id = auth.member_id
+                assert not b, f"change pw : {b}"
             case Err(err):
                 assert False, f"Login failed: {err}"
 
         match login.login("1q2w", "123"):
-            case Ok(auth):
+            case Ok((auth,b)):
                 cls.seller_key = auth
                 cls.seller_id = auth.member_id
+                assert not b, f"change pw : {b}"
             case Err(err):
                 assert False, f"Login failed: {err}"
 

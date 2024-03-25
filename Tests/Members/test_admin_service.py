@@ -112,8 +112,9 @@ class test_admin_service(unittest.TestCase):
         print("\t\t", sys._getframe(0).f_code.co_name)
         # login
         match self.login_service.login("admin", "456"):
-            case Ok(auth):
+            case Ok((auth,b)):
                 admin_auth = auth
+                assert not b, f"change pw : {b}"
             case e:
                 ic(e)
                 raise ValueError()
@@ -211,8 +212,9 @@ class test_admin_service(unittest.TestCase):
         print("\t\t", sys._getframe(0).f_code.co_name)
         # login
         match self.login_service.login("admin", "456"):
-            case Ok(auth):
+            case Ok((auth,b)):
                 admin_auth = auth
+                assert not b, f"change pw : {b}"
             case Err:
                 raise ValueError()
 
@@ -288,8 +290,9 @@ class test_admin_service(unittest.TestCase):
 
         # login
         match self.login_service.login("admin", "456"):
-            case Ok(auth):
+            case Ok((auth,b)):
                 admin_auth = auth
+                assert not b, f"change pw : {b}"
             case e:
                 ic()
                 ic(e)
