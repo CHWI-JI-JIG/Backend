@@ -106,11 +106,9 @@ def search():
             sql = f"SELECT COUNT(*) as count FROM {get_db_padding()}product WHERE name LIKE %s"
             cursor.execute(sql, (keyword,))
             result = cursor.fetchone()
-            ic(result)
             if result and isinstance(result[0], int):
                 totalCount = result[0]
                 totalPage = math.ceil(totalCount / size)
-            ic(totalCount)
             offset = page * size
             sql = f"SELECT * FROM {get_db_padding()}product WHERE name LIKE %s LIMIT %s, %s"
             cursor.execute(sql, (keyword, offset, size))
@@ -273,7 +271,6 @@ def sellerProduct():
 
     size = 20
     result = get_product_info.get_product_data_for_seller_page(user_key, page, size)
-    # ic(result)
     response_data = {"page": page + 1, "size": size, "data": []}
 
     match result:
@@ -281,7 +278,6 @@ def sellerProduct():
 
             response_data["totalPage"] = math.ceil(max / size)
             for v in products:
-                ic(products)
                 product_data = {
                     "productId": v.id.get_id(),
                     "productName": v.name,
@@ -417,7 +413,6 @@ def adminUser():
 
     size = 20
     result = get_user_info.read_members(user_key, page, size)
-    ic(result)
 
     response_data = {"page": page + 1, "size": size, "data": []}
 
@@ -425,7 +420,6 @@ def adminUser():
         case Ok((max, members)):
             response_data["totalPage"] = math.ceil(max / size)
             for v in members:
-                ic(members)
                 user_data = {
                     "userKey": v.id.get_id(),  # 사용자 key
                     "userId": v.account,  # 사용자 아이디(로그인용)
@@ -452,7 +446,6 @@ def updateUserRole():
     new_role = data.get("userAuth")  # 변경할 권한
 
     result = get_user_info.change_role(user_key, new_role, user_id)
-    ic(result)
 
     match result:
         case Ok(user_id):
@@ -485,7 +478,6 @@ def orderHistroy():
     result = get_order_info.get_order_data_for_buyer_page(user_id, page, size)
     response_data = {"page": page + 1, "size": size, "data": []}
 
-    ic(result)
     match result:
         case Ok((max, product)):
             response_data["totalPage"] = math.ceil(max / size)
@@ -502,7 +494,6 @@ def orderHistroy():
                     "orderDate": v.order_date,
                 }
                 response_data["data"].append(order_data)
-                ic(response_data)
             return jsonify(response_data)
 
         case Err(e):
@@ -580,7 +571,6 @@ def userProductInfo():
         user_session_key=user_session_key,
     )
 
-    ic(result)
 
     match result:
         case Ok(session):
@@ -606,15 +596,12 @@ def sendPayInfo():
     total_price = data.get("productPrice")
     payment_success = data.get("paymentVerification")
 
-    ic()
 
     result = PaymentService().approval_and_logging(
         order_transition_session, total_price, card_num
     )
-    ic()
     match result:
         case Ok(True):
-            ic()
             pass
         case Err(e):
             return jsonify({"success": False, "msg": e})
@@ -623,16 +610,13 @@ def sendPayInfo():
         order_transition_session=order_transition_session,
         payment_success=True,
     )
-    ic()
     ic(result)
 
     match result:
         case Ok():
-            ic()
             return jsonify({"success": True})
 
         case Err(e):
-            ic()
             return jsonify({"success": False})
 
 
@@ -650,7 +634,6 @@ def qaAnswer():
     user_key = data.get("key")
 
     result = add_answer_info.add_answer(answer, comment_id, user_key)
-    ic(result)
 
     match result:
         case Ok():
@@ -678,7 +661,6 @@ def qaLoad():
     result = qa_load_info.get_comment_data_for_product_page(product_id, page - 1, size)
     response_data = {"page": page, "size": size, "data": []}
 
-    ic(result)
 
     match result:
         case Ok((max, comments)):

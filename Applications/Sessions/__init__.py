@@ -7,14 +7,9 @@ root_path = now_path.parent.parents
 if not (str(root_path) in sys.path):
     sys.path.append(str(root_path))
 
-# from Applications.Members.CreateMemberService import CreateMemberService
-# from Applications.Members.LoginMemberService import AuthenticationMemberService
-# from Applications.Members.AdminService import AdminService
-# from Applications.Members.ReadPrivacyService import ReadPrivacyService
+from Applications.Sessions.MemberSessionService import MemberSessionService
 
-# __all__ = [
-#     "CreateMemberService",
-#     "AuthenticationMemberService",
-#     "AdminService",
-#     "ReadPrivacyService",
-# ]
+
+__all__ = [
+    "MemberSessionService",
+]

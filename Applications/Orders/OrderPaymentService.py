@@ -101,7 +101,7 @@ class OrderPaymentService:
 
         # publish
         match (
-            OrderTransitionBuilder(owner_id=user_session.owner_id)
+            OrderTransitionBuilder(owner_id=user_session.key)
             .set_key()
             .unwrap()
             .set_recipient_name(recipient_name)
