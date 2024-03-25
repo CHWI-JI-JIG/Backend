@@ -402,7 +402,7 @@ def login():
     session_repo = MySqlMakeSaveMemberSession(get_db_padding())
 
     login_pass = AuthenticationMemberService(auth_member_repo, session_repo)
-    result = login_pass.login(userId, userPassword)
+    result, _ = login_pass.login(userId, userPassword)
 
     match result:
         case Ok(member_session):
