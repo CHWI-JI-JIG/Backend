@@ -1,0 +1,82 @@
+import __init__
+from abc import ABCMeta, abstractmethod
+from typing import Optional
+from result import Result, Err, Ok
+
+from Domains.Members import *
+from Domains.Sessions import *
+from Repositories.Members import *
+from Repositories.Sessions import *
+from Builders.Members import *
+from Repositories.Sessions import ILoadableSession
+from uuid import UUID
+
+import pymysql
+
+from icecream import ic
+
+
+class TempMySqlLoadSession(ILoadableSession):
+    def __init__(self, name_padding: str = "log_"):
+        self.name_padding = name_padding
+
+    def connect(self):
+        from get_config_data import get_mysql_dict
+
+        sql_config = get_mysql_dict()
+        return pymysql.connect(
+            host=sql_config["host"],
+            user=sql_config["user"],
+            password=sql_config["password"],
+            db=sql_config["database"],
+            charset=sql_config["charset"],
+            client_flag=pymysql.constants.CLIENT.MULTI_STATEMENTS,
+        )
+
+    def get_padding_name(self, name: str) -> str:
+        return f"{self.name_padding}{name}"
+
+    def load_session(self, session_key: str) -> Result[SessionToken, str]:
+        """_summary_
+
+        Args:
+            session_key (UUID): session_key is uuid.hex
+
+        Returns:
+            Result[str, str]:
+                Ok(str) : session value
+                Err(str) : str is seasion of error
+        """
+        connection = self.connect()
+        session_table_name = self.get_padding_name("otp")
+        try:
+            with connection.cursor() as cursor:
+                query = f"""
+SELECT value, owner_id, create_time, use_count
+FROM {session_table_name}
+WHERE id = %s
+"""
+                # session_key = MemberSessionBuilder().set_key().build()
+                cursor.execute(query, (str(session_key),))
+
+                result = cursor.fetchone()
+
+                if result is None:
+                    return Err("세션 데이터가 존재하지 않습니다.")
+                
+
+                session_token = SessionToken(
+                    value=result[0],
+                    owner_id=result[1],
+                    create_time=result[2],
+                    use_count=result[3],
+                )
+                connection.commit()
+
+                cursor.close()
+                connection.close()
+
+                return Ok(session_token)
+
+        except Exception as e:
+            return Err(str(e))

@@ -9,7 +9,10 @@ from flask import (
     url_for,
     send_from_directory,
 )
+
+from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
+import random
 import os
 import sys
 import math
@@ -43,6 +46,8 @@ from Domains.Sessions import *
 from get_config_data import get_db_padding
 from mysql_config import mysql_db
 
+from datetime import datetime, timedelta
+
 
 SECRETSPATH = __init__.root_path / "secrets.json"
 IMG_PATH = __init__.root_path / "Images"
@@ -56,6 +61,16 @@ app = Flask(__name__)
 CORS(app)
 app.secret_key = secrets["SECRET_KEY"]
 app.config["UPLOAD_FOLDER"] = IMG_PATH
+app.config["SESSION_REFRESH_EACH_REQUEST"] = False
+
+from config import Mail_Config
+
+app.config.from_object(Mail_Config)
+mail = Mail(app)
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def allowed_file(filename):
@@ -77,6 +92,86 @@ def check_id_duplicate(account):
         return True
     else:
         return False
+
+
+def generate_otp():
+    return random.randint(100000, 999999)
+
+
+def get_create_time_by_key(key):
+    # 데이터베이스 연결 설정
+    conn = pymysql.connect(**mysql_db)
+
+    try:
+        with conn.cursor() as cursor:
+            # id 값이 key와 일치하는 행의 create_time 값을 조회하는 SQL 쿼리
+            sql = "SELECT create_time FROM log_otp WHERE id = %s"
+            cursor.execute(sql, (key,))
+            result = cursor.fetchone()
+
+            if result:
+                return result[0]  # create_time 값 반환
+            else:
+                return None  # 일치하는 행이 없는 경우
+    finally:
+        conn.close()
+
+
+def send_otp_email(email, otp):
+    msg = Message("Your OTP", sender=Mail_Config.MAIL_USERNAME, recipients=[email])
+    msg.body = f"Your OTP is: {otp}"
+    mail.send(msg)
+
+
+@app.route("/api/send-otp", methods=["POST"])
+def send_otp():
+    data = request.json  # JSON 데이터를 파이썬 딕셔너리로 변환
+    key = data.get("key")
+    if not key:
+        return jsonify({"error": "Key is required"}), 400
+
+    email = data.get("email")
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+
+    create_time = get_create_time_by_key(key)
+    ic(create_time)
+
+    otp = generate_otp()
+    ic(otp)
+    send_otp_email(email, otp)
+    session["otp"] = str(otp)
+    return "OTP sent!"
+
+
+@app.route("/api/verify-otp", methods=["POST"])
+def verify_otp():
+    user_otp = request.json.get("otp")  # 사용자가 제출한 OTP
+    key = request.json.get("key")
+
+    otp_key = session.get("otp")
+    if not otp_key:
+        return "Session expired or invalid!", 400
+
+    create_time = get_create_time_by_key(
+        key
+    )  # 이제 create_time은 datetime.datetime 객체
+
+    # 현재 시간 구하기
+    current_time = datetime.now()
+
+    # create_time으로부터 10분 후의 시간 계산
+    expiration_time = create_time + timedelta(minutes=10)
+
+    # 현재 시간이 create_time으로부터 10분 이내인지 확인
+    if current_time <= expiration_time:
+        # OTP 값이 세션에 저장된 값과 일치하는지 확인
+        if "otp" in session and session["otp"] == user_otp:
+            return "OTP verified!"
+        else:
+            return "Invalid OTP!"
+    else:
+        return "OTP expired!"
 
 
 @app.route("/api/Images/<path:filename>")
@@ -397,7 +492,55 @@ def bsignup():
         return jsonify({"success": False})
 
 
-## susujin code
+@app.route("/api/Adminlogin", methods=["POST"])
+def Adminlogin():
+    data = request.get_json()
+
+    userId = data.get("userId")
+    userPassword = data.get("userPassword")
+
+    auth_member_repo = MySqlLoginAuthentication(get_db_padding())
+    session_repo = MySqlMakeSaveMemberSession(get_db_padding())
+    otp_session_repo = TempMySqlMakeSaveMemberSession(get_db_padding())
+    otp_load_session_repo = TempMySqlLoadSession(get_db_padding())
+
+    login_pass = LoginAdminService(
+        auth_member_repo, session_repo, otp_session_repo, otp_load_session_repo
+    )
+    result = login_pass.login(userId, userPassword)
+
+    match result:
+        case Ok(member_session):
+            response_data = {
+                "key": member_session.get_id(),
+            }
+
+            conn = pymysql.connect(**mysql_db)
+            try:
+                # 커서 생성
+                with conn.cursor() as cursor:
+                    sql = "SELECT email FROM log_user WHERE role = 'admin'"
+                    cursor.execute(sql)
+
+                    admin_email = cursor.fetchone()
+
+                    if admin_email:
+                        # response_data['success'] = True
+                        # response_data['email'] = admin_email[0]
+                        print(admin_email[0])
+
+                    else:
+                        jsonify(
+                            {"success": False, "err": "Admin 정보를 찾을 수 없습니다."}
+                        )
+            finally:
+                conn.close()
+
+            return (jsonify(response_data), 200)
+        case Err(e):
+            return jsonify({"success": False})
+
+
 @app.route("/api/admin", methods=["POST"])
 def adminUser():
     read_repo = MySqlGetMember(get_db_padding())
@@ -455,9 +598,6 @@ def updateUserRole():
 
         case Err(e):
             return jsonify({"success": False, "message": str(e)})
-
-
-## susujin code end
 
 
 @app.route("/api/order-history", methods=["POST"])
@@ -548,7 +688,9 @@ def userProductInfo():
     load_session = MySqlLoadSession(get_db_padding())
     get_product = MySqlGetProduct(get_db_padding())
 
-    save_trans_info = OrderPaymentService(save_order, save_transition, load_session, get_product)
+    save_trans_info = OrderPaymentService(
+        save_order, save_transition, load_session, get_product
+    )
 
     data = request.get_json()
 
@@ -571,7 +713,6 @@ def userProductInfo():
         user_session_key=user_session_key,
     )
 
-
     match result:
         case Ok(session):
             return jsonify({"success": True, "transId": session.get_id()})
@@ -587,7 +728,9 @@ def sendPayInfo():
     load_session = MySqlLoadSession(get_db_padding())
     get_product = MySqlGetProduct(get_db_padding())
 
-    send_pay_info = OrderPaymentService(save_order, save_transition, load_session, get_product)
+    send_pay_info = OrderPaymentService(
+        save_order, save_transition, load_session, get_product
+    )
 
     data = request.get_json()
 
@@ -595,7 +738,6 @@ def sendPayInfo():
     card_num = data.get("cardNum")
     total_price = data.get("productPrice")
     payment_success = data.get("paymentVerification")
-
 
     result = PaymentService().approval_and_logging(
         order_transition_session, total_price, card_num
@@ -660,7 +802,6 @@ def qaLoad():
 
     result = qa_load_info.get_comment_data_for_product_page(product_id, page - 1, size)
     response_data = {"page": page, "size": size, "data": []}
-
 
     match result:
         case Ok((max, comments)):
@@ -730,6 +871,13 @@ def cUser():
 
         case Err(e):
             return jsonify({"success": False})
+
+
+@app.route("/api/err-test")
+def err_test():
+    res = jsonify({"message": "Internal Server Error"})
+    res.status_code = 500
+    return res
 
 
 if __name__ == "__main__":
