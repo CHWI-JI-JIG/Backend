@@ -52,7 +52,7 @@ class CreateCommentService:
                             user_session = session.build()
                         case _:
                             return Err("Invalid Member Session")
-                case _:
+                case e:
                     return Err("plz login")
         match (
             CommentIDBuilder().set_uuid().map(lambda b:b.build()),

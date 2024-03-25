@@ -57,7 +57,7 @@ FROM {session_table_name}
 WHERE id = %s
 """
                 # session_key = MemberSessionBuilder().set_key().build()
-                cursor.execute(query, (str(session_key),))
+                cursor.execute(query, (session_key,))
 
                 result = cursor.fetchone()
 
