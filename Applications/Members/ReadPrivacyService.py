@@ -17,6 +17,7 @@ from Repositories.Members import *
 from Repositories.Products import *
 from Repositories.Sessions import *
 
+from Applications.Sessions.SessionHelper import check_valide_session
 
 from icecream import ic
 
@@ -46,6 +47,8 @@ class ReadPrivacyService:
                 match builder.set_deserialize_value(json).map(lambda b: b.build()):
                     case Ok(session):
                         seller_id = session.member_id
+                        if not check_valide_session(session):
+                            return Err("Expired Session")
                     case _:
                         return Err("Invalid Member Session")
             case e:

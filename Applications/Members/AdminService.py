@@ -15,6 +15,7 @@ from Repositories.Members import *
 from Repositories.Products import *
 from Repositories.Sessions import *
 
+from Applications.Sessions.SessionHelper import check_valide_session
 from icecream import ic
 
 
@@ -23,7 +24,7 @@ class AdminService:
         self,
         read_repo: IReadableMemberList,
         edit_repo: IEditableMember,
-        load_session_repo: ILoadableSession
+        load_session_repo: ILoadableSession,
     ):
         assert issubclass(
             type(read_repo), IReadableMemberList
@@ -35,9 +36,9 @@ class AdminService:
             type(load_session_repo), ILoadableSession
         ), "load_session_repo must be a class that inherits from ILoadableSession."
         
-        self.session_repo = load_session_repo
         self.read_repo = read_repo
         self.edit_repo = edit_repo
+        self.session_repo = load_session_repo
 
     def read_members(
         self,
@@ -49,19 +50,18 @@ class AdminService:
         builder = MemberSessionBuilder().set_deserialize_key(admin_key)
         match self.session_repo.load_session(admin_key):
             case Ok(json):
-                match builder.set_deserialize_value(json):
+                match builder.set_deserialize_value(json).map(lambda b: b.build()):
                     case Ok(session):
-                        admin_session = session.build()
-
-                        if admin_session.role == RoleType.ADMIN:
-                            return self.read_repo.get_members(page=page, size=size)
-                        else:
+                        admin_session = session
+                        if admin_session.role != RoleType.ADMIN:
                             return Err("Access Denied: User is not admin")
-                    case _ :
-                        return Err('err')
+                    case _:
+                        return Err("err")
 
-            case _:
+            case e:
+                ic(e)
                 return Err("Session load or build failed")
+        return self.read_repo.get_members(page=page, size=size)
 
     def change_role(
         self,
@@ -69,20 +69,22 @@ class AdminService:
         role: str,
         target_user_id: str,
     ) -> Result[MemberID, str]:
-        
+
         builder = MemberSessionBuilder().set_deserialize_key(admin_key)
         match self.session_repo.load_session(admin_key):
             case Ok(json):
                 match builder.set_deserialize_value(json):
                     case Ok(session):
                         admin_session = session.build()
-                        if admin_session.role != RoleType.ADMIN:                        
+                        if not check_valide_session(admin_session):
+                            return Err("Expired Session")
+                        if admin_session.role != RoleType.ADMIN:
                             return Err("Permission denied")
                     case _:
                         return Err("Invalid Member Session")
             case _:
                 return Err("Session load failed")
-                            
+
         try:
             role_type = RoleType(role)
         except ValueError:

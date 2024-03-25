@@ -4,7 +4,7 @@ import pymysql
 from icecream import ic
 
 
-class MySqlCreateUser:
+class MySqlCreateOtp:
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
@@ -23,34 +23,26 @@ class MySqlCreateUser:
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
 
-    def create_user(self):
+    def create_otp(self):
         connection = self.connect()
-        user_table_name = self.get_padding_name("user")
+        session_table_name = self.get_padding_name("otp")
+
         try:
             # 커서 생성
             with connection.cursor() as cursor:
                 # "users" 테이블 생성 쿼리
-                create_user_table_query = f"""
-CREATE TABLE IF NOT EXISTS {user_table_name} (
+                create_session_table_query = f"""
+CREATE TABLE IF NOT EXISTS {session_table_name} (
     seq INT AUTO_INCREMENT PRIMARY KEY,
-    id VARCHAR(255) UNIQUE,
-    account VARCHAR(255) UNIQUE,
-    pay_account VARCHAR(255),
-    passwd VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    role VARCHAR(255) NOT NULL,
-    company_registration_number VARCHAR(255),
-    phone VARCHAR(255) NOT NULL,
-    address VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    last_access DATETIME NOT NULL DEFAULT '1900-01-01 01:01:01',
-    last_changed_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fail_count INT NOT NULL DEFAULT 0
+    id VARCHAR(255) UNIQUE NOT NULL,
+    value VARCHAR(500) NOT NULL,
+    owner_id VARCHAR(255) NOT NULL,
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    use_count INT NOT NULL DEFAULT 0
 );
                 """
-                # print(create_user_table_query)
-                # user 생성
-                cursor.execute(create_user_table_query)
+                # session 생성
+                cursor.execute(create_session_table_query)
                 connection.commit()
 
         except Exception as ex:
@@ -62,14 +54,14 @@ CREATE TABLE IF NOT EXISTS {user_table_name} (
             # 연결 닫기
             connection.close()
 
-    def delete_user(self):
+    def delete_otp(self):
         connection = self.connect()
-        user_table_name = self.get_padding_name("user")
+        session_table_name = self.get_padding_name("otp")
         try:
             # 커서 생성
             with connection.cursor() as cursor:
                 # "users" 테이블 삭제 쿼리
-                drop_table_query = f"DROP TABLE IF EXISTS {user_table_name};"
+                drop_table_query = f"DROP TABLE IF EXISTS {session_table_name};"
                 cursor.execute(drop_table_query)
 
                 # 변경 사항을 커밋
@@ -79,9 +71,9 @@ CREATE TABLE IF NOT EXISTS {user_table_name} (
             # 연결 닫기
             connection.close()
 
-    def check_exist_user(self) -> bool:
+    def check_exist_otps(self) -> bool:
         connection = self.connect()
-        table_name = self.get_padding_name("user")
+        table_name = self.get_padding_name("otp")
         ret = False
         try:
             # 커서 생성

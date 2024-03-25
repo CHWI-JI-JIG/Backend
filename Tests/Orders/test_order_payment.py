@@ -69,7 +69,7 @@ class test_order_builder(unittest.TestCase):
             mm.delete_user()
 
         load_storage = MySqlLoadSession(get_db_padding())
-
+        get_product = MySqlGetProduct(get_db_padding())
         service = CreateMemberService(MySqlSaveMember(get_db_padding()))
         cls.member_create_service = service
 
@@ -104,7 +104,7 @@ class test_order_builder(unittest.TestCase):
         cls.read_order_service = service
 
         service = ReadProductService(
-            get_product_repo=MySqlGetProduct(get_db_padding()),
+            get_product_repo=get_product,
             load_session_repo=load_storage,
         )
         cls.read_product_service = service
@@ -113,6 +113,7 @@ class test_order_builder(unittest.TestCase):
             save_order=MySqlSaveOrder(get_db_padding()),
             save_transition=MySqlSaveOrderTransition(get_db_padding()),
             load_session=load_storage,
+            get_product=get_product,
         )
         cls.order_and_payment_service = service
 
@@ -223,7 +224,7 @@ class test_order_builder(unittest.TestCase):
                 assert False, f"DB Error? : {e}"
 
         match self.login_service.login("qawsars", "123"):
-            case Ok(session):
+            case Ok((session, _)):
                 member_session = session
             case e:
                 assert False, f"{e}"
@@ -330,8 +331,9 @@ class test_order_builder(unittest.TestCase):
                 assert False, f"DB Error? : {e}"
 
         match self.login_service.login("arst", "123"):
-            case Ok(session):
+            case Ok((session, b)):
                 member_session = session
+                assert not b, f"change pw : {b}"
             case e:
                 assert False, f"{e}"
         # 주문조회

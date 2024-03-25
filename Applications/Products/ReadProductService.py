@@ -19,6 +19,7 @@ from Repositories.Sessions import ILoadableSession
 
 from icecream import ic
 
+from Applications.Sessions.SessionHelper import check_valide_session
 
 class ReadProductService:
     def __init__(
@@ -92,6 +93,8 @@ class ReadProductService:
                 match builder.set_deserialize_value(json):
                     case Ok(session):
                         user_session = session.build()
+                        if not check_valide_session(user_session):
+                            return Err("Expired Session")
                         seller_id = user_session.member_id
                     case _:
                         return Err("Invalid Member Session")

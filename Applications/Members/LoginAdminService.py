@@ -11,16 +11,19 @@ from Builders.Members import *
 from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
 from datetime import datetime, timedelta
-from Repositories.Sessions import IMakeSaveMemberSession
+from Repositories.Sessions import *
 
 from icecream import ic
 
 
-class AuthenticationMemberService:
+class LoginAdminService:
     def __init__(
         self,
         auth_member_repo: IVerifiableAuthentication,
         session_repo: IMakeSaveMemberSession,
+        otp_session_repo: IMakeSaveMemberSession,
+        otp_load_session_repo: ILoadableSession,
+        
     ):
         assert issubclass(
             type(auth_member_repo), IVerifiableAuthentication
@@ -28,8 +31,11 @@ class AuthenticationMemberService:
 
         self.auth_repo = auth_member_repo
         self.session_repo = session_repo
+        self.otp_session_repo = otp_session_repo
+        self.otp_load_session_repo = otp_load_session_repo
 
-    def login(self, account: str, passwd: str) -> Result[Tuple[MemberSession,bool], str]:
+
+    def login(self, account: str, passwd: str) -> Result[MemberSession, str]:
         """_summary_
 
         Args:
@@ -37,10 +43,10 @@ class AuthenticationMemberService:
             passwd (str): _description_
 
         Returns:
-            Result[Tuple[MemberSession,bool], str]:
-                Ok(Tuple[MemberSession,bool]):
-                    bool: 비밀번호 변경 필요 여부 | 변경 필요 시 true
+            Result[MemberSession,str]:
+                Ok():
                 Err(str):
+
         """
 
         match self.auth_repo.identify_and_authenticate(account, hashing_passwd(passwd)):
@@ -58,12 +64,10 @@ class AuthenticationMemberService:
                 return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
 
         if ret.is_sucess:
-            session_result = self.session_repo.make_and_save_session(ret.id)
+            session_result = self.otp_session_repo.make_and_save_session(ret.id)
             match session_result:
                 case Ok(session):
-                    need_password_change = self.check_passwd_change(ret.last_changed_date, session.role)
-                    result = (session, need_password_change)
-                    return Ok(result)
+                    return Ok(session)
                 case Err(_):
                     return session_result
                 case _:
@@ -114,25 +118,3 @@ class AuthenticationMemberService:
             return True
         else:
             return False
-    
-    def check_passwd_change(self, last_changed_date: datetime, role: str) -> bool:
-        """
-        비밀번호 변경이 필요한지 확인하는 함수
-        """
-        try:
-            role_type = RoleType(role)
-        except ValueError:
-            return Err("Invalid role type")
-        except Exception as e:
-            return Err(str(e))
-        
-        current_date = datetime.now()
-        if role_type == RoleType.ADMIN:
-            days_to_check = 180  # 180 = 6 months(반기)
-        else:
-            days_to_check = 60  # 60 days
-        days_since_last_change = (current_date - last_changed_date).days
-        return days_since_last_change > days_to_check
-        
-        # time_since_last_change = current_date - last_changed_date
-        # return time_since_last_change.total_seconds() > days_to_check

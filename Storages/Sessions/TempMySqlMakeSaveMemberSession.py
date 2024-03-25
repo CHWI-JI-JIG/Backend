@@ -16,7 +16,7 @@ import pymysql
 from icecream import ic
 
 
-class MySqlMakeSaveMemberSession(IMakeSaveMemberSession):
+class TempMySqlMakeSaveMemberSession(IMakeSaveMemberSession):
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
@@ -48,12 +48,12 @@ class MySqlMakeSaveMemberSession(IMakeSaveMemberSession):
 
         connection = self.connect()
         member_table_name = self.get_padding_name("user")
-        session_table_name = self.get_padding_name("session")
+        session_table_name = self.get_padding_name("otp")
 
         try:
             with connection.cursor() as cursor:
                 query = f"""
-SELECT name, account, role
+SELECT name, role
 FROM {member_table_name}
 WHERE id = %s
 """
@@ -64,13 +64,12 @@ WHERE id = %s
                 if result is None:
                     return Err("회원정보가 없습니다.")
 
-                name, account, role = result
+                name, role = result
                 match (
                     MemberSessionBuilder()
                     .set_key()
                     .unwrap() # 오류날 확률이 없어서 unwrap()
                     .set_name(name)
-                    .set_account(account)
                     .set_role(role)
                     .set_use_count()
                     .set_create_time()

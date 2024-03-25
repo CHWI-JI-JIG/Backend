@@ -205,6 +205,7 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         self.id: Optional[MemberID] = None
         self.fail_count: Optional[int] = cnt
         self.last_access: Optional[datetime] = None
+        self.last_changed_date: Optional[datetime] = None
         self.is_sucess: Optional[bool] = None
 
     def set_id(self, id: MemberID) -> Self:
@@ -242,16 +243,30 @@ class AuthenticationBuilder(IAuthenticationBuilder):
 
         self.last_access = time
         return self
+    
+    def set_last_changed_date(self, time: Optional[datetime] = None) -> Self:
+        assert self.last_changed_date is None, "time is already set."
+
+        if time is None:
+            self.last_changed_date = datetime.now()
+            return self
+
+        assert isinstance(time, datetime), "Type of time is datetime."
+
+        self.last_changed_date = time
+        return self
 
     def build(self) -> Authentication:
         assert isinstance(self.id, MemberID), "You didn't set the id."
         assert isinstance(self.fail_count, int), "You didn't set the fail_count."
         assert isinstance(self.last_access, datetime), "You didn't set the last_access."
+        assert isinstance(self.last_changed_date, datetime), "You didn't set the last_changed_date."
         assert isinstance(self.is_sucess, bool), "You didn't set the is_sucess."
 
         return Authentication(
             id=self.id,
             last_access=self.last_access,
             fail_count=self.fail_count,
+            last_changed_date=self.last_changed_date,
             is_sucess=self.is_sucess,
         )

@@ -18,6 +18,7 @@ from Repositories.Sessions import *
 
 from icecream import ic
 
+from Applications.Sessions.SessionHelper import check_valide_session
 
 class OrderPaymentService:
     """
@@ -66,6 +67,7 @@ class OrderPaymentService:
         recipient_phone: str,
         recipient_address: str,
         product_id: str,
+        single_price:int,
         buy_count: int,
         user_session_key: str,
     ) -> Result[OrderTransitionSession, str]:
@@ -76,6 +78,8 @@ class OrderPaymentService:
                 match builder.set_deserialize_value(json):
                     case Ok(session):
                         user_session = session.build()
+                        if not check_valide_session(user_session):
+                            return Err("Expired Session")
                         buyer_id = user_session.member_id.get_id()
                     case _:
                         return Err("Invalid Member Session")
@@ -89,10 +93,10 @@ class OrderPaymentService:
             case Ok(pid):
                 match self.product_repo.get_product_by_product_id(pid):
                     case product if isinstance(product,Product):
-                        ic()
+                        if single_price != product.price:
+                            return Err("Invalide Price")
                         single_price = product.price
                     case e:
-                        ic()
                         ic(e)
                         return Err("Failed to fetch product information")
             case e:
@@ -142,6 +146,8 @@ class OrderPaymentService:
                     .map(lambda b : b.build())
                 ):
                     case Ok(Ok(session)):
+                        if not check_valide_session(session):
+                            return Err("Expired Session")
                         order_session = session
                     case e:
                         ic(e)
