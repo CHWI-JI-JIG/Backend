@@ -35,9 +35,9 @@ class AdminService:
             type(load_session_repo), ILoadableSession
         ), "load_session_repo must be a class that inherits from ILoadableSession."
         
-        self.session_repo = load_session_repo
         self.read_repo = read_repo
         self.edit_repo = edit_repo
+        self.session_repo = load_session_repo
 
     def read_members(
         self,
