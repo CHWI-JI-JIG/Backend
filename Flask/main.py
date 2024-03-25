@@ -159,11 +159,14 @@ def verify_otp():
     if current_time <= expiration_time:
         # OTP 값이 세션에 저장된 값과 일치하는지 확인
         if 'otp' in session and session['otp'] == user_otp:
-            return 'OTP verified!'
+            return jsonify({"success":True, "message" : "OTP 인증 완료"})
+            #return 'OTP verified!'
         else:
-            return 'Invalid OTP!'
+            return jsonify({"success" : False, "message": "OTP 인증 실패"})
+            #return 'Invalid OTP!'
     else:
-        return 'OTP expired!'
+        return jsonify({"success" : False, "message":"OTP 기간 만료"})
+        #return 'OTP expired!'
 
 @app.route("/api/Images/<path:filename>")
 def send_image(filename):  # /Images/img102.png
