@@ -567,7 +567,7 @@ def userProductInfo():
         recipient_address=recipient_address,
         product_id=product_id,
         buy_count=buy_count,
-        single_price=single_price
+        single_price=single_price,
         user_session_key=user_session_key,
     )
 
