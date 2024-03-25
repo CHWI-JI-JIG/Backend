@@ -66,6 +66,7 @@ class OrderPaymentService:
         recipient_phone: str,
         recipient_address: str,
         product_id: str,
+        single_price:int,
         buy_count: int,
         user_session_key: str,
     ) -> Result[OrderTransitionSession, str]:
@@ -89,10 +90,10 @@ class OrderPaymentService:
             case Ok(pid):
                 match self.product_repo.get_product_by_product_id(pid):
                     case product if isinstance(product,Product):
-                        ic()
+                        if single_price != product.price:
+                            return Err("Invalide Price")
                         single_price = product.price
                     case e:
-                        ic()
                         ic(e)
                         return Err("Failed to fetch product information")
             case e:
