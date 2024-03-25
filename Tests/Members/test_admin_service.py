@@ -5,6 +5,7 @@ import sys
 
 from Builders.Members import *
 from Storages.Members import *
+from Storages.Sessions import *
 from Domains.Members import *
 
 from Migrations import *
@@ -25,13 +26,25 @@ class test_admin_service(unittest.TestCase):
         print(sys._getframe(0).f_code.co_name, f"(test_admin_service)")
         test_padding = "test_admin_service_"
         set_db_padding(test_padding)
+        ms = MySqlCreateSession(get_db_padding())
+        cls.session_migrate = ms
+
         cls.user_migrate = MySqlCreateUser(get_db_padding())
         cls.mysql_save_member = MySqlSaveMember(get_db_padding())
         cls.create_service = CreateMemberService(cls.mysql_save_member)
         cls.l_repo = MySqlLoginAuthentication(get_db_padding())
         cls.get_repo = MySqlGetMember(get_db_padding())
         cls.edit_repo = MySqlEditMember(get_db_padding())
-        cls.admin_service = AdminService(cls.get_repo, cls.edit_repo)
+        cls.load_session = MySqlLoadSession(get_db_padding())
+        cls.admin_service = AdminService(cls.get_repo, cls.edit_repo, cls.load_session)
+
+        cls.login_service = AuthenticationMemberService(
+            auth_member_repo=cls.l_repo,
+            session_repo=MySqlMakeSaveMemberSession(get_db_padding()),
+        )
+
+        if ms.check_exist_session():
+            ms.delete_session()
         if cls.user_migrate.check_exist_user():
             cls.user_migrate.delete_user()
 
@@ -39,12 +52,15 @@ class test_admin_service(unittest.TestCase):
     def tearDownClass(cls):
         "Hook method for deconstructing the class fixture after running all tests in the class."
         print(sys._getframe(0).f_code.co_name)
+        if cls.session_migrate.check_exist_session():
+            cls.session_migrate.delete_session()
         if cls.user_migrate.check_exist_user():
             cls.user_migrate.delete_user()
 
     def setUp(self):
         "Hook method for setting up the test fixture before exercising it."
         print("\t", sys._getframe(0).f_code.co_name)
+        self.session_migrate.create_session()
         self.user_migrate.create_user()
         self.create_service.create(
             account="zxcvbn",
@@ -95,20 +111,16 @@ class test_admin_service(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         # login
-        match self.l_repo.identify_and_authenticate(
-            "admin",
-            hashing_passwd("456"),
-        ):
+        match self.login_service.login("admin", "456"):
             case Ok(auth):
-                self.assertTrue(auth.is_sucess)
-                admin_auto = auth
-            case Err:
+                admin_auth = auth
+            case e:
+                ic(e)
                 raise ValueError()
 
         # get members
-        ic()
-        ic("Not Auth Setting")
         match self.admin_service.read_members(
+            admin_key=admin_auth.get_id(),
             page=0,
             size=10,
         ):
@@ -124,7 +136,11 @@ class test_admin_service(unittest.TestCase):
                 assert False, "Fail load member"
 
         for buyer in filter(lambda member: member.role == RoleType.BUYER, members):
-            match self.admin_service.change_role(RoleType.SELLER, buyer.id.get_id()):
+            match self.admin_service.change_role(
+                admin_key=auth.get_id(),
+                role=RoleType.SELLER,
+                target_user_id=buyer.id.get_id(),
+            ):
                 case Ok(_):
                     ...
                 case e:
@@ -145,9 +161,8 @@ class test_admin_service(unittest.TestCase):
         )
 
         # get members
-        ic()
-        ic("Not Auth Setting")
         match self.admin_service.read_members(
+            admin_key=admin_auth.get_id(),
             page=0,
             size=10,
         ):
@@ -163,7 +178,11 @@ class test_admin_service(unittest.TestCase):
                 assert False, "Fail load member"
 
         for buyer in filter(lambda member: member.role == RoleType.SELLER, members):
-            match self.admin_service.change_role(RoleType.BUYER, buyer.id.get_id()):
+            match self.admin_service.read_members(
+                admin_key=admin_auth.get_id(),
+                page=0,
+                size=10,
+            ):
                 case Ok(_):
                     ...
                 case e:
@@ -171,18 +190,17 @@ class test_admin_service(unittest.TestCase):
                     assert False, "Fail change role."
 
         # get members
-        ic()
-        ic("Not Auth Setting")
         match self.admin_service.read_members(
+            admin_key=admin_auth.get_id(),
             page=0,
             size=10,
         ):
             case Ok((max, members)):
-                assert max == 5, "user num is 5!!"
+                assert max == 5, f"user num is {max}!!"
                 seller_num = len(
-                    list(filter(lambda member: member.role == RoleType.BUYER, members))
+                    list(filter(lambda member: member.role == RoleType.SELLER, members))
                 )
-                assert seller_num == 4, "seller is 4"
+                assert seller_num == 4, f"seller is {seller_num}"
                 members = members
             case e:
                 ic(e)
@@ -192,20 +210,15 @@ class test_admin_service(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         # login
-        match self.l_repo.identify_and_authenticate(
-            "admin",
-            hashing_passwd("456"),
-        ):
+        match self.login_service.login("admin", "456"):
             case Ok(auth):
-                self.assertTrue(auth.is_sucess)
-                admin_auto = auth
+                admin_auth = auth
             case Err:
                 raise ValueError()
 
         # get members
-        ic()
-        ic("Not Auth Setting")
         match self.admin_service.read_members(
+            admin_key=admin_auth.get_id(),
             page=0,
             size=10,
         ):
@@ -221,14 +234,22 @@ class test_admin_service(unittest.TestCase):
                 assert False, "Fail load member"
 
         for buyer in filter(lambda member: member.role == RoleType.BUYER, members):
-            match self.admin_service.change_role(RoleType.SELLER, buyer.id.get_id()):
+            match self.admin_service.change_role(
+                admin_key=admin_auth.get_id(),
+                role=RoleType.SELLER,
+                target_user_id=buyer.id.get_id(),
+            ):
                 case Ok(_):
                     ...
                 case e:
                     ic(e)
                     assert False, "Fail change role."
 
-        match self.admin_service.change_role(RoleType.SELLER, admin_auto.id.get_id()):
+        match self.admin_service.change_role(
+            admin_key=admin_auth.get_id(),
+            role=RoleType.SELLER,
+            target_user_id=admin_auth.member_id.get_id(),
+        ):
             case Ok(_):
                 ...
             case e:
@@ -249,9 +270,8 @@ class test_admin_service(unittest.TestCase):
         )
 
         # get members
-        ic()
-        ic("Not Auth Setting")
         match self.admin_service.read_members(
+            admin_key=admin_auth.get_id(),
             page=0,
             size=10,
         ):
@@ -260,40 +280,40 @@ class test_admin_service(unittest.TestCase):
                 seller_num = len(
                     list(filter(lambda member: member.role == RoleType.SELLER, members))
                 )
-                assert seller_num == 5, "seller is 5"
+                assert seller_num == 5, f"seller is {seller_num}"
                 members = members
             case e:
                 ic(e)
                 assert False, "Fail load member"
 
         # login
-        ic()
-        ic("Not Auth Setting")
-        match self.l_repo.identify_and_authenticate(
-            "admin",
-            hashing_passwd("456"),
-        ):
+        match self.login_service.login("admin", "456"):
             case Ok(auth):
-                self.assertTrue(auth.is_sucess)
-                admin_auto = auth
-            case Err:
+                admin_auth = auth
+            case e:
+                ic()
+                ic(e)
                 raise ValueError()
 
         for buyer in filter(lambda member: member.role == RoleType.SELLER, members):
-            match self.admin_service.change_role(RoleType.BUYER, buyer.id.get_id()):
+            match self.admin_service.change_role(
+                admin_key=auth.get_id(),
+                role=RoleType.SELLER,
+                target_user_id=buyer.id.get_id(),
+            ):
                 case Ok(_):
                     assert False, "Permission Error : change role."
                 case e:
                     ...
 
         # get members
-        ic()
-        ic("Not Auth Setting")
         match self.admin_service.read_members(
+            admin_key=admin_auth.get_id(),
             page=0,
             size=10,
         ):
-            case Ok(_):
+            case Ok(a):
+                ic(a)
                 assert False, "Permission Error : change role."
             case e:
                 ...
