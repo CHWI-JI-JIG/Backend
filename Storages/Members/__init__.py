@@ -12,6 +12,7 @@ from Storages.Members.MySqlLoginAuthentication import MySqlLoginAuthentication
 from Storages.Members.MySqlEditMember import MySqlEditMember
 from Storages.Members.MySqlGetMember import MySqlGetMember
 from Storages.Members.MySqlGetPrivacy import MySqlGetPrivacy
+from Storages.Members.MySqlChangePasswd import MySqlChangePasswd
 
 __all__ = [
     "MySqlSaveMember",
@@ -19,4 +20,5 @@ __all__ = [
     "MySqlGetMember",
     "MySqlEditMember",
     "MySqlGetPrivacy",
+    "MySqlChangePasswd",
 ]

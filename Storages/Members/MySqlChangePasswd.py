@@ -1,20 +1,16 @@
+from Domains.Members import MemberID
 import __init__
-from abc import ABCMeta, abstractmethod
-from typing import Optional
+
 from result import Result, Err, Ok
 
 from Domains.Members import *
 from Repositories.Members import *
 from Builders.Members import *
-from uuid import UUID
 
 import pymysql
-from datetime import datetime
-
-from icecream import ic
 
 
-class MySqlSaveMember(ISaveableMember):
+class MySqlChangePasswd(IChangeablePasswd):
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
@@ -33,49 +29,29 @@ class MySqlSaveMember(ISaveableMember):
 
     def get_padding_name(self, name: str) -> str:
         return f"{self.name_padding}{name}"
-
-    def save_member(self, member: Member, privacy: Privacy) -> Result[MemberID, str]:
+    
+    def update_passwd(self, member_id: MemberID, passwd: str) -> Result[MemberID, str]:
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
-        member.id.get_id()
+        member_id.get_id()
         try:
             # 커서 생성
             with connection.cursor() as cursor:
-                insert_query = f"""
-INSERT INTO {user_table_name} (
-    id,
-    account,
-    pay_account,
-    passwd,
-    email,
-    role,
-    company_registration_number,
-    phone,
-    address,
-    name,
-    last_access,
-    fail_count
-) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 0);
+                update_query = f"""
+UPDATE {user_table_name} 
+SET passwd = %s, last_changed_date = NOW() 
+WHERE id= %s
                 """
                 cursor.execute(
-                    insert_query,
+                    update_query,
                     (
-                        member.id.get_id(),
-                        member.account,
-                        privacy.pay_account,
-                        member.passwd,
-                        privacy.email,
-                        str(member.role),
-                        privacy.company_registration_number,
-                        privacy.phone,
-                        privacy.address,
-                        privacy.name,
-                        datetime.now(),
+                        passwd,
+                        member_id.get_id()
                     ),
                 )
                 # 변경 사항을 커밋
                 connection.commit()
-                return Ok(member.id)
+                return Ok(member_id)
         except Exception as e:
             connection.rollback()
             connection.close()

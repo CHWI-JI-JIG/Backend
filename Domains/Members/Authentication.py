@@ -11,6 +11,7 @@ from Domains.Members import MemberID
 @dataclass(frozen=True)
 class Authentication:
     id: MemberID
+    last_changed_date: datetime
     last_access: datetime
     fail_count: int
     is_sucess: bool
@@ -27,6 +28,9 @@ class IAuthenticationBuilder(metaclass=ABCMeta):
 
     @abstractmethod
     def set_last_access(self, time: datetime) -> Self: ...
+    
+    @abstractmethod
+    def set_last_changed_date(self, time: datetime) -> Self: ...
 
     @abstractmethod
     def set_fail_count(self, cnt: int) -> Self: ...

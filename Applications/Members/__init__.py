@@ -11,10 +11,12 @@ from Applications.Members.CreateMemberService import CreateMemberService
 from Applications.Members.LoginMemberService import AuthenticationMemberService
 from Applications.Members.AdminService import AdminService
 from Applications.Members.ReadPrivacyService import ReadPrivacyService
+from Applications.Members.ChangePasswdService import ChangePasswdService
 
 __all__ = [
     "CreateMemberService",
     "AuthenticationMemberService",
     "AdminService",
     "ReadPrivacyService",
+    "ChangePasswdService",
 ]

@@ -11,7 +11,7 @@ from Builders.Members import *
 from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
 from datetime import datetime, timedelta
-from Repositories.Sessions import IMakeSaveMemberSession
+from Repositories.Sessions import *
 
 from icecream import ic
 
@@ -20,33 +20,47 @@ class ChangePasswdService:
     def __init__(
         self,
         pass_repo: IChangeablePasswd,
-        session_repo: IMakeSaveMemberSession,
+        load_session_repo: ILoadableSession,
+        # make_session_repo: IMakeSaveMemberSession,
+        auth_member_repo: IVerifiableAuthentication,
     ):
         assert issubclass(
             type(pass_repo), IChangeablePasswd
         ), "auth_member_repo must be a class that inherits from  IChangeablePasswd."
+        assert issubclass(
+            type(load_session_repo), ILoadableSession
+        ), "load_session_repo must be a class that inherits from ILoadableSession."
+        assert issubclass(
+            type(auth_member_repo), IVerifiableAuthentication
+        ), "auth_member_repo must be a class that inherits from IverifiableAuthentication."
 
         self.pass_repo = pass_repo
-        self.session_repo = session_repo
-
-    def change_pw_on_nologin(
-        self,
-        passwd: str,
-        account: str,
-        page_session: str,
-    ) -> Result[MemberSession, str]:
-        # TODO
-        # 일단은 패스
-        ...
+        self.load_session_repo = load_session_repo
+        # self.make_session_repo = make_session_repo
+        self.auth_repo = auth_member_repo
 
     def change_expired_pw(
         self,
-        new_passwd: str,
+        user_key: str,        
         old_passwd: str,
-        user_key: str,
-    ) -> Result[MemberSession, str]:
-        # TODO
-        # 유저 세션 검증
-        # old pw 맞는지 점검
-        # 새 pw 업데이트
-        ...
+        new_passwd: str,
+    ) -> Result[MemberID, str]:  # Result 변경필요
+        
+        builder = MemberSessionBuilder().set_deserialize_key(user_key)
+        match self.load_session_repo.load_session(user_key):
+            case Ok(json):
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        user_session = session.build()
+                        member_id = user_session.member_id
+                        account = user_session.account                        
+                    case _:
+                        return Err("Invalid Member Session")
+            case _:
+                return Err("plz login")
+        
+        match self.auth_repo.identify_and_authenticate(account, hashing_passwd(old_passwd)):
+            case Ok(auth):
+                self.pass_repo.update_passwd(member_id, hashing_passwd(new_passwd))
+            case _:
+                return Err("Incorrect password")

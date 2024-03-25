@@ -26,6 +26,7 @@ from icecream import ic
 class MemberSession(ISessionSerializeable, ID, SecuritySession):
     name: str
     role: RoleType
+    account: str
     member_id: MemberID
 
     max_count:int = 100
@@ -47,6 +48,7 @@ class MemberSession(ISessionSerializeable, ID, SecuritySession):
             {
                 "member_id": self.member_id.get_id(),
                 "name": self.name,
+                "account": self.account,
                 "role": str(self.role),
             },
             ensure_ascii=False,
@@ -59,6 +61,7 @@ class MemberSessionBuilder(ISessionBuilder, SecuritySessionBuilder):
         key: Optional[UUID] = None,
         member_id: Optional[MemberID] = None,
         name: Optional[str] = None,
+        account: Optional[str] = None,
         owner_id: Optional[UUID] = None,
         use_count: Optional[int] = None,
         create_time: Optional[datetime] = None,
@@ -71,6 +74,7 @@ class MemberSessionBuilder(ISessionBuilder, SecuritySessionBuilder):
         )
         self.mid = member_id
         self.name: Optional[str] = name
+        self.account: Optional[str] = account
         self.role: Optional[RoleType] = None
 
     def set_deserialize_key(self, key: str) -> Self:
@@ -96,6 +100,12 @@ class MemberSessionBuilder(ISessionBuilder, SecuritySessionBuilder):
         if not isinstance(to_dict.get(dict_key), str):
             return Err(f"Not Exists {dict_key}")
         self.set_name(to_dict.get(dict_key))
+        
+        dict_key = "account"
+        assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
+        if not isinstance(to_dict.get(dict_key), str):
+            return Err(f"Not Exists {dict_key}")
+        self.set_account(to_dict.get(dict_key))
 
         dict_key = "role"
         assert isinstance(to_dict.get(dict_key), str), f"{dict_key} is not exsist dict."
@@ -114,6 +124,13 @@ class MemberSessionBuilder(ISessionBuilder, SecuritySessionBuilder):
         assert isinstance(name, str), "Type of name is str"
 
         self.name = name
+        return self
+    
+    def set_account(self, account: str) -> Self:
+        assert self.account is None, "account is already set."
+        assert isinstance(account, str), "Type of account is str"
+
+        self.account = account
         return self
 
     def set_role(self, role: str) -> Self:
@@ -154,12 +171,14 @@ class MemberSessionBuilder(ISessionBuilder, SecuritySessionBuilder):
         assert isinstance(self.mid, MemberID), "You didn't set the member_id."
         assert isinstance(self.role, RoleType), "You didn't set the rule."
         assert isinstance(self.name, str), "You didn't set the name."
+        assert isinstance(self.account, str), "You didn't set the account."
         self.assert_and_check_about_setting()
 
         return MemberSession(
             key=self.key,
             owner_id=self.owner_id,
             name=self.name,
+            account=self.account,
             role=self.role,
             member_id=self.mid,
             create_time=self.create_time,
