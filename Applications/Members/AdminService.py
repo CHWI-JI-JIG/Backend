@@ -60,7 +60,8 @@ class AdminService:
                     case _ :
                         return Err('err')
 
-            case _:
+            case e:
+                ic(e)
                 return Err("Session load or build failed")
 
     def change_role(
