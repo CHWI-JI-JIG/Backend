@@ -116,8 +116,9 @@ class test_privacy(unittest.TestCase):
         print("\t\t", sys._getframe(0).f_code.co_name)
         # 로그인
         match self.login_service.login("1q2w2e34r", "456"):
-            case Ok(session):
+            case Ok((session,b)):
                 login_session = session
+                assert not b, f"change pw : {b}"
             case e:
                 assert False, f"{e}"
 

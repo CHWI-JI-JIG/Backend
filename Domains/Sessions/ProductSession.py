@@ -33,6 +33,13 @@ class ProductTempSession(ID, ISessionSerializeable, SecuritySession):
     product: Optional[Product]
     img_path: str = ""
 
+    max_count:int = 7
+    minute:int=20
+    
+    def MAX_USE_COUNT(self) -> int:
+        return self.max_count
+    def VALIDE_MINUTE(self) -> int:
+        return self.minute
     def get_id(self) -> str:
         return self.key.hex
 

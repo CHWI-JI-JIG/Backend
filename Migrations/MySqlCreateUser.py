@@ -24,11 +24,8 @@ class MySqlCreateUser:
         return f"{self.name_padding}{name}"
 
     def create_user(self):
-        #TODO
-        # ADD last_chaged_date
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
-
         try:
             # 커서 생성
             with connection.cursor() as cursor:
@@ -47,6 +44,7 @@ CREATE TABLE IF NOT EXISTS {user_table_name} (
     address VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     last_access DATETIME NOT NULL DEFAULT '1900-01-01 01:01:01',
+    last_changed_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fail_count INT NOT NULL DEFAULT 0
 );
                 """

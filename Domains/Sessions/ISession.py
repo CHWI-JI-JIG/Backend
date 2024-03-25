@@ -20,7 +20,7 @@ class SessionToken:
 
 
 @dataclass(frozen=True)
-class SecuritySession:
+class SecuritySession(metaclass=ABCMeta):
     key: UUID
     owner_id: UUID
     create_time: datetime
@@ -37,6 +37,12 @@ class SecuritySession:
 
     def get_use_count(self) -> int:
         return self.use_count
+    
+    @abstractmethod
+    def MAX_USE_COUNT(self)->int:...
+    
+    @abstractmethod
+    def VALIDE_MINUTE(self)->int:...
 
 
 class SecuritySessionBuilder:

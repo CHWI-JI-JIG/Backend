@@ -13,6 +13,7 @@ from Storages.Sessions.MySqlMakeSaveMemberSession import MySqlMakeSaveMemberSess
 from Storages.Sessions.MySqlSaveProductTempSession import MySqlSaveProductTempSession
 from Storages.Sessions.MySqlLoadSession import MySqlLoadSession
 from Storages.Sessions.MySqlSaveOrderTransition import MySqlSaveOrderTransition
+from Storages.Sessions.MySqlDeleteSession import MySqlDeleteSession
 
 __all__ = [
     "TempMySqlLoadSession",
@@ -21,4 +22,5 @@ __all__ = [
     "MySqlLoadSession",
     "MySqlSaveProductTempSession",
     "MySqlSaveOrderTransition",
+    "MySqlDeleteSession",
 ]

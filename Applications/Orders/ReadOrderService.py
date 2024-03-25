@@ -21,6 +21,7 @@ from Repositories.Sessions import ILoadableSession
 
 from icecream import ic
 
+from Applications.Sessions.SessionHelper import check_valide_session
 
 class ReadOrderService:
     def __init__(
@@ -64,7 +65,10 @@ class ReadOrderService:
                 builder = MemberSessionBuilder().set_deserialize_key(buyer_key)
                 match builder.set_deserialize_value(json):
                     case Ok(session):
-                        buyer_id = session.build().member_id
+                        session = session.build()
+                        if not check_valide_session(session):
+                            return Err("Expired Session")
+                        buyer_id = session.member_id
                     case _:
                         return Err("Invalid Product Session")
             case _:
@@ -100,7 +104,10 @@ class ReadOrderService:
                 builder = MemberSessionBuilder().set_deserialize_key(seller_key)
                 match builder.set_deserialize_value(json):
                     case Ok(session):
-                        seller_id = session.build().member_id
+                        session = session.build()
+                        if not check_valide_session(session):
+                            return Err("Expired Session")
+                        seller_id = session.member_id
                     case _:
                         return Err("Invalid Product Session")
             case _:
