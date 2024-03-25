@@ -29,7 +29,7 @@ class AuthenticationMemberService:
         self.auth_repo = auth_member_repo
         self.session_repo = session_repo
 
-    def login(self, account: str, passwd: str) -> Result[MemberSession, str]:
+    def login(self, account: str, passwd: str) -> Result[Tuple[MemberSession,bool], str]:
         """_summary_
 
         Args:
@@ -37,10 +37,10 @@ class AuthenticationMemberService:
             passwd (str): _description_
 
         Returns:
-            Result[MemberSession,str]:
-                Ok():
+            Result[Tuple[MemberSession,bool], str]:
+                Ok(Tuple[MemberSession,bool]):
+                    bool: 비밀번호 변경 필요 여부 | 변경 필요 시 true
                 Err(str):
-
         """
 
         match self.auth_repo.identify_and_authenticate(account, hashing_passwd(passwd)):
@@ -61,7 +61,9 @@ class AuthenticationMemberService:
             session_result = self.session_repo.make_and_save_session(ret.id)
             match session_result:
                 case Ok(session):
-                    return Ok(session)
+                    need_password_change = self.check_passwd_change(ret.last_changed_date, session.role)
+                    result = (session, need_password_change)
+                    return Ok(result)
                 case Err(_):
                     return session_result
                 case _:
@@ -112,3 +114,25 @@ class AuthenticationMemberService:
             return True
         else:
             return False
+    
+    def check_passwd_change(self, last_changed_date: datetime, role: str) -> bool:
+        """
+        비밀번호 변경이 필요한지 확인하는 함수
+        """
+        try:
+            role_type = RoleType(role)
+        except ValueError:
+            return Err("Invalid role type")
+        except Exception as e:
+            return Err(str(e))
+        
+        current_date = datetime.now()
+        if role_type == RoleType.ADMIN:
+            days_to_check = 180  # 180 = 6 months(반기)
+        else:
+            days_to_check = 60  # 60 days
+        days_since_last_change = (current_date - last_changed_date).days
+        return days_since_last_change > days_to_check
+        
+        # time_since_last_change = current_date - last_changed_date
+        # return time_since_last_change.total_seconds() > days_to_check

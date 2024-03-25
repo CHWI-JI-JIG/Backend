@@ -9,6 +9,7 @@ from Builders.Members import *
 from uuid import UUID
 
 import pymysql
+from datetime import datetime
 
 from icecream import ic
 
@@ -34,14 +35,6 @@ class MySqlSaveMember(ISaveableMember):
         return f"{self.name_padding}{name}"
 
     def save_member(self, member: Member, privacy: Privacy) -> Result[MemberID, str]:
-        builder = (
-            AuthenticationBuilder()
-            .set_last_access()
-            .set_is_sucess(True)
-            .set_fail_count(0)
-            .set_id(member.id)
-            .build()
-        )
         connection = self.connect()
         user_table_name = self.get_padding_name("user")
         member.id.get_id()
@@ -62,7 +55,7 @@ INSERT INTO {user_table_name} (
     name,
     last_access,
     fail_count
-) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 0);
                 """
                 cursor.execute(
                     insert_query,
@@ -77,8 +70,7 @@ INSERT INTO {user_table_name} (
                         privacy.phone,
                         privacy.address,
                         privacy.name,
-                        builder.str_last_access(),
-                        0,
+                        datetime.now(),
                     ),
                 )
                 # 변경 사항을 커밋
