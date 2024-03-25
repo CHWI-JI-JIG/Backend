@@ -33,8 +33,8 @@ class ProductTempSession(ID, ISessionSerializeable, SecuritySession):
     product: Optional[Product]
     img_path: str = ""
 
-    max_count:int = 10
-    minute:int=3600
+    max_count:int = 7
+    minute:int=20
     
     def MAX_USE_COUNT(self) -> int:
         return self.max_count

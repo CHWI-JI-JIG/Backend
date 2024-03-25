@@ -15,6 +15,7 @@ from Repositories.Sessions import *
 from datetime import datetime
 from icecream import ic
 
+from Applications.Sessions.SessionHelper import check_valide_session
 
 class CreateProductService:
     def __init__(
@@ -53,6 +54,8 @@ class CreateProductService:
                 match builder.set_deserialize_value(json):
                     case Ok(session):
                         user_session = session.build()
+                        if not check_valide_session(user_session):
+                            return Err("Expired Session")
                         if user_session.role != RoleType.SELLER:
                             return Err("Permission Deny")
                     case _:
@@ -101,6 +104,8 @@ class CreateProductService:
         # set product Session
         match product_builder.set_img_path(img_path).map(lambda b: b.build()):
             case Ok(Ok(session)):
+                if not check_valide_session(session):
+                    return Err("Expired Session")
                 product = session
             case _:
                 return Err("Not Exist Image")
@@ -134,6 +139,8 @@ class CreateProductService:
             .build()
         ):
             case Ok(product):
+                if not check_valide_session(product):
+                    return Err("Expired Session")
                 return self.save_session_repo.update_or_save_product_temp_session(
                     product
                 )
@@ -161,6 +168,8 @@ class CreateProductService:
             return Err("Not Set Data")
         match product_builder.build():
             case Ok(product):
+                if not check_valide_session(product):
+                    return Err("Expired Session")
                 img_path = product.img_path
                 seller_id = product.seller_id
                 product = product.product

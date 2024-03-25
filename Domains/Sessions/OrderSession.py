@@ -35,8 +35,8 @@ class OrderTransitionSession(ID, ISessionSerializeable, SecuritySession):
     order: Order
     is_success: Optional[bool] = None
 
-    max_count:int = 10
-    minute:int=3600
+    max_count:int = 3
+    minute:int=3
     
     def MAX_USE_COUNT(self) -> int:
         return self.max_count

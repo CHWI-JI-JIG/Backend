@@ -54,10 +54,11 @@ class MySqlLoadSession(ILoadableSession):
                 query = f"""
 SELECT value, owner_id, create_time, use_count
 FROM {session_table_name}
-WHERE id = %s
+WHERE id = %s;
+UPDATE {session_table_name} SET use_count = use_count+1 WHERE id = %s;
 """
                 # session_key = MemberSessionBuilder().set_key().build()
-                cursor.execute(query, (session_key,))
+                cursor.execute(query, (session_key,session_key))
 
                 result = cursor.fetchone()
 

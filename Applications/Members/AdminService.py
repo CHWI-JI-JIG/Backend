@@ -15,6 +15,7 @@ from Repositories.Members import *
 from Repositories.Products import *
 from Repositories.Sessions import *
 
+from Applications.Sessions.SessionHelper import check_valide_session
 from icecream import ic
 
 
@@ -75,6 +76,8 @@ class AdminService:
                 match builder.set_deserialize_value(json):
                     case Ok(session):
                         admin_session = session.build()
+                        if not check_valide_session(admin_session):
+                            return Err("Expired Session")
                         if admin_session.role != RoleType.ADMIN:
                             return Err("Permission denied")
                     case _:

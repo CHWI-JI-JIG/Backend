@@ -14,6 +14,7 @@ from Repositories.Comments import *
 from Repositories.Sessions import *
 from Builders.Products import *
 from Builders.Comments import *
+from Applications.Sessions.SessionHelper import check_valide_session
 
 from icecream import ic
 
@@ -50,6 +51,8 @@ class CreateCommentService:
                     match builder.set_deserialize_value(json):
                         case Ok(session):
                             user_session = session.build()
+                            if not check_valide_session(user_session):
+                                return Err("Expired Session")
                         case _:
                             return Err("Invalid Member Session")
                 case e:
@@ -87,6 +90,8 @@ class CreateCommentService:
                     match builder.set_deserialize_value(json):
                         case Ok(session):
                             user_session = session.build()
+                            if not check_valide_session(user_session):
+                                return Err("Expired Session")
                         case _:
                             return Err("Invalid Member Session")
                 case _:
@@ -102,5 +107,5 @@ class CreateCommentService:
             case c,p:
                 ic()
                 ic(c,p)
-                assert False, f"c:{c} / p:{p}"
+                assert False, f"c:{c} | p:{p}"
                 return Err("Not Convert ID")

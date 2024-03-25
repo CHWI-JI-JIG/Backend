@@ -28,8 +28,8 @@ class MemberSession(ISessionSerializeable, ID, SecuritySession):
     role: RoleType
     member_id: MemberID
 
-    max_count:int = 10
-    minute:int=3600
+    max_count:int = 100
+    minute:int=60
     
     def MAX_USE_COUNT(self) -> int:
         return self.max_count
