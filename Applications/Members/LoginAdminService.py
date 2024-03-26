@@ -22,6 +22,8 @@ class LoginAdminService:
         self,
         auth_member_repo: IVerifiableAuthentication,
         session_repo: IMakeSaveMemberSession,
+        load_repo : ILoadableSession,
+        del_session_repo : IDeleteableSession,
         otp_session_repo: IMakeSaveMemberSession,
         otp_load_session_repo: ILoadableSession,
         
@@ -29,9 +31,26 @@ class LoginAdminService:
         assert issubclass(
             type(auth_member_repo), IVerifiableAuthentication
         ), "auth_member_repo must be a class that inherits from IverifiableAuthentication."
+        assert issubclass(
+            type(session_repo), IMakeSaveMemberSession
+        ), "session_repo must be a class that inherits from IverifiableAuthentication."
+        assert issubclass(
+            type(load_repo), ILoadableSession
+        ), "load_repo must be a class that inherits from IverifiableAuthentication."
+        assert issubclass(
+            type(del_session_repo), IDeleteableSession
+        ), "del_session_repo must be a class that inherits from IverifiableAuthentication."
+        assert issubclass(
+            type(otp_session_repo), IMakeSaveMemberSession
+        ), "otp_session_repo must be a class that inherits from IverifiableAuthentication."
+        assert issubclass(
+            type(otp_load_session_repo), ILoadableSession
+        ), "otp_load_session_repo must be a class that inherits from IverifiableAuthentication."
 
         self.auth_repo = auth_member_repo
         self.session_repo = session_repo
+        self.load_repo = load_repo
+        self.del_session_repo = del_session_repo
         self.otp_session_repo = otp_session_repo
         self.otp_load_session_repo = otp_load_session_repo
 
@@ -59,12 +78,15 @@ class LoginAdminService:
                     ic()
                     ic(block_time, auth.last_access)
                     return Err(f"block : {block_time}")
+                if auth.role != RoleType.ADMIN:
+                    return Err("Permission Deny")
                 ret = auth
 
             case Err(e):
                 return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
 
         if ret.is_sucess:
+            # access OTP repo
             session_result = self.otp_session_repo.make_and_save_session(ret.id)
             match session_result:
                 case Ok(session):
@@ -79,6 +101,7 @@ class LoginAdminService:
         
     def otp_login(self, temp_session:str) -> Result[MemberSession, str]:
         builder = MemberSessionBuilder().set_deserialize_key(temp_session)
+        # access OTP repo
         match self.otp_load_session_repo.load_session(temp_session):
             case Ok(json):
                 match builder.set_deserialize_value(json):
@@ -93,6 +116,17 @@ class LoginAdminService:
             case _:
                 return Err("plz login")
             
+        # 같은 member_id 있는지 찾아서 있다면 다 로그아웃
+        id = user_session.member_id.get_id()
+        match self.load_repo.load_session_from_owner_id(id):
+            case Ok(tokens):
+                for session in tokens:
+                    key = session.key  # 세션 키를 가져옴
+                    self.del_session_repo.delete_session_to_key(key)
+                    self.del_session_repo.delete_session_to_owner_id(key)
+            case e:
+                return e
+
         match self.session_repo.make_and_save_session(user_session.member_id):
             case Ok(session):
                 ic(session)

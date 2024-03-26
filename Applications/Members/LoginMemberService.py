@@ -27,6 +27,15 @@ class AuthenticationMemberService:
         assert issubclass(
             type(auth_member_repo), IVerifiableAuthentication
         ), "auth_member_repo must be a class that inherits from IverifiableAuthentication."
+        assert issubclass(
+            type(session_repo), IMakeSaveMemberSession
+        ), "session_repo must be a class that inherits from IverifiableAuthentication."
+        assert issubclass(
+            type(load_repo), ILoadableSession
+        ), "load_repo must be a class that inherits from IverifiableAuthentication."
+        assert issubclass(
+            type(del_session_repo), IDeleteableSession
+        ), "del_session_repo must be a class that inherits from IverifiableAuthentication."
 
         self.auth_repo = auth_member_repo
         self.session_repo = session_repo
@@ -64,14 +73,14 @@ class AuthenticationMemberService:
         if ret.is_sucess:
             # 같은 member_id 있는지 찾아서 있다면 다 로그아웃
             id = ret.id.get_id()
-            load_result = self.load_repo.load_session_from_owner_id(id)
-            if load_result.is_ok():
-                sessions = load_result.unwrap()  # 세션 목록을 가져옴
-                for session in sessions:
-                    key = session.key  # 세션 키를 가져옴
-                    self.del_session_repo.delete_session_to_key(key)
-                    self.del_session_repo.delete_session_to_owner_id(key)
-                
+            match self.load_repo.load_session_from_owner_id(id):
+                case Ok(tokens):
+                    for session in tokens:
+                        key = session.key  # 세션 키를 가져옴
+                        self.del_session_repo.delete_session_to_key(key)
+                        self.del_session_repo.delete_session_to_owner_id(key)
+                case e:
+                    return e
             
             session_result = self.session_repo.make_and_save_session(ret.id)
             match session_result:
