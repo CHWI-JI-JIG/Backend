@@ -341,8 +341,7 @@ def product():
                     "productName": v.name,
                     "productImageUrl": url_for(
                         "send_image", filename=v.img_path
-                    ),  # /Images/image1.jpg
-                    #'http://serveraddr/Images'+ v.img_path
+                    ),  
                     "productPrice": v.price,
                 }
                 response_data["data"].append(product_data)
