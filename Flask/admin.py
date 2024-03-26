@@ -44,7 +44,7 @@ from Domains.Orders import *
 from Domains.Comments import *
 from Domains.Sessions import *
 
-from get_config_data import get_db_padding
+from get_config_data import get_db_padding, get_mail_object
 from mysql_config import mysql_db
 
 from datetime import datetime, timedelta
@@ -64,30 +64,15 @@ login_service = LoginAdminService(
 app = Flask(__name__)
 CORS(app)
 app.config["SESSION_REFRESH_EACH_REQUEST"] = False
-from config import Mail_Config
 
-app.config.from_object(Mail_Config)
+app.config.from_object(get_mail_object())
 mail = Mail(app)
-otp_storage:Dict[str, str] = {}
+otp_storage: Dict[str, str] = {}
 
-def check_id_duplicate(account):
-    db = pymysql.connect(**mysql_db)
-
-    try:
-        with db.cursor() as cursor:
-            sql = f"SELECT account FROM {get_db_padding()}user WHERE account = %s"
-            cursor.execute(sql, (account,))
-            result = cursor.fetchone()
-    finally:
-        db.close()
-
-    if result:
-        return True
-    else:
-        return False
 
 def generate_otp():
     return random.randint(100000, 999999)
+
 
 def get_create_time_by_key(key):
     # 데이터베이스 연결 설정
@@ -107,14 +92,16 @@ def get_create_time_by_key(key):
     finally:
         conn.close()
 
+
 def send_otp_email(email, otp):
-    msg = Message("Your OTP", sender=Mail_Config.MAIL_USERNAME, recipients=[email])
+    msg = Message("Your OTP", sender=get_mail_object().MAIL_USERNAME, recipients=[email])
     msg.body = f"Your OTP is: {otp}"
     mail.send(msg)
 
+
 @app.route("/api/send-otp", methods=["POST"])
 def send_otp():
-    data = request.json 
+    data = request.json
     key = data.get("key")
     if not key:
         return jsonify({"error": "Key is required"}), 400
@@ -128,22 +115,23 @@ def send_otp():
     otp = generate_otp()
     ic(otp)
     send_otp_email(email, otp)
-    
-    otp_storage['otp'] = str(otp)
+
+    otp_storage["otp"] = str(otp)
     return "OTP sent!"
+
 
 @app.route("/api/verify-otp", methods=["POST"])
 def verify_otp():
-    user_otp = request.json.get("otp") 
-    key:str = request.json.get("key")
-    
+    user_otp = request.json.get("otp")
+    key: str = request.json.get("key")
+
     current_time = datetime.now()
-    otp_key =  otp_storage.get('otp')
-    
+    otp_key = otp_storage.get("otp")
+
     if not otp_key:
         return "Session expired or invalid!", 400
 
-    create_time = get_create_time_by_key(key)  
+    create_time = get_create_time_by_key(key)
 
     expiration_time = create_time + timedelta(minutes=10)
 
@@ -154,19 +142,20 @@ def verify_otp():
                     ic(user_seeeeion.get_id())
                     return jsonify(
                         {
-                        "success":True,
-                        "key": user_seeeeion.get_id(),
-                        "auth" : str(user_seeeeion.role.name),
-                        "message" : "OTP 인증 완료"
+                            "success": True,
+                            "key": user_seeeeion.get_id(),
+                            "auth": str(user_seeeeion.role.name),
+                            "message": "OTP 인증 완료",
                         }
                     )
                 case e:
-                    return jsonify({"success" : False, "message": "로그인 실패"})
+                    return jsonify({"success": False, "message": "로그인 실패"})
         else:
-            return jsonify({"success" : False, "message": "OTP 인증 실패"})
+            return jsonify({"success": False, "message": "OTP 인증 실패"})
     else:
-        return jsonify({"success" : False, "message":"OTP 기간 만료"})
-    
+        return jsonify({"success": False, "message": "OTP 기간 만료"})
+
+
 @app.route("/api/Adminlogin", methods=["POST"])
 def Adminlogin():
     data = request.get_json()
@@ -175,7 +164,7 @@ def Adminlogin():
     userPassword = data.get("userPassword")
     ic(userId)
     ic(userPassword)
-    
+
     result = login_service.login(userId, userPassword)
     ic(result)
     match result:
@@ -198,12 +187,15 @@ def Adminlogin():
                         # response_data['success'] = True
                         # response_data['email'] = admin_email[0]
                         print(admin_email[0])
-                        response_data['success'] = True
-                        response_data['email'] = admin_email[0]
+                        response_data["success"] = True
+                        response_data["email"] = admin_email[0]
 
                     else:
                         jsonify(
-                            {"success": False, "message": "Admin 정보를 찾을 수 없습니다."}
+                            {
+                                "success": False,
+                                "message": "Admin 정보를 찾을 수 없습니다.",
+                            }
                         )
             finally:
                 conn.close()
@@ -211,6 +203,7 @@ def Adminlogin():
             return (jsonify(response_data), 200)
         case Err(e):
             return jsonify({"success": False})
+
 
 @app.route("/api/admin", methods=["POST"])
 def adminUser():
@@ -226,7 +219,7 @@ def adminUser():
     page -= 1
 
     size = 20
-    ic(user_key,page)
+    ic(user_key, page)
     result = get_user_info.read_members(user_key, page, size)
     ic(result)
 
@@ -246,6 +239,7 @@ def adminUser():
 
         case Err(e):
             return jsonify({"success": False})
+
 
 @app.route("/api/user-role", methods=["POST"])
 def updateUserRole():
@@ -270,7 +264,7 @@ def updateUserRole():
 
         case Err(e):
             return jsonify({"success": False, "message": str(e)})
-        
-        
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
