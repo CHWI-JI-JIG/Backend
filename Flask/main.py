@@ -326,6 +326,7 @@ def login():
                         "name": member_session.name,
                     }
                 ),
+                200
             )
         case Err(e):
             return jsonify({"success": False})

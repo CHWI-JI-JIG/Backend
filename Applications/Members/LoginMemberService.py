@@ -144,11 +144,12 @@ class AuthenticationMemberService:
         
         current_date = datetime.now()
         if role_type == RoleType.ADMIN:
-            days_to_check = 180  # 180 = 6 months(반기)
+            days_to_check = 90  # 180 = 6 months(반기)
         else:
             days_to_check = 60  # 60 days
-        days_since_last_change = (current_date - last_changed_date).days
-        return days_since_last_change > days_to_check
+        # days_since_last_change = (current_date - last_changed_date).days
+        # return days_since_last_change > days_to_check
         
-        # time_since_last_change = current_date - last_changed_date
-        # return time_since_last_change.total_seconds() > days_to_check
+        # 테스트 시 아래 코드 사용
+        time_since_last_change = current_date - last_changed_date
+        return time_since_last_change.total_seconds() > days_to_check
