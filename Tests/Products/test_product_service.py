@@ -308,7 +308,7 @@ class test_product_service(unittest.TestCase):
                 key = auth.get_id()
                 assert not b, f"change pw : {b}"
             case e:
-                print(e)
+                ic(e)
                 assert False, "fail"
 
         page = 0
