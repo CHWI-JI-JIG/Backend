@@ -199,11 +199,15 @@ def main(opt):
         case "flask-main":
             if opt.port is None:
                 port = 5000
+            else :
+                port = int(opt.port)
             assert isinstance(port, int), "Type of port is int. ex) --port 5000"
             flask_main(debug, opt.host, port)
         case "flask-admin":
             if opt.port is None:
                 port = 5001
+            else :
+                port = int(opt.port)
             assert isinstance(port, int), "Type of port is int. ex) --port 5001"
             flask_admin(debug, opt.host, port)
         case "delete-storage":

@@ -449,6 +449,39 @@ def updateUserRole():
         case Err(e):
             return jsonify({"success": False, "message": str(e)})
 
+@app.route("/api/admin", methods=["POST"])
+def adminUser():
+    read_repo = MySqlGetMember(get_db_padding())
+    edit_repo = MySqlEditMember(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
+
+    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
+
+    data = request.get_json()
+    user_key = data.get("key")
+    page = data.get("page")
+    page -= 1
+
+    size = 20
+    result = get_user_info.read_members(user_key, page, size)
+
+    response_data = {"page": page + 1, "size": size, "data": []}
+
+    match result:
+        case Ok((max, members)):
+            response_data["totalPage"] = math.ceil(max / size)
+            for v in members:
+                user_data = {
+                    "userKey": v.id.get_id(),  # 사용자 key
+                    "userId": v.account,  # 사용자 아이디(로그인용)
+                    "userAuth": v.role.value,  # 사용자 권한
+                }
+                response_data["data"].append(user_data)
+            return jsonify(response_data)
+
+        case Err(e):
+            return jsonify({"success": False})
+
 
 @app.route("/api/order-history", methods=["POST"])
 def orderHistroy():
@@ -749,7 +782,6 @@ def err_test():
     res = jsonify({"message": "Internal Server Error"})
     res.status_code = 500
     return res
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
