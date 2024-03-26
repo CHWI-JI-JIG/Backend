@@ -35,13 +35,15 @@ class OrderTransitionSession(ID, ISessionSerializeable, SecuritySession):
     order: Order
     is_success: Optional[bool] = None
 
-    max_count:int = 3
-    minute:int=3
-    
+    max_count: int = 3
+    minute: int = 3
+
     def MAX_USE_COUNT(self) -> int:
         return self.max_count
+
     def VALIDE_MINUTE(self) -> int:
         return self.minute
+
     def get_id(self) -> str:
         return self.get_key()
 
@@ -233,7 +235,7 @@ class OrderTransitionBuilder(ISessionBuilder, SecuritySessionBuilder):
         self.total_price = total_price
         return self
 
-    def set_buyer_id(self, buyer_id:Union[UUID,str]) -> Result[Self, str]:
+    def set_buyer_id(self, buyer_id: Union[UUID, str]) -> Result[Self, str]:
         assert self.buyer_id is None, "buyer id is already set."
 
         match MemberIDBuilder().set_uuid(buyer_id).map(lambda b: b.build()):
@@ -286,7 +288,7 @@ class OrderTransitionBuilder(ISessionBuilder, SecuritySessionBuilder):
         assert isinstance(self.total_price, int), f"Not Set {key}."
         self.assert_and_check_about_setting()
 
-        match OrderIDBuilder().set_uuid().map(lambda b: b.build()):
+        match OrderIDBuilder().set_uuid(self.key).map(lambda b: b.build()):
             case Ok(oid):
                 return Ok(
                     OrderTransitionSession(

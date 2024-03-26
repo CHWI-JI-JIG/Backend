@@ -9,6 +9,7 @@ from Domains.Orders import *
 from Domains.Sessions import *
 from Builders.Members import *
 from Builders.Products import *
+from Builders.Orders import *
 
 from Repositories.Members import *
 from Repositories.Products import *
@@ -19,6 +20,7 @@ from Repositories.Sessions import *
 from icecream import ic
 
 from Applications.Sessions.SessionHelper import check_valide_session
+
 
 class OrderPaymentService:
     """
@@ -35,7 +37,7 @@ class OrderPaymentService:
         save_order: ISaveableOrder,
         save_transition: ISaveableOrderTransition,
         load_session: ILoadableSession,
-        get_product:IGetableProduct,
+        get_product: IGetableProduct,
     ):
         assert issubclass(
             type(save_order), ISaveableOrder
@@ -54,7 +56,7 @@ class OrderPaymentService:
         ), "save_member_repo must be a class that inherits from ILoadableSession."
 
         self.load_repo = load_session
-        
+
         assert issubclass(
             type(get_product), IGetableProduct
         ), "save_member_repo must be a class that inherits from IGetableProduct."
@@ -67,7 +69,7 @@ class OrderPaymentService:
         recipient_phone: str,
         recipient_address: str,
         product_id: str,
-        single_price:int,
+        single_price: int,
         buy_count: int,
         user_session_key: str,
     ) -> Result[OrderTransitionSession, str]:
@@ -85,14 +87,10 @@ class OrderPaymentService:
                         return Err("Invalid Member Session")
             case _:
                 return Err("plz login")
-        match (
-                ProductIDBuilder()
-                .set_uuid(product_id)
-                .map(lambda b:b.build())
-            ):
+        match (ProductIDBuilder().set_uuid(product_id).map(lambda b: b.build())):
             case Ok(pid):
                 match self.product_repo.get_product_by_product_id(pid):
-                    case product if isinstance(product,Product):
+                    case product if isinstance(product, Product):
                         if single_price != product.price:
                             return Err("Invalide Price")
                         single_price = product.price
@@ -126,35 +124,47 @@ class OrderPaymentService:
                 return self.transition_repo.save_order_transition(order_temp)
             case e:
                 return e
-        
-
-
 
     def payment_and_approval_order(
         self,
         order_transition_session: str,
         payment_success: bool,
     ) -> Result[OrderID, str]:
+        if not payment_success:
+            return Err("Payment False")
         # load transition
         bulider = OrderTransitionBuilder().set_deserialize_key(order_transition_session)
         match self.load_repo.load_session(order_transition_session):
             case Ok(json):
-                match (
-                    bulider
-                    .set_is_success(payment_success)
-                    .set_deserialize_value(json)
-                    .map(lambda b : b.build())
-                ):
-                    case Ok(Ok(session)):
-                        if not check_valide_session(session):
-                            return Err("Expired Session")
-                        order_session = session
+                match bulider.set_deserialize_value(json):
+                    case Ok(b) if b.is_success:
+                        return Ok(OrderIDBuilder().set_uuid(b.key).unwrap().build())
+                    case Ok(b) if b.is_success != True:
+                        bulider = b
                     case e:
                         ic(e)
-                        return Err("Invalid Order Transition")
+                        return e
             case e:
                 ic(e)
                 return Err("Not Exists Session")
+
+        # Check Session
+        match (bulider.set_is_success(True).build()):
+            case Ok(session):
+                if not check_valide_session(session):
+                    return Err("Expired Session")
+                order_session = session
+            case e:
+                ic(e)
+                return Err("Invalid Order Transition")
+
+        # update trans
+        match self.transition_repo.update_order_transition(order_session):
+            case Ok(trans):
+                ...
+            case e:
+                ic(e)
+                return Err("Fail Update")
 
         # payment order
         match order_session.is_success:
