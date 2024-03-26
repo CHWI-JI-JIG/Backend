@@ -348,7 +348,7 @@ def changeExpiredPw():
 
     match result:
         case Ok(_):            
-            return jsonify({"success": True}    200,
+            return jsonify({"success": True}, 200
             )
         case Err(e):
             return jsonify({"success": False})
