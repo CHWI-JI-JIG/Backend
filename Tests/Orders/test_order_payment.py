@@ -224,7 +224,7 @@ class test_order_builder(unittest.TestCase):
                 assert False, f"DB Error? : {e}"
 
         match self.login_service.login("qawsars", "123"):
-            case Ok(session):
+            case Ok((session, _)):
                 member_session = session
             case e:
                 assert False, f"{e}"
@@ -331,8 +331,9 @@ class test_order_builder(unittest.TestCase):
                 assert False, f"DB Error? : {e}"
 
         match self.login_service.login("arst", "123"):
-            case Ok(session):
+            case Ok((session, b)):
                 member_session = session
+                assert not b, f"change pw : {b}"
             case e:
                 assert False, f"{e}"
         # 주문조회
@@ -383,7 +384,7 @@ class test_order_builder(unittest.TestCase):
             order_transition_session=order_transition.get_id(),
             payment_success=False,
         ):
-            case Err("Fail Payment"):
+            case Err("Fail Payment") | Err("Payment False"):
                 pass
             case e:
                 assert False, f"{e}"

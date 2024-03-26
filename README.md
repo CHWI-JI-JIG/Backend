@@ -43,7 +43,7 @@ mysql_db = {
     CREATE DATABASE "DATABASE_NAME" DEFAULT character SET UTF8 COLLATE utf8_general_ci;
     CREATE user "USER_NAME"@localhost identified by 'DB_PASSWORD';
     GRANT ALL PRIVILEGE on "DATABASE_NAME".* to 'USER_NAME'@'localhost';
-    GRANT ALL PRIVILEGES ON "DATABASE_NAME".* TO 'USER_NAME'@'localhost';
+    # GRANT ALL PRIVILEGES ON "DATABASE_NAME".* TO 'USER_NAME'@'localhost';
    ```
 3. `run` manage.py (DB 테이블 생성과, 초기 계정&일기 생성)
     ```bash
@@ -56,8 +56,8 @@ mysql_db = {
 # How to Run
 ## How to Run Flask
 ```bash
-python manage.py --host x.x.x.x --port 5000
-python3 manage.py --host x.x.x.x --port 5000
+python manage.py --run flask-main --host x.x.x.x --port 5000
+python3 manage.py --run flask-admin --host x.x.x.x --port 5001
 ```
 
 ## How to Test

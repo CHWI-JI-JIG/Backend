@@ -1,6 +1,6 @@
 import __init__
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional
+from typing import Optional
 from result import Result, Err, Ok
 
 from Domains.Members import *
@@ -16,7 +16,7 @@ import pymysql
 from icecream import ic
 
 
-class MySqlLoadSession(ILoadableSession):
+class TempMySqlLoadSession(ILoadableSession):
     def __init__(self, name_padding: str = "log_"):
         self.name_padding = name_padding
 
@@ -48,22 +48,22 @@ class MySqlLoadSession(ILoadableSession):
                 Err(str) : str is seasion of error
         """
         connection = self.connect()
-        session_table_name = self.get_padding_name("session")
+        session_table_name = self.get_padding_name("otp")
         try:
             with connection.cursor() as cursor:
                 query = f"""
 SELECT value, owner_id, create_time, use_count
 FROM {session_table_name}
-WHERE id = %s;
-UPDATE {session_table_name} SET use_count = use_count+1 WHERE id = %s;
+WHERE id = %s
 """
                 # session_key = MemberSessionBuilder().set_key().build()
-                cursor.execute(query, (session_key, session_key))
+                cursor.execute(query, (str(session_key),))
 
                 result = cursor.fetchone()
 
                 if result is None:
                     return Err("세션 데이터가 존재하지 않습니다.")
+                
 
                 session_token = SessionToken(
                     value=result[0],
@@ -80,8 +80,3 @@ UPDATE {session_table_name} SET use_count = use_count+1 WHERE id = %s;
 
         except Exception as e:
             return Err(str(e))
-
-    def load_session_from_owner_id(
-        self, owner_id: str
-    ) -> Ok[List[SessionToken]] | Err[str]:
-        raise NotImplementedError()

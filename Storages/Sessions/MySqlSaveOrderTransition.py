@@ -74,12 +74,13 @@ id, value, owner_id, create_time, use_count
 
             with connection.cursor() as cursor:
                 update_query = f"""
-UPDATE {session_table_name} SET value = %s, use_count = use_count+1 WHERE id = %s """,
+UPDATE {session_table_name} SET value = %s, use_count = use_count+1 WHERE id = %s """
+
                 cursor.execute(
                     update_query,
                     (
-                        transition.serialize_key(),
                         transition.serialize_value(),
+                        transition.serialize_key(),
                     ),
                 )
 
@@ -88,5 +89,6 @@ UPDATE {session_table_name} SET value = %s, use_count = use_count+1 WHERE id = %
 
         except Exception as e:
             ic()
+            ic(e)
             connection.close()
             return Err(str(e))

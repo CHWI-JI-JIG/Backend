@@ -65,6 +65,7 @@ class test_builder(unittest.TestCase):
             .unwrap()
             .set_member_id(id)
             .unwrap()
+            .set_account("leetak")
             .set_role("buyer")
             .set_name("이탁균")
             .set_use_count()
@@ -74,7 +75,7 @@ class test_builder(unittest.TestCase):
             .build()
         )
         self.assertEqual(
-            '{"member_id": "d697b39f733a426f96a13fc40c8bf061", "name": "이탁균", "role": "buyer"}',
+            '{"member_id": "d697b39f733a426f96a13fc40c8bf061", "name": "이탁균", "account": "leetak", "role": "buyer"}',
             new_session.serialize_value(),
         )
 
@@ -110,6 +111,7 @@ class test_builder(unittest.TestCase):
         buyer_session = MemberSession(
             key=uuid4(),
             owner_id=UUID(hex=buyer_id),
+            account="leetak",
             create_time=datetime.now().replace(microsecond=0),
             use_count=20,
             name="이탁균",
@@ -119,13 +121,14 @@ class test_builder(unittest.TestCase):
             minute=10,
         )
         self.assertEqual(
-            '{"member_id": "365b77a0a6b34fe28c7112d6c1bb64ca", "name": "이탁균", "role": "buyer"}',
+            '{"member_id": "365b77a0a6b34fe28c7112d6c1bb64ca", "name": "이탁균", "account": "leetak", "role": "buyer"}',
             buyer_session.serialize_value(),
         )
 
         member_id = MemberIDBuilder().set_uuid(seller_id).unwrap().build()
         seller_session = MemberSession(
             key=uuid4(),
+            account="leetak",
             owner_id=UUID(hex=seller_id),
             create_time=datetime.now().replace(microsecond=0),
             use_count=20,
@@ -136,7 +139,7 @@ class test_builder(unittest.TestCase):
             minute=10,
         )
         self.assertEqual(
-            '{"member_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "이호연", "role": "seller"}',
+            '{"member_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "이호연", "account": "leetak", "role": "seller"}',
             seller_session.serialize_value(),
         )
 
@@ -212,6 +215,7 @@ class test_builder(unittest.TestCase):
         buyer_session = MemberSession(
             key=uuid4(),
             use_count=0,
+            account="leetak",
             owner_id=UUID(hex=buyer_id),
             create_time=datetime.now() - timedelta(minutes=1),
             name="이탁균",
@@ -220,7 +224,7 @@ class test_builder(unittest.TestCase):
             minute=1,
         )
         self.assertEqual(
-            '{"member_id": "365b77a0a6b34fe28c7112d6c1bb64ca", "name": "이탁균", "role": "buyer"}',
+            '{"member_id": "365b77a0a6b34fe28c7112d6c1bb64ca", "name": "이탁균", "account": "leetak", "role": "buyer"}',
             buyer_session.serialize_value(),
         )
 
@@ -228,6 +232,7 @@ class test_builder(unittest.TestCase):
         seller_session = MemberSession(
             key=uuid4(),
             use_count=0,
+            account="leetak",
             owner_id=UUID(hex=seller_id),
             create_time=datetime.now() - timedelta(minutes=1),
             name="이호연",
@@ -236,7 +241,7 @@ class test_builder(unittest.TestCase):
             minute=1,
         )
         self.assertEqual(
-            '{"member_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "이호연", "role": "seller"}',
+            '{"member_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "이호연", "account": "leetak", "role": "seller"}',
             seller_session.serialize_value(),
         )
 
@@ -309,6 +314,7 @@ class test_builder(unittest.TestCase):
 
         buyer_session = MemberSession(
             key=uuid4(),
+            account="leetak",
             owner_id=UUID(hex=buyer_id),
             create_time=datetime.now() - timedelta(minutes=1),
             use_count=20,
@@ -319,7 +325,7 @@ class test_builder(unittest.TestCase):
             minute=10,
         )
         self.assertEqual(
-            '{"member_id": "365b77a0a6b34fe28c7112d6c1bb64ca", "name": "이탁균", "role": "buyer"}',
+            '{"member_id": "365b77a0a6b34fe28c7112d6c1bb64ca", "name": "이탁균", "account": "leetak", "role": "buyer"}',
             buyer_session.serialize_value(),
         )
 
@@ -327,6 +333,7 @@ class test_builder(unittest.TestCase):
         seller_session = MemberSession(
             key=uuid4(),
             owner_id=UUID(hex=seller_id),
+            account="leetak",
             create_time=datetime.now() - timedelta(minutes=1),
             use_count=20,
             name="이호연",
@@ -336,7 +343,7 @@ class test_builder(unittest.TestCase):
             minute=10,
         )
         self.assertEqual(
-            '{"member_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "이호연", "role": "seller"}',
+            '{"member_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "이호연", "account": "leetak", "role": "seller"}',
             seller_session.serialize_value(),
         )
 
@@ -413,6 +420,7 @@ class test_builder(unittest.TestCase):
         buyer_session = MemberSession(
             key=uuid4(),
             owner_id=UUID(hex=buyer_id),
+            account="leetak",
             create_time=datetime.now().replace(microsecond=0) - timedelta(seconds=55),
             use_count=9,
             name="이탁균",
@@ -422,7 +430,7 @@ class test_builder(unittest.TestCase):
             minute=1,
         )
         self.assertEqual(
-            '{"member_id": "365b77a0a6b34fe28c7112d6c1bb64ca", "name": "이탁균", "role": "buyer"}',
+            '{"member_id": "365b77a0a6b34fe28c7112d6c1bb64ca", "name": "이탁균", "account": "leetak", "role": "buyer"}',
             buyer_session.serialize_value(),
         )
 
@@ -430,6 +438,7 @@ class test_builder(unittest.TestCase):
         seller_session = MemberSession(
             key=uuid4(),
             owner_id=UUID(hex=seller_id),
+            account="leetak",
             create_time=datetime.now().replace(microsecond=0) - timedelta(seconds=55),
             use_count=9,
             name="이호연",
@@ -439,7 +448,7 @@ class test_builder(unittest.TestCase):
             minute=1,
         )
         self.assertEqual(
-            '{"member_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "이호연", "role": "seller"}',
+            '{"member_id": "82090bfba6d04a84a669c2a97c0ef283", "name": "이호연", "account": "leetak", "role": "seller"}',
             seller_session.serialize_value(),
         )
 

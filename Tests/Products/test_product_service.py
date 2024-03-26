@@ -111,9 +111,10 @@ class test_product_service(unittest.TestCase):
         login = self.login_service
 
         match login.login("1q2w", "123"):
-            case Ok(auth):
+            case Ok((auth,b)):
                 user_id = auth.member_id
                 key = auth.get_id()
+                assert not b, f"change pw : {b}"
             case _:
                 assert False, "fail"
 
@@ -301,8 +302,9 @@ class test_product_service(unittest.TestCase):
         login = self.login_service
 
         match login.login("1q2w", "123"):
-            case Ok(auth):
+            case Ok((auth,b)):
                 key = auth.get_id()
+                assert not b, f"change pw : {b}"
             case e:
                 print(e)
                 assert False, "fail"
@@ -342,8 +344,9 @@ class test_product_service(unittest.TestCase):
         login = self.login_service
 
         match login.login("GreenGroveOrganics", "1234"):
-            case Ok(auth):
+            case Ok((auth,b)):
                 key = auth.get_id()
+                assert not b, f"change pw : {b}"
             case _:
                 assert False, "fail"
 

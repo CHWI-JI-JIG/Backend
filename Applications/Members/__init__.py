@@ -9,6 +9,7 @@ if not (str(root_path) in sys.path):
 
 from Applications.Members.CreateMemberService import CreateMemberService
 from Applications.Members.LoginMemberService import AuthenticationMemberService
+from Applications.Members.LoginAdminService import LoginAdminService
 from Applications.Members.AdminService import AdminService
 from Applications.Members.ReadPrivacyService import ReadPrivacyService
 from Applications.Members.ChangePasswdService import ChangePasswdService
@@ -16,6 +17,7 @@ from Applications.Members.ChangePasswdService import ChangePasswdService
 __all__ = [
     "CreateMemberService",
     "AuthenticationMemberService",
+    "LoginAdminService",
     "AdminService",
     "ReadPrivacyService",
     "ChangePasswdService",

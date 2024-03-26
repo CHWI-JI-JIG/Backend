@@ -1,6 +1,6 @@
 import __init__
 from abc import ABCMeta, abstractmethod
-from typing import Optional
+from typing import Optional, List
 from result import Result
 from uuid import UUID
 
@@ -22,3 +22,19 @@ class ILoadableSession(metaclass=ABCMeta):
                 Err(str) : str is seasion of error
         """
         ...
+    
+    @abstractmethod
+    def load_session_from_owner_id(self, owner_id: str) -> Result[List[SessionToken], str]:
+        """_summary_
+        owner_id로 조회하는 코드 (여러개 존재 가능)
+
+        Args:
+            session_key (UUID): session_key is uuid.hex
+
+        Returns:
+            Result[str, str]:
+                Ok(SessionToken) : session token
+                Err(str) : str is seasion of error
+        """
+        ...
+    

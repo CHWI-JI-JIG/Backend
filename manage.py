@@ -12,8 +12,8 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--run",
-        choices=["test", "flask", "migrate", "delete-storage"],  # "git-push",
-        default="flask",
+        choices=["test", "flask-main", "flask-admin", "migrate", "delete-storage"],  # "git-push",
+        default="flask-main",
     )
     # parser.add_argument("--branch", default="main")
     parser.add_argument("--not_debug", action="store_true")
@@ -79,6 +79,7 @@ def git_push(test_list: list, branch="main"):
 
 def delete_storage():
     from Migrations import (
+        MySqlCreateOtp,
         MySqlCreateProduct,
         MySqlCreateUser,
         MySqlCreateComments,
@@ -91,6 +92,7 @@ def delete_storage():
     c = MySqlCreateComments(get_db_padding())
     s = MySqlCreateSession(get_db_padding())
     o = MySqlCreateOrder(get_db_padding())
+    t = MySqlCreateOtp(get_db_padding())
     if s.check_exist_session():
         s.delete_session()
     if c.check_exist_comments():
@@ -101,10 +103,13 @@ def delete_storage():
         p.delete_product()
     if m.check_exist_user():
         m.delete_user()
+    if t.check_exist_otps():
+        t.delete_otp()
 
 
 def migrate(clear_db_init=False):
     from Migrations import (
+        MySqlCreateOtp,
         MySqlCreateProduct,
         MySqlCreateUser,
         MySqlCreateComments,
@@ -117,6 +122,7 @@ def migrate(clear_db_init=False):
     c = MySqlCreateComments(get_db_padding())
     s = MySqlCreateSession(get_db_padding())
     o = MySqlCreateOrder(get_db_padding())
+    t = MySqlCreateOtp(get_db_padding())
 
     if clear_db_init:
         delete_storage()
@@ -131,13 +137,19 @@ def migrate(clear_db_init=False):
     assert o.check_exist_order(), "Dont't exsist Orders Table."
     s.create_session()
     assert s.check_exist_session(), "Dont't exsist Session Table."
+    t.create_otp()
+    assert t.check_exist_otps(), "Don't exsist Otp Table."
 
 
-def flask(debug=True, host="127.0.0.1", port=5000):
+def flask_main(debug=True, host="127.0.0.1", port=5000):
     from Flask.main import app
 
     app.run(debug=debug, host=host, port=int(port))
 
+def flask_admin(debug=True, host="127.0.0.1", port=5001):
+    from Flask.admin import app
+
+    app.run(debug=debug, host=host, port=int(port))
 
 def main(opt):
     from icecream import ic
@@ -174,8 +186,10 @@ def main(opt):
                 init_comment()
                 init_order()
 
-        case "flask":
-            flask(debug, opt.host, opt.port)
+        case "flask-main":
+            flask_main(debug, opt.host, opt.port)
+        case "flask-admin":
+            flask_admin(debug, opt.host, opt.port)
         case "delete-storage":
             delete_storage()
         case _:

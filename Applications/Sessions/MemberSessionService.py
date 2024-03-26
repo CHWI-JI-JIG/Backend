@@ -1,3 +1,4 @@
+from Domains.Members import MemberID
 import __init__
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple, List
@@ -38,4 +39,7 @@ class MemberSessionService:
 
         return True
 
+    
+    def find_login_session(self, member_id:MemberID)->  Result[List[SessionToken], str]:
+        ...
     

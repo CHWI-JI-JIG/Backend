@@ -10,6 +10,7 @@ from flask import (
     send_from_directory,
 )
 
+from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
 import random
 import os
@@ -46,6 +47,8 @@ from Domains.Sessions import *
 from get_config_data import get_db_padding
 from mysql_config import mysql_db
 
+from datetime import datetime, timedelta
+
 
 SECRETSPATH = __init__.root_path / "secrets.json"
 IMG_PATH = __init__.root_path / "Images"
@@ -59,8 +62,16 @@ app = Flask(__name__)
 CORS(app)
 app.secret_key = secrets["SECRET_KEY"]
 app.config["UPLOAD_FOLDER"] = IMG_PATH
+app.config["SESSION_REFRESH_EACH_REQUEST"] = False
 
-PG_SERVER = PaymentService()
+from config import Mail_Config
+
+app.config.from_object(Mail_Config)
+mail = Mail(app)
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def allowed_file(filename):
@@ -82,6 +93,86 @@ def check_id_duplicate(account):
         return True
     else:
         return False
+
+
+def generate_otp():
+    return random.randint(100000, 999999)
+
+
+def get_create_time_by_key(key):
+    # 데이터베이스 연결 설정
+    conn = pymysql.connect(**mysql_db)
+
+    try:
+        with conn.cursor() as cursor:
+            # id 값이 key와 일치하는 행의 create_time 값을 조회하는 SQL 쿼리
+            sql = "SELECT create_time FROM log_otp WHERE id = %s"
+            cursor.execute(sql, (key,))
+            result = cursor.fetchone()
+
+            if result:
+                return result[0]  # create_time 값 반환
+            else:
+                return None  # 일치하는 행이 없는 경우
+    finally:
+        conn.close()
+
+
+def send_otp_email(email, otp):
+    msg = Message("Your OTP", sender=Mail_Config.MAIL_USERNAME, recipients=[email])
+    msg.body = f"Your OTP is: {otp}"
+    mail.send(msg)
+
+
+@app.route("/api/send-otp", methods=["POST"])
+def send_otp():
+    data = request.json  # JSON 데이터를 파이썬 딕셔너리로 변환
+    key = data.get("key")
+    if not key:
+        return jsonify({"error": "Key is required"}), 400
+
+    email = data.get("email")
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+
+    create_time = get_create_time_by_key(key)
+    ic(create_time)
+
+    otp = generate_otp()
+    ic(otp)
+    send_otp_email(email, otp)
+    session["otp"] = str(otp)
+    return "OTP sent!"
+
+
+@app.route("/api/verify-otp", methods=["POST"])
+def verify_otp():
+    user_otp = request.json.get("otp")  # 사용자가 제출한 OTP
+    key = request.json.get("key")
+
+    otp_key = session.get("otp")
+    if not otp_key:
+        return "Session expired or invalid!", 400
+
+    create_time = get_create_time_by_key(
+        key
+    )  # 이제 create_time은 datetime.datetime 객체
+
+    # 현재 시간 구하기
+    current_time = datetime.now()
+
+    # create_time으로부터 10분 후의 시간 계산
+    expiration_time = create_time + timedelta(minutes=10)
+
+    # 현재 시간이 create_time으로부터 10분 이내인지 확인
+    if current_time <= expiration_time:
+        # OTP 값이 세션에 저장된 값과 일치하는지 확인
+        if "otp" in session and session["otp"] == user_otp:
+            return "OTP verified!"
+        else:
+            return "Invalid OTP!"
+    else:
+        return "OTP expired!"
 
 
 @app.route("/api/Images/<path:filename>")
@@ -125,7 +216,10 @@ def search():
                     "productId": row[1],
                     "seq": row[2],
                     "productName": row[3],
-                    "productImageUrl": url_for("send_image", filename=row[4]),
+                    "productImageUrl": url_for(
+                        "send_image", filename=row[4]
+                    ),  # /Images/image1.jpg
+                    #'http://serveraddr/Images'+ v.img_path,
                     "productPrice": row[5],
                     "productDescription": row[6],
                     "date": row[7],
@@ -245,7 +339,10 @@ def product():
                     "productId": v.id.get_id(),
                     "sellerId": v.seller_id.get_id(),
                     "productName": v.name,
-                    "productImageUrl": url_for("send_image", filename=v.img_path),
+                    "productImageUrl": url_for(
+                        "send_image", filename=v.img_path
+                    ),  # /Images/image1.jpg
+                    #'http://serveraddr/Images'+ v.img_path
                     "productPrice": v.price,
                 }
                 response_data["data"].append(product_data)
@@ -280,7 +377,10 @@ def sellerProduct():
                 product_data = {
                     "productId": v.id.get_id(),
                     "productName": v.name,
-                    "productImageUrl": url_for("send_image", filename=v.img_path),
+                    "productImageUrl": url_for(
+                        "send_image", filename=v.img_path
+                    ),  # /Images/image1.jpg
+                    #'http://serveraddr/Images'+ v.img_path,
                     "productPrice": v.price,
                     "regDate": v.register_day,
                 }
@@ -300,17 +400,16 @@ def login():
 
     auth_member_repo = MySqlLoginAuthentication(get_db_padding())
     session_repo = MySqlMakeSaveMemberSession(get_db_padding())
-    login_pass = AuthenticationMemberService(auth_member_repo, session_repo)
 
-    result = login_pass.login(userId, userPassword)
+    login_pass = AuthenticationMemberService(auth_member_repo, session_repo)
+    result, _ = login_pass.login(userId, userPassword)
 
     match result:
-        case Ok((member_session, changePw)):
+        case Ok(member_session):
 
             ic(member_session)
             session["key"] = member_session.get_id()
             session["auth"] = member_session.role.name
-            ic(changePw)
 
             return (
                 jsonify(
@@ -319,34 +418,11 @@ def login():
                         "certification": True,
                         "key": member_session.get_id(),
                         "auth": str(member_session.role.name),
-                        "name": member_session.name,
-                        "changePw": changePw
+                        "name": str(member_session.name),
                     }
                 ),
                 200,
             )
-        case Err(e):
-            return jsonify({"success": False})
-
-
-@app.route("/api/change-pw", methods=["POST"])
-def changeExpiredPw():
-    pass_repo = MySqlChangePasswd(get_db_padding())
-    load_session_repo = MySqlLoadSession(get_db_padding())
-    auth_member_repo = MySqlLoginAuthentication(get_db_padding())
-    
-    change = ChangePasswdService(pass_repo, load_session_repo, auth_member_repo)
-    
-    data = request.get_json()
-    user_key = data.get("key")  # 세션키
-    old_passwd = data.get("password")
-    new_passwd = data.get("newPassword")
-    
-    result = change.change_expired_pw(user_key, old_passwd, new_passwd)
-
-    match result:
-        case Ok(_):            
-            return jsonify({"success": True})
         case Err(e):
             return jsonify({"success": False})
 
@@ -415,6 +491,89 @@ def bsignup():
         return jsonify({"success": True}), 200
     else:
         return jsonify({"success": False})
+
+
+@app.route("/api/Adminlogin", methods=["POST"])
+def Adminlogin():
+    data = request.get_json()
+
+    userId = data.get("userId")
+    userPassword = data.get("userPassword")
+
+    auth_member_repo = MySqlLoginAuthentication(get_db_padding())
+    session_repo = MySqlMakeSaveMemberSession(get_db_padding())
+    otp_session_repo = TempMySqlMakeSaveMemberSession(get_db_padding())
+    otp_load_session_repo = TempMySqlLoadSession(get_db_padding())
+
+    login_pass = LoginAdminService(
+        auth_member_repo, session_repo, otp_session_repo, otp_load_session_repo
+    )
+    result = login_pass.login(userId, userPassword)
+
+    match result:
+        case Ok(member_session):
+            response_data = {
+                "key": member_session.get_id(),
+            }
+
+            conn = pymysql.connect(**mysql_db)
+            try:
+                # 커서 생성
+                with conn.cursor() as cursor:
+                    sql = "SELECT email FROM log_user WHERE role = 'admin'"
+                    cursor.execute(sql)
+
+                    admin_email = cursor.fetchone()
+
+                    if admin_email:
+                        # response_data['success'] = True
+                        # response_data['email'] = admin_email[0]
+                        print(admin_email[0])
+
+                    else:
+                        jsonify(
+                            {"success": False, "err": "Admin 정보를 찾을 수 없습니다."}
+                        )
+            finally:
+                conn.close()
+
+            return (jsonify(response_data), 200)
+        case Err(e):
+            return jsonify({"success": False})
+
+
+@app.route("/api/admin", methods=["POST"])
+def adminUser():
+    read_repo = MySqlGetMember(get_db_padding())
+    edit_repo = MySqlEditMember(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
+
+    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
+
+    data = request.get_json()
+    user_key = data.get("key")
+    page = data.get("page")
+    page -= 1
+
+    size = 20
+    result = get_user_info.read_members(user_key, page, size)
+
+    response_data = {"page": page + 1, "size": size, "data": []}
+
+    match result:
+        case Ok((max, members)):
+            response_data["totalPage"] = math.ceil(max / size)
+            for v in members:
+                user_data = {
+                    "userKey": v.id.get_id(),  # 사용자 key
+                    "userId": v.account,  # 사용자 아이디(로그인용)
+                    "userAuth": v.role.value,  # 사용자 권한
+                }
+                response_data["data"].append(user_data)
+            return jsonify(response_data)
+
+        case Err(e):
+            return jsonify({"success": False})
 
 
 @app.route("/api/user-role", methods=["POST"])
@@ -581,23 +740,23 @@ def sendPayInfo():
     total_price = data.get("productPrice")
     payment_success = data.get("paymentVerification")
 
-    match PG_SERVER.approval_and_logging(
+    result = PaymentService().approval_and_logging(
         order_transition_session, total_price, card_num
-    ):
+    )
+    match result:
         case Ok(True):
             pass
-        case e:
-            msg = "결제 실패"
-            if e.is_err():
-                msg = e.err()
-            ic(e, msg)
-            return jsonify({"success": False, "msg": msg})
+        case Err(e):
+            return jsonify({"success": False, "msg": e})
 
-    match send_pay_info.payment_and_approval_order(
+    result = send_pay_info.payment_and_approval_order(
         order_transition_session=order_transition_session,
         payment_success=True,
-    ):
-        case Ok(_):
+    )
+    ic(result)
+
+    match result:
+        case Ok():
             return jsonify({"success": True})
 
         case Err(e):
@@ -620,7 +779,7 @@ def qaAnswer():
     result = add_answer_info.add_answer(answer, comment_id, user_key)
 
     match result:
-        case Ok(_):
+        case Ok():
             return jsonify({"success": True})
 
         case Err(e):
@@ -681,7 +840,7 @@ def qaQuestion():
     result = create_qa_info.create_question(question, product_id, user_key)
 
     match result:
-        case Ok(_):
+        case Ok():
             return jsonify({"success": True})
 
         case Err(e):
@@ -713,20 +872,20 @@ def cUser():
 
         case Err(e):
             return jsonify({"success": False})
-
-
+        
+        
 @app.route("/api/logout", methods=["POST"])
 def logout():
-
+    
     data = request.get_json()
-
+    
     user_key = data.get("key")
-
+    
     del_session_repo = MySqlDeleteSession(get_db_padding())
     logout = MemberSessionService(del_session_repo)
-
+    
     result = logout.logout(user_key)
-
+    
     if result:
         return jsonify({"success": True}), 200
     else:
