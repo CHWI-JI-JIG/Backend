@@ -76,6 +76,8 @@ class test_order_builder(unittest.TestCase):
         login = AuthenticationMemberService(
             auth_member_repo=MySqlLoginAuthentication(get_db_padding()),
             session_repo=MySqlMakeSaveMemberSession(get_db_padding()),
+            load_repo= MySqlLoadSession(get_db_padding()),
+            del_session_repo= MySqlDeleteSession(get_db_padding()),
         )
         cls.login_service = login
 
@@ -94,6 +96,8 @@ class test_order_builder(unittest.TestCase):
         service = AuthenticationMemberService(
             auth_member_repo=MySqlLoginAuthentication(get_db_padding()),
             session_repo=MySqlMakeSaveMemberSession(get_db_padding()),
+            load_repo= MySqlLoadSession(get_db_padding()),
+            del_session_repo= MySqlDeleteSession(get_db_padding()),
         )
         cls.login_service = service
 

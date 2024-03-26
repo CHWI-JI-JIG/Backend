@@ -882,7 +882,7 @@ def logout():
     user_key = data.get("key")
     
     del_session_repo = MySqlDeleteSession(get_db_padding())
-    logout = MemberSessionService(del_session_repo)
+    logout = AuthenticationMemberService(del_session_repo)
     
     result = logout.logout(user_key)
     

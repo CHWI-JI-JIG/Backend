@@ -1,6 +1,6 @@
 import __init__
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional
+from typing import Optional, List
 from result import Result, Err, Ok
 
 from Domains.Members import *
@@ -52,7 +52,7 @@ class MySqlLoadSession(ILoadableSession):
         try:
             with connection.cursor() as cursor:
                 query = f"""
-SELECT value, owner_id, create_time, use_count
+SELECT value, owner_id, create_time, use_count,id
 FROM {session_table_name}
 WHERE id = %s;
 UPDATE {session_table_name} SET use_count = use_count+1 WHERE id = %s;
@@ -70,6 +70,7 @@ UPDATE {session_table_name} SET use_count = use_count+1 WHERE id = %s;
                     owner_id=result[1],
                     create_time=result[2],
                     use_count=result[3],
+                    key=result[4],
                 )
                 connection.commit()
 
@@ -80,8 +81,78 @@ UPDATE {session_table_name} SET use_count = use_count+1 WHERE id = %s;
 
         except Exception as e:
             return Err(str(e))
+        
+    
+    def load_session_from_owner_id(self, owner_id: str) -> Result[List[SessionToken], str]:
+        
+        connection = self.connect()
+        session_table_name = self.get_padding_name("session")
+        try:
+            with connection.cursor() as cursor:
+                query = f"""
+SELECT value, owner_id, create_time, use_count,id
+FROM {session_table_name}
+WHERE owner_id = %s;
+"""
+                cursor.execute(query, (owner_id,))
+                results = cursor.fetchall()
 
-    def load_session_from_owner_id(
-        self, owner_id: str
-    ) -> Ok[List[SessionToken]] | Err[str]:
-        raise NotImplementedError()
+                session_tokens = []
+                for result in results:
+                    session_token = SessionToken(
+                        value=result[0],
+                        owner_id=result[1],
+                        create_time=result[2],
+                        use_count=result[3],
+                        key=result[4],
+                    )
+                    session_tokens.append(session_token)
+
+                cursor.close()
+                connection.close()
+
+                if session_tokens:
+                    return Ok(session_tokens)
+                else:
+                    return Err("세션 데이터가 존재하지 않습니다.")
+
+        except Exception as e:
+            return Err(str(e))
+        
+    
+    def load_session_from_owner_id(self, owner_id: str) -> Result[List[SessionToken], str]:
+        
+        connection = self.connect()
+        session_table_name = self.get_padding_name("session")
+        try:
+            with connection.cursor() as cursor:
+                query = f"""
+SELECT value, owner_id, create_time, use_count,id
+FROM {session_table_name}
+WHERE owner_id = %s;
+"""
+                cursor.execute(query, (owner_id,))
+                results = cursor.fetchall()
+
+                session_tokens = []
+                for result in results:
+                    session_token = SessionToken(
+                        value=result[0],
+                        owner_id=result[1],
+                        create_time=result[2],
+                        use_count=result[3],
+                        key=result[4],
+                    )
+                    session_tokens.append(session_token)
+
+                cursor.close()
+                connection.close()
+
+                if session_tokens:
+                    return Ok(session_tokens)
+                else:
+                    return Err("세션 데이터가 존재하지 않습니다.")
+
+        except Exception as e:
+            return Err(str(e))
+

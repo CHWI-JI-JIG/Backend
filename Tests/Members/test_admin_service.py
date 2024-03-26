@@ -41,6 +41,8 @@ class test_admin_service(unittest.TestCase):
         cls.login_service = AuthenticationMemberService(
             auth_member_repo=cls.l_repo,
             session_repo=MySqlMakeSaveMemberSession(get_db_padding()),
+            load_repo= MySqlLoadSession(get_db_padding()),
+            del_session_repo= MySqlDeleteSession(get_db_padding()),
         )
 
         if ms.check_exist_session():

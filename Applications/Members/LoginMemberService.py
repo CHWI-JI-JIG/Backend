@@ -11,7 +11,7 @@ from Builders.Members import *
 from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
 from datetime import datetime, timedelta
-from Repositories.Sessions import IMakeSaveMemberSession
+from Repositories.Sessions import IMakeSaveMemberSession, ILoadableSession,IDeleteableSession
 
 from icecream import ic
 
@@ -21,6 +21,8 @@ class AuthenticationMemberService:
         self,
         auth_member_repo: IVerifiableAuthentication,
         session_repo: IMakeSaveMemberSession,
+        load_repo : ILoadableSession,
+        del_session_repo : IDeleteableSession,
     ):
         assert issubclass(
             type(auth_member_repo), IVerifiableAuthentication
@@ -28,6 +30,8 @@ class AuthenticationMemberService:
 
         self.auth_repo = auth_member_repo
         self.session_repo = session_repo
+        self.load_repo = load_repo
+        self.del_session_repo = del_session_repo
 
     def login(self, account: str, passwd: str) -> Result[Tuple[MemberSession,bool], str]:
         """_summary_
@@ -60,7 +64,15 @@ class AuthenticationMemberService:
         if ret.is_sucess:
             # 여기에 작성!!!!
             # 같은 member_id 있는지 찾아서 있다면 다 로그아웃
-            
+            id = ret.id.get_id()
+            load_result = self.load_repo.load_session_from_owner_id(id)
+            if load_result.is_ok():
+                sessions = load_result.unwrap()  # 세션 목록을 가져옴
+                for session in sessions:
+                    key = session.key  # 세션 키를 가져옴
+                    self.del_session_repo.delete_session_to_key(key)
+                    self.del_session_repo.delete_session_to_owner_id(key)
+                
             
             session_result = self.session_repo.make_and_save_session(ret.id)
             match session_result:
