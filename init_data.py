@@ -218,7 +218,7 @@ def init_comment():
             answer=None,
             question="밥솥의 사용법을 알려주세요.",
             writer_id=member_list[2],
-            product_id=product_list[0],
+            product_id=product_list[-1],
             writer_account="",
         )
     ):
@@ -235,7 +235,7 @@ def init_comment():
             answer=None,
             question="안녕하세요. 환불 가능한가요?",
             writer_id=member_list[3],
-            product_id=product_list[0],
+            product_id=product_list[-1],
             writer_account="",
         )
     ):
@@ -252,7 +252,7 @@ def init_comment():
             answer=None,
             question="내솥 유지보수 방법에 대해 알려주세요.",
             writer_id=member_list[2],
-            product_id=product_list[1],
+            product_id=product_list[-2],
             writer_account="",
         )
     ):
@@ -269,7 +269,7 @@ def init_comment():
             answer="스텐 밥솥을 처음 사용하실때는, 식용유를 바른 키친타월로 닦은 후 사용 바랍니다.",
             question="스텐 주걱을 사용할 때 주의해야 할 사항이 있을까요?",
             writer_id=member_list[2],
-            product_id=product_list[2],
+            product_id=product_list[-3],
             writer_account="",
         )
     ):
@@ -286,7 +286,7 @@ def init_comment():
             answer="평균 배송 3~4일 소요됩니다.",
             question="주방용품의 배송일은 얼마나 걸리나요?",
             writer_id=member_list[2],
-            product_id=product_list[3],
+            product_id=product_list[-3],
             writer_account="",
         )
     ):
@@ -303,7 +303,7 @@ def init_comment():
             answer=None,
             question="안녕하세요. 환불 가능한가요?",
             writer_id=member_list[3],
-            product_id=product_list[3],
+            product_id=product_list[-3],
             writer_account="",
         )
     ):
@@ -320,7 +320,7 @@ def init_comment():
             answer="제가 제 친구에게 선물을 한다면, 쿠쿠 IH 전기 압력밥솥 6인용을 추천드립니다.",
             question="선물하기에 좋은 밥솥이 있을까요?",
             writer_id=member_list[2],
-            product_id=product_list[4],
+            product_id=product_list[-4],
             writer_account="",
         )
     ):
@@ -337,7 +337,7 @@ def init_comment():
             answer=None,
             question="밥솥을 사용할 때 주의할 점은 무엇인가요?",
             writer_id=member_list[2],
-            product_id=product_list[5],
+            product_id=product_list[-5],
             writer_account="",
         )
     ):
@@ -354,7 +354,7 @@ def init_comment():
             answer="주걱, 여분패킹, 스테인리스 내솥을 추천드립니다. 고객님.",
             question="밥솥을 구매할 때 유용한 액세서리는 무엇인가요?",
             writer_id=member_list[2],
-            product_id=product_list[6],
+            product_id=product_list[-6],
             writer_account="",
         )
     ):
@@ -371,7 +371,7 @@ def init_comment():
             answer=None,
             question="밥솥은 최대 몇 기압까지 사용 가능한가요?",
             writer_id=member_list[2],
-            product_id=product_list[7],
+            product_id=product_list[-7],
             writer_account="",
         )
     ):
@@ -388,7 +388,7 @@ def init_comment():
             answer=None,
             question="안녕하세요. 환불 가능한가요?",
             writer_id=member_list[3],
-            product_id=product_list[8],
+            product_id=product_list[-8],
             writer_account="",
         )
     ):
@@ -405,7 +405,7 @@ def init_comment():
             answer="네, 파손 관련 내역은 직접 연락드리도록 하겠습니다. 감사합니다.",
             question="밥솥이 파손되어 도착했어요.",
             writer_id=member_list[2],
-            product_id=product_list[8],
+            product_id=product_list[-8],
             writer_account="",
         )
     ):
@@ -422,7 +422,7 @@ def init_comment():
             answer=None,
             question="밥솥을 구매할 때 가격 대비 품질이 좋은 제품은 무엇인가요?",
             writer_id=member_list[2],
-            product_id=product_list[9],
+            product_id=product_list[-9],
             writer_account="",
         )
     ):
@@ -439,7 +439,7 @@ def init_comment():
             answer="특수 코팅이라 내솥에 전혀 이상이 가지 않지만, 지속적으로 사용 시, 잔기스가 발생 가능합니다.",
             question="식기 세척기를 사용하면 내솥에 손상이 생길까요?",
             writer_id=member_list[2],
-            product_id=product_list[10],
+            product_id=product_list[-10],
             writer_account="",
         )
     ):
@@ -456,7 +456,7 @@ def init_comment():
             answer=None,
             question="안녕하세요. 환불 가능한가요?",
             writer_id=member_list[3],
-            product_id=product_list[10],
+            product_id=product_list[-10],
             writer_account="",
         )
     ):

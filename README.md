@@ -56,8 +56,8 @@ mysql_db = {
 # How to Run
 ## How to Run Flask
 ```bash
-python manage.py --host x.x.x.x --port 5000
-python3 manage.py --host x.x.x.x --port 5000
+python manage.py --run flask-main --host x.x.x.x --port 5000
+python3 manage.py --run flask-admin --host x.x.x.x --port 5001
 ```
 
 ## How to Test

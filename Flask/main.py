@@ -46,8 +46,6 @@ from Domains.Sessions import *
 from get_config_data import get_db_padding
 from mysql_config import mysql_db
 
-from datetime import datetime, timedelta
-
 
 SECRETSPATH = __init__.root_path / "secrets.json"
 IMG_PATH = __init__.root_path / "Images"
@@ -250,8 +248,7 @@ def product():
                     "productName": v.name,
                     "productImageUrl": url_for(
                         "send_image", filename=v.img_path
-                    ),  # /Images/image1.jpg
-                    #'http://serveraddr/Images'+ v.img_path
+                    ),
                     "productPrice": v.price,
                 }
                 response_data["data"].append(product_data)
@@ -288,8 +285,7 @@ def sellerProduct():
                     "productName": v.name,
                     "productImageUrl": url_for(
                         "send_image", filename=v.img_path
-                    ),  # /Images/image1.jpg
-                    #'http://serveraddr/Images'+ v.img_path,
+                    ), 
                     "productPrice": v.price,
                     "regDate": v.register_day,
                 }
@@ -309,8 +305,8 @@ def login():
 
     auth_member_repo = MySqlLoginAuthentication(get_db_padding())
     session_repo = MySqlMakeSaveMemberSession(get_db_padding())
-
     login_pass = AuthenticationMemberService(auth_member_repo, session_repo)
+
     result = login_pass.login(userId, userPassword)
 
     match result:
@@ -327,7 +323,7 @@ def login():
                         "certification": True,
                         "key": member_session.get_id(),
                         "auth": str(member_session.role.name),
-                        "name": str(member_session.name),
+                        "name": member_session.name,
                     }
                 ),
                 200,
@@ -400,90 +396,6 @@ def bsignup():
         return jsonify({"success": True}), 200
     else:
         return jsonify({"success": False})
-
-
-@app.route("/api/Adminlogin", methods=["POST"])
-def Adminlogin():
-    data = request.get_json()
-
-    userId = data.get("userId")
-    userPassword = data.get("userPassword")
-
-    auth_member_repo = MySqlLoginAuthentication(get_db_padding())
-    session_repo = MySqlMakeSaveMemberSession(get_db_padding())
-    otp_session_repo = TempMySqlMakeSaveMemberSession(get_db_padding())
-    otp_load_session_repo = TempMySqlLoadSession(get_db_padding())
-
-    login_pass = LoginAdminService(
-        auth_member_repo, session_repo, otp_session_repo, otp_load_session_repo
-    )
-    result = login_pass.login(userId, userPassword)
-
-    match result:
-        case Ok(member_session):
-            response_data = {
-                "key": member_session.get_id(),
-            }
-
-            conn = pymysql.connect(**mysql_db)
-            try:
-                # 커서 생성
-                with conn.cursor() as cursor:
-                    sql = "SELECT email FROM log_user WHERE role = 'admin'"
-                    cursor.execute(sql)
-
-                    admin_email = cursor.fetchone()
-
-                    if admin_email:
-                        # response_data['success'] = True
-                        # response_data['email'] = admin_email[0]
-                        print(admin_email[0])
-
-                    else:
-                        jsonify(
-                            {"success": False, "err": "Admin 정보를 찾을 수 없습니다."}
-                        )
-            finally:
-                conn.close()
-
-            return (jsonify(response_data), 200)
-        case Err(e):
-            return jsonify({"success": False})
-
-
-@app.route("/api/admin", methods=["POST"])
-def adminUser():
-    read_repo = MySqlGetMember(get_db_padding())
-    edit_repo = MySqlEditMember(get_db_padding())
-    load_session_repo = MySqlLoadSession(get_db_padding())
-
-    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
-
-    data = request.get_json()
-    user_key = data.get("key")
-    page = data.get("page")
-    page -= 1
-
-    size = 20
-    result = get_user_info.read_members(user_key, page, size)
-
-    response_data = {"page": page + 1, "size": size, "data": []}
-
-    match result:
-        case Ok((max, members)):
-            response_data["totalPage"] = math.ceil(max / size)
-            for v in members:
-                user_data = {
-                    "userKey": v.id.get_id(),  # 사용자 key
-                    "userId": v.account,  # 사용자 아이디(로그인용)
-                    "userAuth": v.role.value,  # 사용자 권한
-                }
-                response_data["data"].append(user_data)
-            return jsonify(response_data)
-
-        case Err(e):
-            return jsonify({"success": False})
-
 
 @app.route("/api/user-role", methods=["POST"])
 def updateUserRole():

@@ -12,8 +12,8 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--run",
-        choices=["test", "flask", "migrate", "delete-storage"],  # "git-push",
-        default="flask",
+        choices=["test", "flask-main", "flask-admin", "migrate", "delete-storage"],  # "git-push",
+        default="flask-main",
     )
     # parser.add_argument("--branch", default="main")
     parser.add_argument("--not_debug", action="store_true")
@@ -141,11 +141,15 @@ def migrate(clear_db_init=False):
     assert t.check_exist_otps(), "Don't exsist Otp Table."
 
 
-def flask(debug=True, host="127.0.0.1", port=5000):
+def flask_main(debug=True, host="127.0.0.1", port=5000):
     from Flask.main import app
 
     app.run(debug=debug, host=host, port=int(port))
 
+def flask_admin(debug=True, host="127.0.0.1", port=5001):
+    from Flask.admin import app
+
+    app.run(debug=debug, host=host, port=int(port))
 
 def main(opt):
     from icecream import ic
@@ -182,8 +186,10 @@ def main(opt):
                 init_comment()
                 init_order()
 
-        case "flask":
-            flask(debug, opt.host, opt.port)
+        case "flask-main":
+            flask_main(debug, opt.host, opt.port)
+        case "flask-admin":
+            flask_admin(debug, opt.host, opt.port)
         case "delete-storage":
             delete_storage()
         case _:
