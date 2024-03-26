@@ -401,7 +401,7 @@ def login():
     auth_member_repo = MySqlLoginAuthentication(get_db_padding())
     session_repo = MySqlMakeSaveMemberSession(get_db_padding())
 
-    login_pass = AuthenticationMemberService(auth_member_repo, session_repo)
+    login_pass = LoginLogoutService(auth_member_repo, session_repo)
     result, _ = login_pass.login(userId, userPassword)
 
     match result:
@@ -882,7 +882,7 @@ def logout():
     user_key = data.get("key")
     
     del_session_repo = MySqlDeleteSession(get_db_padding())
-    logout = MemberSessionService(del_session_repo)
+    logout = LoginLogoutService(del_session_repo)
     
     result = logout.logout(user_key)
     
