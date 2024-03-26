@@ -73,7 +73,6 @@ id, value, owner_id, create_time, use_count
             session_table_name = self.get_padding_name("session")
 
             with connection.cursor() as cursor:
-                ic(transition.serialize_value())
                 update_query = f"""
 UPDATE {session_table_name} SET value = %s, use_count = use_count+1 WHERE id = %s """
 

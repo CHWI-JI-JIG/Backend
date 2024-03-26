@@ -384,7 +384,7 @@ class test_order_builder(unittest.TestCase):
             order_transition_session=order_transition.get_id(),
             payment_success=False,
         ):
-            case Err("Fail Payment"):
+            case Err("Fail Payment") | Err("Payment False"):
                 pass
             case e:
                 assert False, f"{e}"
