@@ -314,18 +314,18 @@ def login():
             session["auth"] = member_session.role.name
             ic(changePw)
 
+
             return (
                 jsonify(
                     {
                         "success": True,
                         "certification": True,
                         "key": member_session.get_id(),
-                        "auth": str(member_session.role.name),
+                        "auth": member_session.role.name,
+                        "changePw": changePw,
                         "name": member_session.name,
-                        "changePw": changePw
                     }
                 ),
-                200,
             )
         case Err(e):
             return jsonify({"success": False})
@@ -348,7 +348,8 @@ def changeExpiredPw():
 
     match result:
         case Ok(_):            
-            return jsonify({"success": True})
+            return jsonify({"success": True}    200,
+            )
         case Err(e):
             return jsonify({"success": False})
 
@@ -621,8 +622,8 @@ def qaAnswer():
 
     result = add_answer_info.add_answer(answer, comment_id, user_key)
 
-    match result:
-        case Ok(_):
+    match result_:
+        case Ok():
             return jsonify({"success": True})
 
         case Err(e):
@@ -682,8 +683,8 @@ def qaQuestion():
 
     result = create_qa_info.create_question(question, product_id, user_key)
 
-    match result:
-        case Ok(_):
+    match result_:
+        case Ok():
             return jsonify({"success": True})
 
         case Err(e):
@@ -724,8 +725,8 @@ def logout():
 
     user_key = data.get("key")
 
-    del_session_repo = MySqlDeleteSession(get_db_padding())
     
+    del_session_repo = MySqlDeleteSession(get_db_padding())
     logout = MemberSessionService(del_session_repo)
 
     result = logout.logout(user_key)
