@@ -53,7 +53,7 @@ class TempMySqlMakeSaveMemberSession(IMakeSaveMemberSession):
         try:
             with connection.cursor() as cursor:
                 query = f"""
-SELECT name, role
+SELECT name, account, role
 FROM {member_table_name}
 WHERE id = %s
 """
@@ -64,12 +64,13 @@ WHERE id = %s
                 if result is None:
                     return Err("회원정보가 없습니다.")
 
-                name, role = result
+                name,account, role = result
                 match (
                     MemberSessionBuilder()
                     .set_key()
                     .unwrap() # 오류날 확률이 없어서 unwrap()
                     .set_name(name)
+                    .set_account(account)
                     .set_role(role)
                     .set_use_count()
                     .set_create_time()

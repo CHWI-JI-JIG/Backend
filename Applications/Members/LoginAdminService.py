@@ -12,6 +12,7 @@ from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
 from datetime import datetime, timedelta
 from Repositories.Sessions import *
+from Applications.Sessions.SessionHelper import check_valide_session
 
 from icecream import ic
 
@@ -75,6 +76,30 @@ class LoginAdminService:
         else:
             self.auth_repo.update_access(ret)
             return Err("비밀번호가 틀렸습니다.")
+        
+    def otp_login(self, temp_session:str) -> Result[MemberSession, str]:
+        builder = MemberSessionBuilder().set_deserialize_key(temp_session)
+        match self.otp_load_session_repo.load_session(temp_session):
+            case Ok(json):
+                match builder.set_deserialize_value(json):
+                    case Ok(session):
+                        user_session = session.build()
+                        if not check_valide_session(user_session):
+                            return Err("Expired Session")
+                        if user_session.role != RoleType.ADMIN:
+                            return Err("Permission Deny")
+                    case _:
+                        return Err("Invalid Member Session")
+            case _:
+                return Err("plz login")
+            
+        match self.session_repo.make_and_save_session(user_session.member_id):
+            case Ok(session):
+                ic(session)
+                return Ok(session)
+            case e:
+                ic(e)
+                return e
 
     def get_block_time(self, num_of_incorrect_login: int) -> int:
         """_summary_
