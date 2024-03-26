@@ -41,10 +41,10 @@ class ChangePasswdService:
 
     def change_expired_pw(
         self,
-        user_key: str,        
+        user_key: str,
         old_passwd: str,
         new_passwd: str,
-    ) -> Result[MemberID, str]:  # Result 변경필요
+    ) -> Result[MemberID, str]:
         
         builder = MemberSessionBuilder().set_deserialize_key(user_key)
         match self.load_session_repo.load_session(user_key):
@@ -60,7 +60,7 @@ class ChangePasswdService:
                 return Err("plz login")
         
         match self.auth_repo.identify_and_authenticate(account, hashing_passwd(old_passwd)):
-            case Ok(auth):
-                self.pass_repo.update_passwd(member_id, hashing_passwd(new_passwd))
+            case Ok(_):
+                return self.pass_repo.update_passwd(member_id, hashing_passwd(new_passwd))
             case _:
                 return Err("Incorrect password")

@@ -305,11 +305,12 @@ def login():
     result = login_pass.login(userId, userPassword)
 
     match result:
-        case Ok((member_session, _)):
+        case Ok((member_session, changePw)):
 
             ic(member_session)
             session["key"] = member_session.get_id()
             session["auth"] = member_session.role.name
+            ic(changePw)
 
             return (
                 jsonify(
@@ -319,10 +320,33 @@ def login():
                         "key": member_session.get_id(),
                         "auth": str(member_session.role.name),
                         "name": member_session.name,
+                        "changePw": changePw
                     }
                 ),
                 200,
             )
+        case Err(e):
+            return jsonify({"success": False})
+
+
+@app.route("/api/change-pw", methods=["POST"])
+def changeExpiredPw():
+    pass_repo = MySqlChangePasswd(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
+    auth_member_repo = MySqlLoginAuthentication(get_db_padding())
+    
+    change = ChangePasswdService(pass_repo, load_session_repo, auth_member_repo)
+    
+    data = request.get_json()
+    user_key = data.get("key")  # 세션키
+    old_passwd = data.get("password")
+    new_passwd = data.get("newPassword")
+    
+    result = change.change_expired_pw(user_key, old_passwd, new_passwd)
+
+    match result:
+        case Ok(_):            
+            return jsonify({"success": True})
         case Err(e):
             return jsonify({"success": False})
 
@@ -596,7 +620,7 @@ def qaAnswer():
     result = add_answer_info.add_answer(answer, comment_id, user_key)
 
     match result:
-        case Ok():
+        case Ok(_):
             return jsonify({"success": True})
 
         case Err(e):
@@ -657,7 +681,7 @@ def qaQuestion():
     result = create_qa_info.create_question(question, product_id, user_key)
 
     match result:
-        case Ok():
+        case Ok(_):
             return jsonify({"success": True})
 
         case Err(e):
