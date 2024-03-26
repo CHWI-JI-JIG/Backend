@@ -12,13 +12,21 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--run",
-        choices=["test", "flask-main", "flask-admin", "migrate", "delete-storage"],  # "git-push",
+        choices=[
+            "test",
+            "flask-main",
+            "flask-admin",
+            "migrate",
+            "delete-storage",
+        ],  # "git-push",
         default="flask-main",
     )
     # parser.add_argument("--branch", default="main")
     parser.add_argument("--not_debug", action="store_true")
     parser.add_argument("--host", default="0.0.0.0")
-    parser.add_argument("--port", default=5000)
+    parser.add_argument(
+        "--port", default=None, help="Set port number. ex) --port 5000."
+    )
     parser.add_argument("--db_attach", type=str, default="log_")
     parser.add_argument("--storage_type", default="mysql")
     parser.add_argument("--init", action="store_true")
@@ -146,10 +154,12 @@ def flask_main(debug=True, host="127.0.0.1", port=5000):
 
     app.run(debug=debug, host=host, port=int(port))
 
+
 def flask_admin(debug=True, host="127.0.0.1", port=5001):
     from Flask.admin import app
 
     app.run(debug=debug, host=host, port=int(port))
+
 
 def main(opt):
     from icecream import ic
@@ -187,9 +197,15 @@ def main(opt):
                 init_order()
 
         case "flask-main":
-            flask_main(debug, opt.host, opt.port)
+            if opt.port is None:
+                port = 5000
+            assert isinstance(port, int), "Type of port is int. ex) --port 5000"
+            flask_main(debug, opt.host, port)
         case "flask-admin":
-            flask_admin(debug, opt.host, opt.port)
+            if opt.port is None:
+                port = 5001
+            assert isinstance(port, int), "Type of port is int. ex) --port 5001"
+            flask_admin(debug, opt.host, port)
         case "delete-storage":
             delete_storage()
         case _:
