@@ -22,6 +22,7 @@ from flask_cors import CORS
 import pymysql
 
 from icecream import ic
+from typing import Dict
 from result import Result, Ok, Err
 
 from Applications.Members import *
@@ -85,12 +86,11 @@ def check_id_duplicate(account):
 
 
 @app.route("/api/Images/<path:filename>")
-def send_image(filename):  # /Images/img102.png
+def send_image(filename):  
     if allowed_file(filename):
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
     else:
         return "File not allowed", 403
-
 
 @app.route("/api/search", methods=["GET"])
 def search():
@@ -143,7 +143,6 @@ def search():
     }
 
     return jsonify(response)
-
 
 @app.route("/api/product-registration", methods=["POST"])
 def productRegistration():
@@ -198,7 +197,6 @@ def productRegistration():
         case Err(e):
             return jsonify({"success": False})
 
-
 @app.route("/api/detail", methods=["GET"])
 def detail():
     productId = request.args.get("productId", type=str)
@@ -220,7 +218,6 @@ def detail():
                 "productImageUrl": url_for("send_image", filename=ret.img_path),
             }
             return jsonify(res_data)
-
 
 @app.route("/api/products", methods=["GET"])
 def product():
@@ -255,7 +252,6 @@ def product():
             ic(e)
             return jsonify({"success": False})
 
-
 @app.route("/api/sproducts", methods=["POST"])
 def sellerProduct():
     get_product_repo = MySqlGetProduct(get_db_padding())
@@ -289,7 +285,6 @@ def sellerProduct():
 
         case Err(e):
             return jsonify({"success": False})
-
 
 @app.route("/api/login", methods=["POST"])
 def login():
@@ -363,7 +358,6 @@ def check_id():
     duplicated = check_id_duplicate(id)
     return jsonify({"duplicated": duplicated})
 
-
 @app.route("/api/signup", methods=["POST"])
 def signup():
     data = request.get_json()
@@ -385,7 +379,6 @@ def signup():
         return jsonify({"success": True}), 200
     else:
         return jsonify({"success": False})
-
 
 @app.route("/api/b-signup", methods=["POST"])
 def bsignup():
@@ -522,7 +515,6 @@ def orderHistroy():
         case Err(e):
             return jsonify({"success": False})
 
-
 @app.route("/api/seller-order", methods=["POST"])
 def sellerOrder():
     get_order_Repo = MySqlGetOrder(get_db_padding())
@@ -562,7 +554,6 @@ def sellerOrder():
 
         case Err(e):
             return jsonify({"success": False})
-
 
 @app.route("/api/userproductinfo", methods=["POST"])
 def userProductInfo():
@@ -605,7 +596,6 @@ def userProductInfo():
         case Err(e):
             return jsonify({"success": False})
 
-
 @app.route("/api/PG/sendpayinfo", methods=["POST"])
 def sendPayInfo():
     save_order = MySqlSaveOrder(get_db_padding())
@@ -646,7 +636,6 @@ def sendPayInfo():
         case Err(e):
             return jsonify({"success": False})
 
-
 @app.route("/api/answer", methods=["POST"])
 def qaAnswer():
     save_comment = MySqlSaveComment(get_db_padding())
@@ -668,7 +657,6 @@ def qaAnswer():
             return jsonify({"success": False, "msg":"만료된 세션입니다"})
         case Err(e):
             return jsonify({"success": False, "message": str(e)})
-
 
 @app.route("/api/qa", methods=["POST"])
 def qaLoad():
@@ -706,7 +694,6 @@ def qaLoad():
         case Err(e):
             return jsonify({"success": False})
 
-
 @app.route("/api/qa-question", methods=["POST"])
 def qaQuestion():
     save_comment = MySqlSaveComment(get_db_padding())
@@ -726,8 +713,7 @@ def qaQuestion():
         case Err("만료된 세션입니다"):
             return jsonify({"success": False, "msg":"만료된 세션입니다"})
         case Err(e):
-            ic(e)
-            return jsonify({"success": False, "msg":e})
+            return jsonify({"success": False})
 
 
 @app.route("/api/c-user", methods=["POST"])
@@ -776,6 +762,23 @@ def logout():
     else:
         return jsonify({"success": False})
 
+
+@app.route("/api/logout", methods=["POST"])
+def logout():
+
+    data = request.get_json()
+
+    user_key = data.get("key")
+
+    del_session_repo = MySqlDeleteSession(get_db_padding())
+    logout = MemberSessionService(del_session_repo)
+
+    result = logout.logout(user_key)
+
+    if result:
+        return jsonify({"success": True}), 200
+    else:
+        return jsonify({"success": False})
 
 @app.route("/api/err-test")
 def err_test():
