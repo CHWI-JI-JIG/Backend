@@ -1,6 +1,7 @@
+from Domains.Sessions import SessionToken
 import __init__
 from abc import ABCMeta, abstractmethod
-from typing import Optional
+from typing import List, Optional
 from result import Result, Err, Ok
 
 from Domains.Members import *
@@ -63,7 +64,6 @@ WHERE id = %s
 
                 if result is None:
                     return Err("세션 데이터가 존재하지 않습니다.")
-                
 
                 session_token = SessionToken(
                     value=result[0],
@@ -80,3 +80,8 @@ WHERE id = %s
 
         except Exception as e:
             return Err(str(e))
+
+    def load_session_from_owner_id(
+        self, owner_id: str
+    ) -> Ok[List[SessionToken]] | Err[str]:
+        raise NotImplementedError()

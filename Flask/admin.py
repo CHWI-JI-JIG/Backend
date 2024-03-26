@@ -27,10 +27,7 @@ from typing import Dict
 from result import Result, Ok, Err
 
 from Applications.Members import *
-from Applications.Products import *
-from Applications.Orders import *
-from Applications.Comments import *
-from Applications.Payments import *
+from Applications.Sessions import *
 
 from Storages.Members import *
 from Storages.Orders import *
@@ -55,9 +52,11 @@ auth_member_repo = MySqlLoginAuthentication(get_db_padding())
 session_repo = MySqlMakeSaveMemberSession(get_db_padding())
 otp_session_repo = TempMySqlMakeSaveMemberSession(get_db_padding())
 otp_load_session_repo = TempMySqlLoadSession(get_db_padding())
+load_repo = MySqlLoadSession(get_db_padding())
+del_session_repo = MySqlDeleteSession(get_db_padding())
 
 login_service = LoginAdminService(
-    auth_member_repo, session_repo, otp_session_repo, otp_load_session_repo
+    auth_member_repo, session_repo, load_repo, del_session_repo, otp_session_repo, otp_load_session_repo
 )
 
 
@@ -156,6 +155,7 @@ def verify_otp():
         return jsonify({"success": False, "message": "OTP 기간 만료"})
 
 
+@app.route("/api/login", methods=["POST"])
 @app.route("/api/Adminlogin", methods=["POST"])
 def Adminlogin():
     data = request.get_json()
@@ -265,6 +265,22 @@ def updateUserRole():
         case Err(e):
             return jsonify({"success": False, "message": str(e)})
 
+@app.route("/api/logout", methods=["POST"])
+def logout():
+
+    data = request.get_json()
+
+    user_key = data.get("key")
+
+    del_session_repo = MySqlDeleteSession(get_db_padding())
+    logout = MemberSessionService(del_session_repo)
+
+    result = logout.logout(user_key)
+
+    if result:
+        return jsonify({"success": True}), 200
+    else:
+        return jsonify({"success": False})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
