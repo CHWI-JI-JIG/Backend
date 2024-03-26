@@ -62,7 +62,6 @@ class AuthenticationMemberService:
                 return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
 
         if ret.is_sucess:
-            # 여기에 작성!!!!
             # 같은 member_id 있는지 찾아서 있다면 다 로그아웃
             id = ret.id.get_id()
             load_result = self.load_repo.load_session_from_owner_id(id)

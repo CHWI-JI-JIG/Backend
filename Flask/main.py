@@ -303,7 +303,9 @@ def login():
     load_repo = MySqlLoadSession(get_db_padding())
     del_session_repo = MySqlDeleteSession(get_db_padding())
 
-    login_pass = AuthenticationMemberService(auth_member_repo, session_repo,load_repo,del_session_repo)
+    login_pass = AuthenticationMemberService(
+        auth_member_repo, session_repo, load_repo, del_session_repo
+    )
     result = login_pass.login(userId, userPassword)
 
     match result:
@@ -313,7 +315,6 @@ def login():
             session["key"] = member_session.get_id()
             session["auth"] = member_session.role.name
             ic(changePw)
-
 
             return (
                 jsonify(
@@ -326,7 +327,7 @@ def login():
                         "name": member_session.name,
                     }
                 ),
-                200
+                200,
             )
         case Err(e):
             return jsonify({"success": False})
@@ -337,20 +338,21 @@ def changeExpiredPw():
     pass_repo = MySqlChangePasswd(get_db_padding())
     load_session_repo = MySqlLoadSession(get_db_padding())
     auth_member_repo = MySqlLoginAuthentication(get_db_padding())
-    
+
     change = ChangePasswdService(pass_repo, load_session_repo, auth_member_repo)
-    
+
     data = request.get_json()
     user_key = data.get("key")  # 세션키
     old_passwd = data.get("password")
     new_passwd = data.get("newPassword")
-    
+
     result = change.change_expired_pw(user_key, old_passwd, new_passwd)
 
     match result:
-        case Ok(_):            
-            return jsonify({"success": True}, 200
-            )
+        case Ok(_):
+            return jsonify({"success": True}, 200)
+        case Err("만료된 세션입니다"):
+            return jsonify({"success": False, "msg":"만료된 세션입니다"})
         case Err(e):
             return jsonify({"success": False})
 
@@ -442,6 +444,8 @@ def updateUserRole():
                 {"success": True, "message": "User role updated successfully"}
             )
 
+        case Err("만료된 세션입니다"):
+            return jsonify({"success": False, "msg":"만료된 세션입니다"})
         case Err(e):
             return jsonify({"success": False, "message": str(e)})
 
@@ -562,6 +566,8 @@ def userProductInfo():
     match result:
         case Ok(session):
             return jsonify({"success": True, "transId": session.get_id()})
+        case Err("만료된 세션입니다"):
+            return jsonify({"success": False, "msg":"만료된 세션입니다"})
 
         case Err(e):
             return jsonify({"success": False})
@@ -621,12 +627,12 @@ def qaAnswer():
     comment_id = data.get("qId")
     user_key = data.get("key")
 
-    result = add_answer_info.add_answer(answer, comment_id, user_key)
-
-    match result_:
-        case Ok():
+    match add_answer_info.add_answer(answer, comment_id, user_key):
+        case Ok(_):
             return jsonify({"success": True})
 
+        case Err("만료된 세션입니다"):
+            return jsonify({"success": False, "msg":"만료된 세션입니다"})
         case Err(e):
             return jsonify({"success": False, "message": str(e)})
 
@@ -661,7 +667,6 @@ def qaLoad():
                     "question": v.question,
                     "answer": v.answer,
                 }
-                ic(comment_data)
                 response_data["data"].append(comment_data)
             return jsonify(response_data)
 
@@ -682,14 +687,14 @@ def qaQuestion():
     user_key = data.get("key")
     product_id = data.get("productId")
 
-    result = create_qa_info.create_question(question, product_id, user_key)
-
-    match result_:
-        case Ok():
+    match create_qa_info.create_question(question, product_id, user_key):
+        case Ok(_):
             return jsonify({"success": True})
-
+        case Err("만료된 세션입니다"):
+            return jsonify({"success": False, "msg":"만료된 세션입니다"})
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "msg":e})
 
 
 @app.route("/api/c-user", methods=["POST"])
@@ -714,6 +719,8 @@ def cUser():
                 "userAddr": privacy.address,
             }
             return jsonify(privacy_data)
+        case Err("만료된 세션입니다"):
+            return jsonify({"success": False, "msg":"만료된 세션입니다"})
 
         case Err(e):
             return jsonify({"success": False})
@@ -726,7 +733,6 @@ def logout():
 
     user_key = data.get("key")
 
-    
     del_session_repo = MySqlDeleteSession(get_db_padding())
     logout = MemberSessionService(del_session_repo)
 

@@ -48,12 +48,12 @@ class ReadPrivacyService:
                     case Ok(session):
                         seller_id = session.member_id
                         if not check_valide_session(session):
-                            return Err("Expired Session")
+                            return Err("만료된 세션입니다")
                     case _:
                         return Err("Invalid Member Session")
             case e:
                 ic(e)
-                return Err("Please log in")
+                return Err("만료된 세션입니다")
 
         privacy_result = self.read_repo.get_privacy(seller_id)
 

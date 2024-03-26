@@ -55,13 +55,13 @@ class CreateProductService:
                     case Ok(session):
                         user_session = session.build()
                         if not check_valide_session(user_session):
-                            return Err("Expired Session")
+                            return Err("만료된 세션입니다")
                         if user_session.role != RoleType.SELLER:
                             return Err("Permission Deny")
                     case _:
                         return Err("Invalid Member Session")
             case _:
-                return Err("plz login")
+                return Err("만료된 세션입니다")
 
         # publish
         match (
