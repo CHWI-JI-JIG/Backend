@@ -75,9 +75,6 @@ class PandasCsvPaymentStorage(IPaymentRepo):
 
         # CSV 파일로 저장
         self.df.to_csv(file_path, index=False)
-        with open(file_path, "a", newline="") as f_object:
-            writer_obj = DictWriter(f_object, fieldnames=self.dict_header)
-            writer_obj.writerow(new_row)
 
         return Ok(data)
 

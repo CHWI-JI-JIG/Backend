@@ -60,6 +60,8 @@ CORS(app)
 app.secret_key = secrets["SECRET_KEY"]
 app.config["UPLOAD_FOLDER"] = IMG_PATH
 
+PG_SERVER = PaymentService()
+
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -123,10 +125,7 @@ def search():
                     "productId": row[1],
                     "seq": row[2],
                     "productName": row[3],
-                    "productImageUrl": url_for(
-                        "send_image", filename=row[4]
-                    ),  # /Images/image1.jpg
-                    #'http://serveraddr/Images'+ v.img_path,
+                    "productImageUrl": url_for("send_image", filename=row[4]),
                     "productPrice": row[5],
                     "productDescription": row[6],
                     "date": row[7],
@@ -246,9 +245,7 @@ def product():
                     "productId": v.id.get_id(),
                     "sellerId": v.seller_id.get_id(),
                     "productName": v.name,
-                    "productImageUrl": url_for(
-                        "send_image", filename=v.img_path
-                    ),
+                    "productImageUrl": url_for("send_image", filename=v.img_path),
                     "productPrice": v.price,
                 }
                 response_data["data"].append(product_data)
@@ -283,9 +280,7 @@ def sellerProduct():
                 product_data = {
                     "productId": v.id.get_id(),
                     "productName": v.name,
-                    "productImageUrl": url_for(
-                        "send_image", filename=v.img_path
-                    ), 
+                    "productImageUrl": url_for("send_image", filename=v.img_path),
                     "productPrice": v.price,
                     "regDate": v.register_day,
                 }
@@ -310,7 +305,7 @@ def login():
     result = login_pass.login(userId, userPassword)
 
     match result:
-        case Ok((member_session,_)):
+        case Ok((member_session, _)):
 
             ic(member_session)
             session["key"] = member_session.get_id()
@@ -396,6 +391,7 @@ def bsignup():
         return jsonify({"success": True}), 200
     else:
         return jsonify({"success": False})
+
 
 @app.route("/api/user-role", methods=["POST"])
 def updateUserRole():
@@ -561,23 +557,23 @@ def sendPayInfo():
     total_price = data.get("productPrice")
     payment_success = data.get("paymentVerification")
 
-    result = PaymentService().approval_and_logging(
+    match PG_SERVER.approval_and_logging(
         order_transition_session, total_price, card_num
-    )
-    match result:
+    ):
         case Ok(True):
             pass
-        case Err(e):
-            return jsonify({"success": False, "msg": e})
+        case e:
+            msg = "결제 실패"
+            if e.is_err():
+                msg = e.err()
+            ic(e, msg)
+            return jsonify({"success": False, "msg": msg})
 
-    result = send_pay_info.payment_and_approval_order(
+    match send_pay_info.payment_and_approval_order(
         order_transition_session=order_transition_session,
         payment_success=True,
-    )
-    ic(result)
-
-    match result:
-        case Ok():
+    ):
+        case Ok(_):
             return jsonify({"success": True})
 
         case Err(e):
@@ -693,20 +689,20 @@ def cUser():
 
         case Err(e):
             return jsonify({"success": False})
-        
-        
+
+
 @app.route("/api/logout", methods=["POST"])
 def logout():
-    
+
     data = request.get_json()
-    
+
     user_key = data.get("key")
-    
+
     del_session_repo = MySqlDeleteSession(get_db_padding())
     logout = MemberSessionService(del_session_repo)
-    
+
     result = logout.logout(user_key)
-    
+
     if result:
         return jsonify({"success": True}), 200
     else:

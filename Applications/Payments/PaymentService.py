@@ -98,9 +98,8 @@ class PaymentService:
             deposit=total_price,
             transfer_time=datetime.now(),
         )
-
-        result = self.pay_repo.save_pay_data(pay_data)
-
-        if result.is_err():
-            return Err(result.err())
-        return Ok(True)
+        match self.pay_repo.save_pay_data(pay_data):
+            case Ok(p):
+                return Ok(True)
+            case e:
+                return e
