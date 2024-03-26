@@ -13,6 +13,7 @@ from icecream import ic
 
 @dataclass(frozen=True)
 class SessionToken:
+    key : str
     value: str
     owner_id: str
     create_time: datetime
@@ -175,6 +176,7 @@ def make_session_token(token_builder: ISessionSerializeable) -> SessionToken:
     ), "token_builder must inherit from SecuritySession"
 
     return SessionToken(
+        key=token_builder.serialize_key(),
         value=token_builder.serialize_value(),
         owner_id=token_builder.get_owner_id(),
         create_time=token_builder.get_create_time(),

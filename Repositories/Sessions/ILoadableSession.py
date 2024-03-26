@@ -29,7 +29,7 @@ class ILoadableSession(metaclass=ABCMeta):
         owner_id로 조회하는 코드 (여러개 존재 가능)
 
         Args:
-            session_key (UUID): session_key is uuid.hex
+            owner_id
 
         Returns:
             Result[str, str]:
