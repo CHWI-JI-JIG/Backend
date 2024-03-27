@@ -349,8 +349,8 @@ def changeExpiredPw():
 
     match result:
         case Ok(_):            
-            return jsonify({"success": True}, 200
-            )
+            return jsonify({"success": True}), 200
+            
         case Err(e):
             return jsonify({"success": False})
 
@@ -623,7 +623,7 @@ def qaAnswer():
 
     result = add_answer_info.add_answer(answer, comment_id, user_key)
 
-    match result_:
+    match result:
         case Ok():
             return jsonify({"success": True})
 
@@ -684,7 +684,7 @@ def qaQuestion():
 
     result = create_qa_info.create_question(question, product_id, user_key)
 
-    match result_:
+    match result:
         case Ok():
             return jsonify({"success": True})
 

@@ -111,10 +111,7 @@ WHERE owner_id = %s;
                 cursor.close()
                 connection.close()
 
-                if session_tokens:
-                    return Ok(session_tokens)
-                else:
-                    return Err("세션 데이터가 존재하지 않습니다.")
+                return Ok(session_tokens)
 
         except Exception as e:
             return Err(str(e))
@@ -148,10 +145,7 @@ WHERE owner_id = %s;
                 cursor.close()
                 connection.close()
 
-                if session_tokens:
-                    return Ok(session_tokens)
-                else:
-                    return Err("세션 데이터가 존재하지 않습니다.")
+                return Ok(session_tokens)
 
         except Exception as e:
             return Err(str(e))
