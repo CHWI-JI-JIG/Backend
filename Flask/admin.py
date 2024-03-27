@@ -171,7 +171,7 @@ def verify_otp():
             match login_service.otp_login(key):
                 case Ok(user_seeeeion):
                     match check_change_pw(user_seeeeion.account):
-                        case Ok(changePw):
+                        case Ok(changePw):                            
                             return jsonify(
                                 {
                                     "success": True,
@@ -179,8 +179,8 @@ def verify_otp():
                                     "auth": str(user_seeeeion.role.name),
                                     "message": "OTP 인증 완료",
                                     "changePw": changePw,
-                                }
-                            )
+                                }                                
+                            )                                                        
                         case e:
                             ic(e)
                             return jsonify({"success": False, "message": "SQL 실패."})
@@ -193,7 +193,31 @@ def verify_otp():
         return jsonify({"success": False, "message": "OTP 기간 만료"})
 
 
-@app.route("/api/login", methods=["POST"])
+@app.route("/api/change-pw", methods=["POST"])
+def changeExpiredPw():
+    pass_repo = MySqlChangePasswd(get_db_padding())
+    load_session_repo = MySqlLoadSession(get_db_padding())
+    auth_member_repo = MySqlLoginAuthentication(get_db_padding())
+
+    change = ChangePasswdService(pass_repo, load_session_repo, auth_member_repo)
+
+    data = request.get_json()
+    user_key = data.get("key")  # 세션키
+    old_passwd = data.get("password")
+    new_passwd = data.get("newPassword")
+
+    result = change.change_expired_pw(user_key, old_passwd, new_passwd)
+
+    match result:
+        case Ok(_):
+            return jsonify({"success": True}), 200
+        case Err("만료된 세션입니다"):
+            return jsonify({"success": False, "message": "만료된 세션입니다"})
+        case Err(e):
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
+
 @app.route("/api/Adminlogin", methods=["POST"])
 def Adminlogin():
     data = request.get_json()
