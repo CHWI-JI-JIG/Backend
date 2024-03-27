@@ -9,7 +9,7 @@ from Domains.Members import *
 from Domains.Sessions import *
 from Builders.Members import *
 from Repositories.Members import *
-from Applications.Members.ExtentionMethod import hashing_passwd
+from Applications.Members.ExtentionMethod import hashing_passwd, check_passwd_change
 from datetime import datetime, timedelta
 from Repositories.Sessions import IMakeSaveMemberSession, ILoadableSession,IDeleteableSession
 
@@ -58,6 +58,10 @@ class AuthenticationMemberService:
 
         match self.auth_repo.identify_and_authenticate(account, hashing_passwd(passwd)):
             case Ok(auth):
+                if auth.role == RoleType.ADMIN:
+                    return Err("관리자는 로그인할 수 없는 페이지 입니다.")
+
+                
                 block_time = self.get_block_time(auth.fail_count)
                 if block_time > 0 and not self.check_login_able(
                     auth.last_access, block_time
@@ -70,6 +74,7 @@ class AuthenticationMemberService:
             case Err(e):
                 return Err("아이디가 존재하지 않습니다. 회원가입을 해주세요.")
 
+        self.auth_repo.update_access(ret)
         if ret.is_sucess:
             # 같은 member_id 있는지 찾아서 있다면 다 로그아웃
             id = ret.id.get_id()
@@ -85,7 +90,7 @@ class AuthenticationMemberService:
             session_result = self.session_repo.make_and_save_session(ret.id)
             match session_result:
                 case Ok(session):
-                    need_password_change = self.check_passwd_change(ret.last_changed_date, session.role)
+                    need_password_change = check_passwd_change(ret.last_changed_date, session.role)
                     result = (session, need_password_change)
                     return Ok(result)
                 case Err(_):
@@ -93,7 +98,6 @@ class AuthenticationMemberService:
                 case _:
                     assert False, "Value Error"
         else:
-            self.auth_repo.update_access(ret)
             return Err("비밀번호가 틀렸습니다.")
 
     def get_block_time(self, num_of_incorrect_login: int) -> int:
@@ -139,25 +143,3 @@ class AuthenticationMemberService:
         else:
             return False
     
-    def check_passwd_change(self, last_changed_date: datetime, role: str) -> bool:
-        """
-        비밀번호 변경이 필요한지 확인하는 함수
-        """
-        try:
-            role_type = RoleType(role)
-        except ValueError:
-            return Err("Invalid role type")
-        except Exception as e:
-            return Err(str(e))
-        
-        current_date = datetime.now()
-        if role_type == RoleType.ADMIN:
-            days_to_check = 180  # 180 = 6 months(반기)
-        else:
-            days_to_check = 60  # 60 days
-        days_since_last_change = (current_date - last_changed_date).days
-        return days_since_last_change > days_to_check
-        
-        # 테스트 시 아래 코드 사용
-        # time_since_last_change = current_date - last_changed_date
-        # return time_since_last_change.total_seconds() > days_to_check

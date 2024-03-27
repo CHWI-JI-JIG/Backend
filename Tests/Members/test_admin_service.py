@@ -28,6 +28,8 @@ class test_admin_service(unittest.TestCase):
         set_db_padding(test_padding)
         ms = MySqlCreateSession(get_db_padding())
         cls.session_migrate = ms
+        otp = MySqlCreateOtp(get_db_padding())
+        cls.otp_migrate = otp
 
         cls.user_migrate = MySqlCreateUser(get_db_padding())
         cls.mysql_save_member = MySqlSaveMember(get_db_padding())
@@ -38,11 +40,26 @@ class test_admin_service(unittest.TestCase):
         cls.load_session = MySqlLoadSession(get_db_padding())
         cls.admin_service = AdminService(cls.get_repo, cls.edit_repo, cls.load_session)
 
+        auth_member_repo = MySqlLoginAuthentication(get_db_padding())
+        session_repo = MySqlMakeSaveMemberSession(get_db_padding())
+        otp_session_repo = TempMySqlMakeSaveMemberSession(get_db_padding())
+        otp_load_session_repo = TempMySqlLoadSession(get_db_padding())
+        load_repo = MySqlLoadSession(get_db_padding())
+        del_session_repo = MySqlDeleteSession(get_db_padding())
+
+        cls.abmin_login_service = LoginAdminService(
+            auth_member_repo,
+            session_repo,
+            load_repo,
+            del_session_repo,
+            otp_session_repo,
+            otp_load_session_repo,
+        )
         cls.login_service = AuthenticationMemberService(
             auth_member_repo=cls.l_repo,
             session_repo=MySqlMakeSaveMemberSession(get_db_padding()),
-            load_repo= MySqlLoadSession(get_db_padding()),
-            del_session_repo= MySqlDeleteSession(get_db_padding()),
+            load_repo=MySqlLoadSession(get_db_padding()),
+            del_session_repo=MySqlDeleteSession(get_db_padding()),
         )
 
         if ms.check_exist_session():
@@ -56,6 +73,8 @@ class test_admin_service(unittest.TestCase):
         print(sys._getframe(0).f_code.co_name)
         if cls.session_migrate.check_exist_session():
             cls.session_migrate.delete_session()
+        if cls.otp_migrate.check_exist_otps():
+            cls.otp_migrate.check_exist_otps()
         if cls.user_migrate.check_exist_user():
             cls.user_migrate.delete_user()
 
@@ -63,6 +82,7 @@ class test_admin_service(unittest.TestCase):
         "Hook method for setting up the test fixture before exercising it."
         print("\t", sys._getframe(0).f_code.co_name)
         self.session_migrate.create_session()
+        self.otp_migrate.create_otp()
         self.user_migrate.create_user()
         self.create_service.create(
             account="zxcvbn",
@@ -108,15 +128,32 @@ class test_admin_service(unittest.TestCase):
         print("\t", sys._getframe(0).f_code.co_name)
         if self.user_migrate.check_exist_user():
             self.user_migrate.delete_user()
+        if self.otp_migrate.check_exist_otps():
+            self.otp_migrate.check_exist_otps()
+
+    def test_Not_관리자_회원(self):
+        "Hook method for deconstructing the test fixture after testing it."
+        print("\t\t", sys._getframe(0).f_code.co_name)
+        match self.login_service.login("admin", "456"):
+            case Ok((auth, b)):
+                raise ValueError()
+            case e:
+                pass
 
     def test_관리자_회원(self):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         # login
-        match self.login_service.login("admin", "456"):
-            case Ok((auth,b)):
+        match self.abmin_login_service.login("admin", "456"):
+            case Ok(auth):
                 admin_auth = auth
-                assert not b, f"change pw : {b}"
+            case e:
+                ic(e)
+                raise ValueError()
+
+        match self.abmin_login_service.otp_login(admin_auth.get_id()):
+            case Ok(auth):
+                admin_auth = auth
             case e:
                 ic(e)
                 raise ValueError()
@@ -213,13 +250,19 @@ class test_admin_service(unittest.TestCase):
         "Hook method for deconstructing the test fixture after testing it."
         print("\t\t", sys._getframe(0).f_code.co_name)
         # login
-        match self.login_service.login("admin", "456"):
-            case Ok((auth,b)):
+        match self.abmin_login_service.login("admin", "456"):
+            case Ok(auth):
                 admin_auth = auth
-                assert not b, f"change pw : {b}"
-            case Err:
+            case e:
+                ic(e)
                 raise ValueError()
 
+        match self.abmin_login_service.otp_login(admin_auth.get_id()):
+            case Ok(auth):
+                admin_auth = auth
+            case e:
+                ic(e)
+                raise ValueError()
         # get members
         match self.admin_service.read_members(
             admin_key=admin_auth.get_id(),
@@ -292,7 +335,7 @@ class test_admin_service(unittest.TestCase):
 
         # login
         match self.login_service.login("admin", "456"):
-            case Ok((auth,b)):
+            case Ok((auth, b)):
                 admin_auth = auth
                 assert not b, f"change pw : {b}"
             case e:
