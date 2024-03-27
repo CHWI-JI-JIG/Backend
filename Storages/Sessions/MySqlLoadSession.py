@@ -77,8 +77,6 @@ UPDATE {session_table_name} SET use_count = use_count+1 WHERE id = %s;
                 cursor.close()
                 connection.close()
 
-                # ic()
-                # ic(session_token)
 
                 return Ok(session_token)
 
