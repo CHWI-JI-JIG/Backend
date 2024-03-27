@@ -1,4 +1,3 @@
-from Repositories.Members.IReadableMemberList import IReadableMemberList
 import __init__
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple, List

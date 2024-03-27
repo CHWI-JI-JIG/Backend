@@ -1,4 +1,3 @@
-from Domains.Sessions import SessionToken
 import __init__
 from abc import ABCMeta, abstractmethod
 from typing import List, Optional

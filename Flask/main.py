@@ -310,10 +310,8 @@ def login():
     match result:
         case Ok((member_session, changePw)):
 
-            ic(member_session)
             session["key"] = member_session.get_id()
             session["auth"] = member_session.role.name
-            ic(changePw)
 
             return (
                 jsonify(
@@ -405,7 +403,6 @@ def bsignup():
     save_member_repo = MySqlSaveMember(get_db_padding())
     member_service = CreateMemberService(save_member_repo)
 
-    ic(account)
     result = member_service.create(
         account,
         passwd,
@@ -435,42 +432,6 @@ def bsignup():
             ic(e)
             return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
-
-@app.route("/api/admin", methods=["POST"])
-def adminUser():
-    read_repo = MySqlGetMember(get_db_padding())
-    edit_repo = MySqlEditMember(get_db_padding())
-    load_session_repo = MySqlLoadSession(get_db_padding())
-
-    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
-
-    data = request.get_json()
-    user_key = data.get("key")
-    page = data.get("page")
-    page -= 1
-
-    size = 20
-    result = get_user_info.read_members(user_key, page, size)
-
-    response_data = {"page": page + 1, "size": size, "data": []}
-
-    match result:
-        case Ok((max, members)):
-            response_data["totalPage"] = math.ceil(max / size)
-            for v in members:
-                user_data = {
-                    "userKey": v.id.get_id(),  # 사용자 key
-                    "userId": v.account,  # 사용자 아이디(로그인용)
-                    "userAuth": v.role.value,  # 사용자 권한
-                }
-                response_data["data"].append(user_data)
-            return jsonify(response_data)
-
-        case Err(e):
-            ic(e)
-            return jsonify({"success": False, "message": "잘못된 접근입니다."})
-
-
 @app.route("/api/order-history", methods=["POST"])
 def orderHistroy():
     get_order_Repo = MySqlGetOrder(get_db_padding())
@@ -483,8 +444,6 @@ def orderHistroy():
     page = data.get("page")
     page -= 1
     size = 3
-
-    ic(user_id, page, size)
 
     result = get_order_info.get_order_data_for_buyer_page(user_id, page, size)
     response_data = {"page": page + 1, "size": size, "data": []}
@@ -575,7 +534,6 @@ def userProductInfo():
     product_name = data.get("productName")
     buy_count = data.get("productCount")
     single_price = data.get("productPrice")
-    ic(user_session_key)
 
     result = save_trans_info.publish_order_transition(
         recipient_name=recipient_name,
@@ -589,7 +547,6 @@ def userProductInfo():
 
     match result:
         case Ok(session):
-            ic("true")
             return jsonify({"success": True, "transId": session.get_id()})
         case Err("만료된 세션입니다"):
             ic("session ex")
@@ -616,7 +573,6 @@ def sendPayInfo():
     card_num = data.get("cardNum")
     total_price = data.get("productPrice")
     payment_success = data.get("paymentVerification")
-    ic(order_transition_session, card_num,payment_success)
 
     match PG_SERVER.approval_and_logging(
         order_transition_session, total_price, card_num
