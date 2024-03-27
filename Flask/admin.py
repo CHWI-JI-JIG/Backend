@@ -171,18 +171,12 @@ def Adminlogin():
 
     userId = data.get("userId")
     userPassword = data.get("userPassword")
-    ic(userId)
-    ic(userPassword)
-
     result = login_service.login(userId, userPassword)
-    ic(result)
     match result:
         case Ok(member_session):
             response_data = {
                 "key": member_session.get_id(),
             }
-            ic(response_data)
-
             conn = pymysql.connect(**mysql_db)
             try:
                 # 커서 생성
