@@ -56,7 +56,12 @@ load_repo = MySqlLoadSession(get_db_padding())
 del_session_repo = MySqlDeleteSession(get_db_padding())
 
 login_service = LoginAdminService(
-    auth_member_repo, session_repo, load_repo, del_session_repo, otp_session_repo, otp_load_session_repo
+    auth_member_repo,
+    session_repo,
+    load_repo,
+    del_session_repo,
+    otp_session_repo,
+    otp_load_session_repo,
 )
 
 
@@ -93,9 +98,11 @@ def get_create_time_by_key(key):
 
 
 def send_otp_email(email, otp):
-    msg = Message("Your OTP", sender=get_mail_object().MAIL_USERNAME, recipients=[email])
-    msg.body = f"Your OTP is: {otp}"
-    mail.send(msg)
+    message = Message(
+        "Your OTP", sender=get_mail_object().MAIL_USERNAME, recipients=[email]
+    )
+    message.body = f"Your OTP is: {otp}"
+    mail.send(message)
 
 
 @app.route("/api/send-otp", methods=["POST"])
@@ -201,8 +208,9 @@ def Adminlogin():
                 conn.close()
 
             return (jsonify(response_data), 200)
-        case Err(e):
-            return jsonify({"success": False})
+        case e:
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
 
 @app.route("/api/admin", methods=["POST"])
@@ -237,8 +245,9 @@ def adminUser():
                 response_data["data"].append(user_data)
             return jsonify(response_data)
 
-        case Err(e):
-            return jsonify({"success": False})
+        case e:
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
 
 @app.route("/api/user-role", methods=["POST"])
@@ -262,8 +271,10 @@ def updateUserRole():
                 {"success": True, "message": "User role updated successfully"}
             )
 
-        case Err(e):
-            return jsonify({"success": False, "message": str(e)})
+        case e:
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 @app.route("/api/logout", methods=["POST"])
 def logout():
@@ -280,7 +291,8 @@ def logout():
     if result:
         return jsonify({"success": True}), 200
     else:
-        return jsonify({"success": False})
+        return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)

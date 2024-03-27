@@ -81,11 +81,12 @@ def check_id_duplicate(account):
 
 
 @app.route("/api/Images/<path:filename>")
-def send_image(filename):  
+def send_image(filename):
     if allowed_file(filename):
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
     else:
         return "File not allowed", 403
+
 
 @app.route("/api/search", methods=["GET"])
 def search():
@@ -139,6 +140,7 @@ def search():
 
     return jsonify(response)
 
+
 @app.route("/api/product-registration", methods=["POST"])
 def productRegistration():
 
@@ -173,7 +175,8 @@ def productRegistration():
             pass
             # regiImg = member_session
         case _:
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
     productInfo = regi.upload_product_data(
         productName, productPrice, productDescription, check.get_id()
@@ -190,7 +193,9 @@ def productRegistration():
         case Ok(member_session):
             return jsonify({"success": True})
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 @app.route("/api/detail", methods=["GET"])
 def detail():
@@ -203,7 +208,7 @@ def detail():
 
     match result:
         case None:
-            jsonify({"success": False})
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
         case ret if isinstance(ret, Product):
             res_data = {
                 "productId": ret.id.get_id(),
@@ -213,6 +218,7 @@ def detail():
                 "productImageUrl": url_for("send_image", filename=ret.img_path),
             }
             return jsonify(res_data)
+
 
 @app.route("/api/products", methods=["GET"])
 def product():
@@ -245,7 +251,8 @@ def product():
 
         case Err(e):
             ic(e)
-            return jsonify({"success": False})
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 @app.route("/api/sproducts", methods=["POST"])
 def sellerProduct():
@@ -279,7 +286,9 @@ def sellerProduct():
             return jsonify(response_data)
 
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 @app.route("/api/login", methods=["POST"])
 def login():
@@ -320,7 +329,8 @@ def login():
                 200,
             )
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
 
 @app.route("/api/change-pw", methods=["POST"])
@@ -340,11 +350,12 @@ def changeExpiredPw():
 
     match result:
         case Ok(_):
-            return jsonify({"success": True}, 200)
+            return jsonify({"success": True}), 200
         case Err("만료된 세션입니다"):
-            return jsonify({"success": False, "msg":"만료된 세션입니다"})
+            return jsonify({"success": False, "message": "만료된 세션입니다"})
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
 
 @app.route("/api/check-id", methods=["GET"])
@@ -352,6 +363,7 @@ def check_id():
     id = request.args.get("id", default="", type=str)
     duplicated = check_id_duplicate(id)
     return jsonify({"duplicated": duplicated})
+
 
 @app.route("/api/signup", methods=["POST"])
 def signup():
@@ -368,12 +380,13 @@ def signup():
     save_member_repo = MySqlSaveMember(get_db_padding())
     member_service = CreateMemberService(save_member_repo)
 
-    result = member_service.create(account, passwd, role, name, phone, email, address)
+    match member_service.create(account, passwd, role, name, phone, email, address):
+        case Ok(ret):
+            return jsonify({"success": True}), 200
+        case e:
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
-    if result.is_ok():
-        return jsonify({"success": True}), 200
-    else:
-        return jsonify({"success": False})
 
 @app.route("/api/b-signup", methods=["POST"])
 def bsignup():
@@ -405,10 +418,22 @@ def bsignup():
         pay_account,
     )
 
-    if result.is_ok():
-        return jsonify({"success": True}), 200
-    else:
-        return jsonify({"success": False})
+    match member_service.create(
+        account,
+        passwd,
+        role,
+        name,
+        phone,
+        email,
+        address,
+        company_registration_number,
+        pay_account,
+    ):
+        case Ok(ret):
+            return jsonify({"success": True}), 200
+        case e:
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
 
 @app.route("/api/user-role", methods=["POST"])
@@ -433,9 +458,11 @@ def updateUserRole():
             )
 
         case Err("만료된 세션입니다"):
-            return jsonify({"success": False, "msg":"만료된 세션입니다"})
+            return jsonify({"success": False, "message": "만료된 세션입니다"})
         case Err(e):
-            return jsonify({"success": False, "message": str(e)})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 @app.route("/api/admin", methods=["POST"])
 def adminUser():
@@ -468,7 +495,8 @@ def adminUser():
             return jsonify(response_data)
 
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
 
 @app.route("/api/order-history", methods=["POST"])
@@ -508,7 +536,9 @@ def orderHistroy():
             return jsonify(response_data)
 
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 @app.route("/api/seller-order", methods=["POST"])
 def sellerOrder():
@@ -548,7 +578,9 @@ def sellerOrder():
             return jsonify(response_data)
 
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 @app.route("/api/userproductinfo", methods=["POST"])
 def userProductInfo():
@@ -586,10 +618,11 @@ def userProductInfo():
         case Ok(session):
             return jsonify({"success": True, "transId": session.get_id()})
         case Err("만료된 세션입니다"):
-            return jsonify({"success": False, "msg":"만료된 세션입니다"})
-
+            return jsonify({"success": False, "message": "만료된 세션입니다"})
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 @app.route("/api/PG/sendpayinfo", methods=["POST"])
 def sendPayInfo():
@@ -615,11 +648,11 @@ def sendPayInfo():
         case Ok(True):
             pass
         case e:
-            msg = "결제 실패"
+            message = "결제 실패"
             if e.is_err():
-                msg = e.err()
-            ic(e, msg)
-            return jsonify({"success": False, "msg": msg})
+                message = e.err()
+            ic(e, message)
+            return jsonify({"success": False, "message": message})
 
     match send_pay_info.payment_and_approval_order(
         order_transition_session=order_transition_session,
@@ -629,7 +662,9 @@ def sendPayInfo():
             return jsonify({"success": True})
 
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 @app.route("/api/answer", methods=["POST"])
 def qaAnswer():
@@ -649,9 +684,11 @@ def qaAnswer():
             return jsonify({"success": True})
 
         case Err("만료된 세션입니다"):
-            return jsonify({"success": False, "msg":"만료된 세션입니다"})
+            return jsonify({"success": False, "message": "만료된 세션입니다"})
         case Err(e):
-            return jsonify({"success": False, "message": str(e)})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 @app.route("/api/qa", methods=["POST"])
 def qaLoad():
@@ -687,7 +724,9 @@ def qaLoad():
             return jsonify(response_data)
 
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 @app.route("/api/qa-question", methods=["POST"])
 def qaQuestion():
@@ -706,9 +745,10 @@ def qaQuestion():
         case Ok(_):
             return jsonify({"success": True})
         case Err("만료된 세션입니다"):
-            return jsonify({"success": False, "msg":"만료된 세션입니다"})
+            return jsonify({"success": False, "message": "만료된 세션입니다"})
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
 
 @app.route("/api/c-user", methods=["POST"])
@@ -734,10 +774,11 @@ def cUser():
             }
             return jsonify(privacy_data)
         case Err("만료된 세션입니다"):
-            return jsonify({"success": False, "msg":"만료된 세션입니다"})
+            return jsonify({"success": False, "message": "만료된 세션입니다"})
 
         case Err(e):
-            return jsonify({"success": False})
+            ic(e)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
 
 @app.route("/api/logout", methods=["POST"])
@@ -755,7 +796,7 @@ def logout():
     if result:
         return jsonify({"success": True}), 200
     else:
-        return jsonify({"success": False})
+        return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
 
 @app.route("/api/logout", methods=["POST"])
@@ -773,13 +814,15 @@ def logout():
     if result:
         return jsonify({"success": True}), 200
     else:
-        return jsonify({"success": False})
+        return jsonify({"success": False, "message": "잘못된 접근입니다."})
+
 
 @app.route("/api/err-test")
 def err_test():
     res = jsonify({"message": "Internal Server Error"})
     res.status_code = 500
     return res
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
