@@ -21,6 +21,12 @@ def get_db_padding() -> str:
 
 
 def get_mail_object():
-    from config import Mail_Config
+    try:
+        from config import Mail_Config
 
-    return Mail_Config
+        return Mail_Config
+    except:
+        assert False, """
+config.py 파일을 README.MD 를 참고하여 수정해 주세요.
+그전에 호연님께 허락을 맡으시고 config.py 파일을 받아 오셔도 됩니다.
+"""
