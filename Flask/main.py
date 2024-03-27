@@ -330,7 +330,7 @@ def login():
             )
         case Err(e):
             ic(e)
-            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+            return jsonify({"success": False, "message": "아이디 혹은 비밀번호가 틀렸습니다."})
 
 
 @app.route("/api/change-pw", methods=["POST"])

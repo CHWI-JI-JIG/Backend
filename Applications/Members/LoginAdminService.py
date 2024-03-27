@@ -9,7 +9,7 @@ from Domains.Members import *
 from Domains.Sessions import *
 from Builders.Members import *
 from Repositories.Members import *
-from Applications.Members.ExtentionMethod import hashing_passwd
+from Applications.Members.ExtentionMethod import hashing_passwd, check_passwd_change
 from datetime import datetime, timedelta
 from Repositories.Sessions import *
 from Applications.Sessions.SessionHelper import check_valide_session
@@ -22,11 +22,10 @@ class LoginAdminService:
         self,
         auth_member_repo: IVerifiableAuthentication,
         session_repo: IMakeSaveMemberSession,
-        load_repo : ILoadableSession,
-        del_session_repo : IDeleteableSession,
+        load_repo: ILoadableSession,
+        del_session_repo: IDeleteableSession,
         otp_session_repo: IMakeSaveMemberSession,
         otp_load_session_repo: ILoadableSession,
-        
     ):
         assert issubclass(
             type(auth_member_repo), IVerifiableAuthentication
@@ -54,7 +53,6 @@ class LoginAdminService:
         self.otp_session_repo = otp_session_repo
         self.otp_load_session_repo = otp_load_session_repo
 
-
     def login(self, account: str, passwd: str) -> Result[MemberSession, str]:
         """_summary_
 
@@ -71,6 +69,9 @@ class LoginAdminService:
 
         match self.auth_repo.identify_and_authenticate(account, hashing_passwd(passwd)):
             case Ok(auth):
+                if auth.role != RoleType.ADMIN:
+                    return Err("관리자 외에 로그인할 수 없는 페이지 입니다.")
+
                 block_time = self.get_block_time(auth.fail_count)
                 if block_time > 0 and not self.check_login_able(
                     auth.last_access, block_time
@@ -98,8 +99,8 @@ class LoginAdminService:
         else:
             self.auth_repo.update_access(ret)
             return Err("비밀번호가 틀렸습니다.")
-        
-    def otp_login(self, temp_session:str) -> Result[MemberSession, str]:
+
+    def otp_login(self, temp_session: str) -> Result[MemberSession, str]:
         builder = MemberSessionBuilder().set_deserialize_key(temp_session)
         # access OTP repo
         match self.otp_load_session_repo.load_session(temp_session):
@@ -116,7 +117,7 @@ class LoginAdminService:
             case e:
                 ic(e)
                 return Err("plz login")
-            
+
         # 같은 member_id 있는지 찾아서 있다면 다 로그아웃
         id = user_session.member_id.get_id()
         match self.load_repo.load_session_from_owner_id(id):
@@ -130,7 +131,6 @@ class LoginAdminService:
 
         match self.session_repo.make_and_save_session(user_session.member_id):
             case Ok(session):
-                ic(session)
                 return Ok(session)
             case e:
                 ic(e)

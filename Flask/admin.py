@@ -27,6 +27,7 @@ from typing import Dict
 from result import Result, Ok, Err
 
 from Applications.Members import *
+from Applications.Members.ExtentionMethod import check_passwd_change
 from Applications.Sessions import *
 
 from Storages.Members import *
@@ -97,6 +98,28 @@ def get_create_time_by_key(key):
         conn.close()
 
 
+def check_change_pw(user_name: str) -> Result[bool, str]:
+    # 데이터베이스 연결 설정
+    conn = pymysql.connect(**mysql_db)
+
+    try:
+        with conn.cursor() as cursor:
+            # id 값이 key와 일치하는 행의 create_time 값을 조회하는 SQL 쿼리
+            sql = "SELECT last_changed_date FROM log_user WHERE account = %s"
+            cursor.execute(sql, (user_name,))
+            result = cursor.fetchone()
+
+            if isinstance(result[0], datetime):
+                date = result[0]
+                return Ok(check_passwd_change(date, RoleType.ADMIN))
+            else:
+                return Err("SQL ERROR : EMPTY")
+    except Exception as e:
+        ic(e)
+        conn.close()
+        return Err(str(e))
+
+
 def send_otp_email(email, otp):
     message = Message(
         "Your OTP", sender=get_mail_object().MAIL_USERNAME, recipients=[email]
@@ -147,12 +170,14 @@ def verify_otp():
         if otp_key == user_otp:
             match login_service.otp_login(key):
                 case Ok(user_seeeeion):
+                    changePw =  check_change_pw(user_seeeeion.account)
                     return jsonify(
                         {
                             "success": True,
                             "key": user_seeeeion.get_id(),
                             "auth": str(user_seeeeion.role.name),
                             "message": "OTP 인증 완료",
+                            "changePw": changePw,
                         }
                     )
                 case e:
@@ -291,4 +316,4 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001,debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)

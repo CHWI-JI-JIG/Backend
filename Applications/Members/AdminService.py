@@ -1,4 +1,3 @@
-from distutils.command import build
 import __init__
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple, List
@@ -36,7 +35,7 @@ class AdminService:
         assert issubclass(
             type(load_session_repo), ILoadableSession
         ), "load_session_repo must be a class that inherits from ILoadableSession."
-        
+
         self.read_repo = read_repo
         self.edit_repo = edit_repo
         self.session_repo = load_session_repo
@@ -53,7 +52,7 @@ class AdminService:
             case Ok(json):
                 match builder.set_deserialize_value(json).map(lambda b: b.build()):
                     case Ok(session):
-                        ic(session)
+
                         admin_session = session
                         if admin_session.role != RoleType.ADMIN:
                             return Err("Access Denied: User is not admin")
