@@ -685,6 +685,8 @@ def qaAnswer():
 
         case Err("만료된 세션입니다"):
             return jsonify({"success": False, "message": "만료된 세션입니다"})
+        case Err("권한이 없습니다."):
+            return jsonify({"success": False, "message": "글 작성하기를 실패하셨습니다."})
         case Err(e):
             ic(e)
             return jsonify({"success": False, "message": "잘못된 접근입니다."})

@@ -83,10 +83,10 @@ class MySqlSaveComment(ISaveableComment):
                     # 커서 생성
                     with connection.cursor() as cursor:
                         update_query = f"""
-    UPDATE {comment_table_name} AS c
-    JOIN {product_table_name} AS p ON c.product_id = p.id
-    SET c.answer = %s
-    WHERE c.id = %s AND p.seller_id = %s;
+UPDATE {comment_table_name} AS c
+JOIN {product_table_name} AS p ON c.product_id = p.id
+SET c.answer = %s
+WHERE c.id = %s AND p.seller_id = %s;
                     """
                         cursor.execute(
                             update_query,                                                               
@@ -98,7 +98,10 @@ class MySqlSaveComment(ISaveableComment):
                         )
                         # 변경 사항을 커밋
                         connection.commit()
-                        return Ok(Comment_id)
+                        if cursor.rowcount > 0:
+                            return Ok(Comment_id)
+                        else:
+                            return Err("권한이 없습니다.")
             except Exception as e:
                 connection.rollback()
                 return Err(str(e))
