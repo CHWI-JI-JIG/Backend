@@ -170,16 +170,20 @@ def verify_otp():
         if otp_key == user_otp:
             match login_service.otp_login(key):
                 case Ok(user_seeeeion):
-                    changePw =  check_change_pw(user_seeeeion.account)
-                    return jsonify(
-                        {
-                            "success": True,
-                            "key": user_seeeeion.get_id(),
-                            "auth": str(user_seeeeion.role.name),
-                            "message": "OTP 인증 완료",
-                            "changePw": changePw,
-                        }
-                    )
+                    match check_change_pw(user_seeeeion.account):
+                        case Ok(changePw):
+                            return jsonify(
+                                {
+                                    "success": True,
+                                    "key": user_seeeeion.get_id(),
+                                    "auth": str(user_seeeeion.role.name),
+                                    "message": "OTP 인증 완료",
+                                    "changePw": changePw,
+                                }
+                            )
+                        case e:
+                            ic(e)
+                            return jsonify({"success": False, "message": "SQL 실패."})
                 case e:
                     ic(e)
                     return jsonify({"success": False, "message": "로그인 실패"})
