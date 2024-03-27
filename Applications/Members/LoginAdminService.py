@@ -113,7 +113,8 @@ class LoginAdminService:
                             return Err("Permission Deny")
                     case _:
                         return Err("Invalid Member Session")
-            case _:
+            case e:
+                ic(e)
                 return Err("plz login")
             
         # 같은 member_id 있는지 찾아서 있다면 다 로그아웃
