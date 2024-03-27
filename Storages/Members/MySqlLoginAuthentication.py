@@ -43,7 +43,7 @@ class MySqlLoginAuthentication(IVerifiableAuthentication):
         try:
             with connection.cursor() as cursor:
                 query = f"""
-SELECT seq, id, passwd, last_access, fail_count, last_changed_date
+SELECT seq, id, passwd, last_access, fail_count, last_changed_date, role
 FROM {user_table_name}
 WHERE account = %s;
                 """
@@ -63,6 +63,7 @@ WHERE account = %s;
                 .set_last_access(result[3])
                 .set_fail_count(result[4])
                 .set_last_changed_date(result[5])
+                .set_role(result[6])
                 .set_id(id)
             )
             if result[2] != passwd:

@@ -94,12 +94,12 @@ class ReadProductService:
                     case Ok(session):
                         user_session = session.build()
                         if not check_valide_session(user_session):
-                            return Err("Expired Session")
+                            return Err("만료된 세션입니다")
                         seller_id = user_session.member_id
                     case _:
                         return Err("Invalid Member Session")
             case _:
-                return Err("plz login")
+                return Err("만료된 세션입니다")
 
         assert isinstance(seller_id,MemberID), "Not MenberID."
 

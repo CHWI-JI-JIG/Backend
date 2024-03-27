@@ -8,11 +8,12 @@ from uuid import uuid4, UUID
 from Domains.Members import *
 from Domains.Sessions import *
 from Builders.Members import *
+from Repositories.Sessions import *
 from Repositories.Members import *
 from Applications.Members.ExtentionMethod import hashing_passwd
-from datetime import datetime, timedelta
-from Repositories.Sessions import *
+from Applications.Sessions.SessionHelper import check_valide_session
 
+from datetime import datetime, timedelta
 from icecream import ic
 
 
@@ -52,12 +53,14 @@ class ChangePasswdService:
                 match builder.set_deserialize_value(json):
                     case Ok(session):
                         user_session = session.build()
+                        if not check_valide_session(user_session):
+                            return Err("만료된 세션입니다")
                         member_id = user_session.member_id
                         account = user_session.account                        
                     case _:
                         return Err("Invalid Member Session")
             case _:
-                return Err("plz login")
+                return Err("만료된 세션입니다")
         
         match self.auth_repo.identify_and_authenticate(account, hashing_passwd(old_passwd)):
             case Ok(_):

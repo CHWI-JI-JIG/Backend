@@ -75,7 +75,7 @@ class test_user_migrate(unittest.TestCase):
         )
 
         authentication = Authentication(
-            id=id, last_access="", fail_count=1, is_sucess="",last_changed_date=""
+            id=id, last_access="", fail_count=1, is_sucess="",last_changed_date="", role=""
         )
 
         result = self.mysql_save_member.save_member(member, privacy)

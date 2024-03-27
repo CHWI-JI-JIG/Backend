@@ -52,11 +52,11 @@ class CreateCommentService:
                         case Ok(session):
                             user_session = session.build()
                             if not check_valide_session(user_session):
-                                return Err("Expired Session")
+                                return Err("만료된 세션입니다")
                         case _:
                             return Err("Invalid Member Session")
                 case e:
-                    return Err("plz login")
+                    return Err("만료된 세션입니다")
         match (
             CommentIDBuilder().set_uuid().map(lambda b:b.build()),
             ProductIDBuilder().set_uuid(product_id).map(lambda b:b.build()),
@@ -91,11 +91,11 @@ class CreateCommentService:
                         case Ok(session):
                             user_session = session.build()
                             if not check_valide_session(user_session):
-                                return Err("Expired Session")
+                                return Err("만료된 세션입니다")
                         case _:
                             return Err("Invalid Member Session")
                 case _:
-                    return Err("plz login")
+                    return Err("만료된 세션입니다")
     
         match CommentIDBuilder().set_uuid(comment_id).map(lambda b:b.build()) :
             case Ok(cid):

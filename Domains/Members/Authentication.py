@@ -5,7 +5,7 @@ from typing import Optional, Self
 from datetime import datetime
 
 from Commons.format import KOREA_TIME_FORMAT
-from Domains.Members import MemberID
+from Domains.Members import MemberID, RoleType
 
 
 @dataclass(frozen=True)
@@ -14,6 +14,7 @@ class Authentication:
     last_changed_date: datetime
     last_access: datetime
     fail_count: int
+    role: RoleType
     is_sucess: bool
 
     def str_last_access(self) -> str:
@@ -28,12 +29,15 @@ class IAuthenticationBuilder(metaclass=ABCMeta):
 
     @abstractmethod
     def set_last_access(self, time: datetime) -> Self: ...
-    
+
     @abstractmethod
     def set_last_changed_date(self, time: datetime) -> Self: ...
 
     @abstractmethod
     def set_fail_count(self, cnt: int) -> Self: ...
+    
+    @abstractmethod
+    def set_role(self, role: RoleType) -> Self: ...
 
     @abstractmethod
     def build(self) -> Authentication: ...
