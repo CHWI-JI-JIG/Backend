@@ -153,6 +153,9 @@ def productRegistration():
     memberAuth = request.form.get("key")
 
     file = request.files["file"]
+    if not allowed_file(file.filename):
+        return jsonify({"success": False, "message": "이미지 파일을 넣어주세요."})
+    
     filename = secure_filename(file.filename)
     file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
