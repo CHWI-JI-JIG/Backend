@@ -104,8 +104,8 @@ class CreateCommentService:
                     answer= answer,
                     member_id=user_session.member_id,
                 )
-            case c,p:
+            case c:
                 ic()
-                ic(c,p)
-                assert False, f"c:{c} | p:{p}"
+                ic(c)
+                assert False, f"c:{c}"
                 return Err("Not Convert ID")

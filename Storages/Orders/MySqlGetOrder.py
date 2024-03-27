@@ -104,20 +104,30 @@ LIMIT
                         total_price,
                         order_date,
                     ) = row
-                    order = Order(
-                        id=OrderIDBuilder().set_uuid(order_id).build(),
-                        product_id=ProductIDBuilder().set_uuid(product_id).build(),
-                        buyer_id=MemberIDBuilder().set_uuid(buyer_id).build(),
-                        recipient_name=recipient_name,
-                        recipient_phone=recipient_phone,
-                        recipient_address=recipient_address,
-                        product_name=product_name,
-                        product_img_path=img_path,
-                        buy_count=buy_count,
-                        total_price=total_price,
-                        order_date=order_date,
-                    )
-                    orders.append(order)
+                    match (
+                        OrderIDBuilder().set_uuid(order_id).map(lambda b: b.build()),
+                        ProductIDBuilder().set_uuid(product_id).map(lambda b: b.build()),
+                        MemberIDBuilder().set_uuid(buyer_id).map(lambda b: b.build()),
+                    ):
+                        case Ok(oid), Ok(pid), Ok(mid):
+                            order = Order(
+                                id=oid,
+                                product_id=pid,
+                                buyer_id=mid,
+                                recipient_name=recipient_name,
+                                recipient_phone=recipient_phone,
+                                recipient_address=recipient_address,
+                                product_name=product_name,
+                                product_img_path=img_path,
+                                buy_count=buy_count,
+                                total_price=total_price,
+                                order_date=order_date,
+                            )
+                            orders.append(order)
+                        case o,p,m:
+                            ic(o,p,m)
+                            
+                            
 
                 cursor.execute(
                     f"SELECT COUNT(*) FROM {order_table_name} o JOIN {product_table_name} p ON o.product_id = p.id WHERE p.seller_id = %s",
@@ -130,6 +140,8 @@ LIMIT
                 return Ok((total_count, orders))
 
         except Exception as e:
+            ic()
+            ic(e)
             connection.close()
             return Err(str(e))
 

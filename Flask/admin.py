@@ -133,6 +133,7 @@ def verify_otp():
 
     current_time = datetime.now()
     otp_key = otp_storage.get("otp")
+    ic(otp_key, user_otp)
 
     if not otp_key:
         return "Session expired or invalid!", 400
@@ -140,12 +141,12 @@ def verify_otp():
     create_time = get_create_time_by_key(key)
 
     expiration_time = create_time + timedelta(minutes=10)
+    ic(expiration_time)
 
     if current_time <= expiration_time:
         if otp_key == user_otp:
             match login_service.otp_login(key):
                 case Ok(user_seeeeion):
-                    ic(user_seeeeion.get_id())
                     return jsonify(
                         {
                             "success": True,
@@ -155,6 +156,7 @@ def verify_otp():
                         }
                     )
                 case e:
+                    ic(e)
                     return jsonify({"success": False, "message": "로그인 실패"})
         else:
             return jsonify({"success": False, "message": "OTP 인증 실패"})
@@ -169,18 +171,12 @@ def Adminlogin():
 
     userId = data.get("userId")
     userPassword = data.get("userPassword")
-    ic(userId)
-    ic(userPassword)
-
     result = login_service.login(userId, userPassword)
-    ic(result)
     match result:
         case Ok(member_session):
             response_data = {
                 "key": member_session.get_id(),
             }
-            ic(response_data)
-
             conn = pymysql.connect(**mysql_db)
             try:
                 # 커서 생성
@@ -295,4 +291,4 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", port=5001,debug=True)
