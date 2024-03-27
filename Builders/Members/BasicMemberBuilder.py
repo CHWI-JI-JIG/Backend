@@ -206,6 +206,7 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         self.fail_count: Optional[int] = cnt
         self.last_access: Optional[datetime] = None
         self.last_changed_date: Optional[datetime] = None
+        self.role: Optional[RoleType] = None
         self.is_sucess: Optional[bool] = None
 
     def set_id(self, id: MemberID) -> Self:
@@ -216,6 +217,17 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         ), "ValueType Error: Initialize the id via MemberIDBuilder.set_uuid_hex(str) and put it in."
 
         self.id = id
+        return self
+
+    def set_role(self, role: str) -> Self:
+        assert self.role is None, "rule is already set."
+        assert isinstance(role, str), "Type of rule is str."
+
+        self.role = RoleType[role.strip(" \n\t").upper()]
+        assert self.role.name in list(
+            RoleType._member_names_
+        ), "Type of rule is RuleType. "
+
         return self
 
     def set_fail_count(self, count: int) -> Self:
@@ -243,7 +255,7 @@ class AuthenticationBuilder(IAuthenticationBuilder):
 
         self.last_access = time
         return self
-    
+
     def set_last_changed_date(self, time: Optional[datetime] = None) -> Self:
         assert self.last_changed_date is None, "time is already set."
 
@@ -260,7 +272,10 @@ class AuthenticationBuilder(IAuthenticationBuilder):
         assert isinstance(self.id, MemberID), "You didn't set the id."
         assert isinstance(self.fail_count, int), "You didn't set the fail_count."
         assert isinstance(self.last_access, datetime), "You didn't set the last_access."
-        assert isinstance(self.last_changed_date, datetime), "You didn't set the last_changed_date."
+        assert isinstance(self.role, RoleType), "You didn't set the rule."
+        assert isinstance(
+            self.last_changed_date, datetime
+        ), "You didn't set the last_changed_date."
         assert isinstance(self.is_sucess, bool), "You didn't set the is_sucess."
 
         return Authentication(
@@ -268,5 +283,6 @@ class AuthenticationBuilder(IAuthenticationBuilder):
             last_access=self.last_access,
             fail_count=self.fail_count,
             last_changed_date=self.last_changed_date,
+            role=self.role,
             is_sucess=self.is_sucess,
         )

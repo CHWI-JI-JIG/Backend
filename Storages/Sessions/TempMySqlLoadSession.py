@@ -1,6 +1,7 @@
+from Domains.Sessions import SessionToken
 import __init__
 from abc import ABCMeta, abstractmethod
-from typing import Optional
+from typing import List, Optional
 from result import Result, Err, Ok
 
 from Domains.Members import *
@@ -52,24 +53,25 @@ class TempMySqlLoadSession(ILoadableSession):
         try:
             with connection.cursor() as cursor:
                 query = f"""
-SELECT value, owner_id, create_time, use_count
+SELECT value, owner_id, create_time, use_count,id
 FROM {session_table_name}
-WHERE id = %s
+WHERE id = %s;
+UPDATE {session_table_name} SET use_count = use_count+1 WHERE id = %s;
 """
                 # session_key = MemberSessionBuilder().set_key().build()
-                cursor.execute(query, (str(session_key),))
+                cursor.execute(query, (session_key,session_key))
 
                 result = cursor.fetchone()
 
                 if result is None:
                     return Err("세션 데이터가 존재하지 않습니다.")
-                
 
                 session_token = SessionToken(
                     value=result[0],
                     owner_id=result[1],
                     create_time=result[2],
                     use_count=result[3],
+                    key=result[4],
                 )
                 connection.commit()
 
@@ -77,6 +79,41 @@ WHERE id = %s
                 connection.close()
 
                 return Ok(session_token)
+
+        except Exception as e:
+            return Err(str(e))
+
+    def load_session_from_owner_id(
+        self, owner_id: str
+    ) -> Result[List[SessionToken], str]:
+
+        connection = self.connect()
+        session_table_name = self.get_padding_name("session")
+        try:
+            with connection.cursor() as cursor:
+                query = f"""
+SELECT value, owner_id, create_time, use_count,id
+FROM {session_table_name}
+WHERE owner_id = %s;
+"""
+                cursor.execute(query, (owner_id,))
+                results = cursor.fetchall()
+
+                session_tokens = []
+                for result in results:
+                    session_token = SessionToken(
+                        value=result[0],
+                        owner_id=result[1],
+                        create_time=result[2],
+                        use_count=result[3],
+                        key=result[4],
+                    )
+                    session_tokens.append(session_token)
+
+                cursor.close()
+                connection.close()
+
+                return Ok(session_tokens)
 
         except Exception as e:
             return Err(str(e))

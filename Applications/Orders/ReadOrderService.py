@@ -67,12 +67,12 @@ class ReadOrderService:
                     case Ok(session):
                         session = session.build()
                         if not check_valide_session(session):
-                            return Err("Expired Session")
+                            return Err("만료된 세션입니다")
                         buyer_id = session.member_id
                     case _:
                         return Err("Invalid Product Session")
             case _:
-                return Err("Not Exist Session")
+                return Err("만료된 세션입니다")
 
         return self.order_repo.get_orders_by_buyer_id(
             buyer_id=buyer_id,
@@ -106,12 +106,12 @@ class ReadOrderService:
                     case Ok(session):
                         session = session.build()
                         if not check_valide_session(session):
-                            return Err("Expired Session")
+                            return Err("만료된 세션입니다")
                         seller_id = session.member_id
                     case _:
                         return Err("Invalid Product Session")
             case _:
-                return Err("Not Exist Session")
+                return Err("만료된 세션입니다")
 
         return self.order_repo.get_orders_by_seller_id(
             seller_id=seller_id,

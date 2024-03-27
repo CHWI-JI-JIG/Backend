@@ -81,12 +81,13 @@ class OrderPaymentService:
                     case Ok(session):
                         user_session = session.build()
                         if not check_valide_session(user_session):
-                            return Err("Expired Session")
+                            return Err("만료된 세션입니다")
                         buyer_id = user_session.member_id.get_id()
                     case _:
                         return Err("Invalid Member Session")
-            case _:
-                return Err("plz login")
+            case e:
+                ic(e)
+                return Err("만료된 세션입니다")
         match (ProductIDBuilder().set_uuid(product_id).map(lambda b: b.build())):
             case Ok(pid):
                 match self.product_repo.get_product_by_product_id(pid):
@@ -138,6 +139,7 @@ class OrderPaymentService:
             case Ok(json):
                 match bulider.set_deserialize_value(json):
                     case Ok(b) if b.is_success:
+                        ic("already payment.")
                         return Ok(OrderIDBuilder().set_uuid(b.key).unwrap().build())
                     case Ok(b) if b.is_success != True:
                         bulider = b
@@ -146,7 +148,7 @@ class OrderPaymentService:
                         return e
             case e:
                 ic(e)
-                return Err("Not Exists Session")
+                return Err("만료된 세션입니다")
 
         # Check Session
         match (bulider.set_is_success(True).build()):

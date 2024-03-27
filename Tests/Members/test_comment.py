@@ -63,8 +63,8 @@ class test_comment(unittest.TestCase):
         login = AuthenticationMemberService(
             auth_member_repo=MySqlLoginAuthentication(get_db_padding()),
             session_repo=MySqlMakeSaveMemberSession(get_db_padding()),
-            load_repo= MySqlLoadSession(get_db_padding()),
-            del_session_repo= MySqlDeleteSession(get_db_padding()),
+            load_repo=MySqlLoadSession(get_db_padding()),
+            del_session_repo=MySqlDeleteSession(get_db_padding()),
         )
         cls.login_service = login
 
@@ -224,11 +224,17 @@ class test_comment(unittest.TestCase):
         self.assertEqual(target.question, "질문질문")
 
         # 4. not owner 코멘트에 답변을 추가
-        ret_answer = self.comment_create_service.add_answer(
+        match self.comment_create_service.add_answer(
             answer="답변답변",
             comment_id=ret_create.get_id(),  # 코멘트 생성 시 얻은 ID
             user_key=self.user_key.get_id(),
-        )
+        ):
+            case Ok(_):
+                assert False, "Not Owner"
+            case Err("권한이 없습니다."):
+                pass
+            case e:
+                assert False, "Unknown Err"
 
         # 5. 코멘트를 다시 읽고 답변이 확인
         ret_read_updated = self.comment_read_service.get_comment_data_for_product_page(
