@@ -801,24 +801,6 @@ def logout():
         return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
 
-@app.route("/api/logout", methods=["POST"])
-def logout():
-
-    data = request.get_json()
-
-    user_key = data.get("key")
-
-    del_session_repo = MySqlDeleteSession(get_db_padding())
-    logout = MemberSessionService(del_session_repo)
-
-    result = logout.logout(user_key)
-
-    if result:
-        return jsonify({"success": True}), 200
-    else:
-        return jsonify({"success": False, "message": "잘못된 접근입니다."})
-
-
 @app.route("/api/err-test")
 def err_test():
     res = jsonify({"message": "Internal Server Error"})
