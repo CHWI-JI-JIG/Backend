@@ -639,7 +639,7 @@ def sendPayInfo():
 
         case Err(e):
             ic(e)
-            return jsonify({"success": False, "message": "세션이 만료되었습니다."})
+            return jsonify({"success": False, "timeout": True,"message": "세션이 만료되었습니다."})
 
 
 @app.route("/api/answer", methods=["POST"])
