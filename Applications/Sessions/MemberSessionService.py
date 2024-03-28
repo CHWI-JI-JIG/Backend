@@ -1,4 +1,3 @@
-from Domains.Members import MemberID
 import __init__
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple, List
@@ -8,6 +7,7 @@ from uuid import uuid4, UUID
 
 
 from Domains.Sessions import *
+from Domains.Members import MemberID
 from datetime import datetime, timedelta
 from Repositories.Sessions import IDeleteableSession
 

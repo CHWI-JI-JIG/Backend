@@ -1,4 +1,3 @@
-from Domains.Members import MemberID
 import __init__
 
 from result import Result, Err, Ok
@@ -6,7 +5,6 @@ from result import Result, Err, Ok
 from Domains.Members import *
 from Repositories.Members import *
 from Builders.Members import *
-
 import pymysql
 
 

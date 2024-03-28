@@ -313,10 +313,8 @@ def login():
     match result:
         case Ok((member_session, changePw)):
 
-            ic(member_session)
             session["key"] = member_session.get_id()
             session["auth"] = member_session.role.name
-            ic(changePw)
 
             return (
                 jsonify(
@@ -355,7 +353,7 @@ def changeExpiredPw():
         case Ok(_):
             return jsonify({"success": True}), 200
         case Err("만료된 세션입니다"):
-            return jsonify({"success": False, "message": "만료된 세션입니다"})
+            return jsonify({"success": False, "timeout" : True, "message": "만료된 세션입니다"})
         case Err(e):
             ic(e)
             return jsonify({"success": False, "message": "잘못된 접근입니다."})
@@ -408,7 +406,6 @@ def bsignup():
     save_member_repo = MySqlSaveMember(get_db_padding())
     member_service = CreateMemberService(save_member_repo)
 
-    ic(account)
     result = member_service.create(
         account,
         passwd,
@@ -438,70 +435,6 @@ def bsignup():
             ic(e)
             return jsonify({"success": False, "message": "잘못된 접근입니다."})
 
-
-@app.route("/api/user-role", methods=["POST"])
-def updateUserRole():
-    read_repo = MySqlGetMember(get_db_padding())
-    edit_repo = MySqlEditMember(get_db_padding())
-    load_session_repo = MySqlLoadSession(get_db_padding())
-
-    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
-
-    data = request.get_json()
-    user_key = data.get("key")  # 세션키(즉, 관리자 세션키)
-    user_id = data.get("userKey")  # 사용자 key
-    new_role = data.get("userAuth")  # 변경할 권한
-
-    result = get_user_info.change_role(user_key, new_role, user_id)
-
-    match result:
-        case Ok(user_id):
-            return jsonify(
-                {"success": True, "message": "User role updated successfully"}
-            )
-
-        case Err("만료된 세션입니다"):
-            return jsonify({"success": False, "message": "만료된 세션입니다"})
-        case Err(e):
-            ic(e)
-            return jsonify({"success": False, "message": "잘못된 접근입니다."})
-
-
-@app.route("/api/admin", methods=["POST"])
-def adminUser():
-    read_repo = MySqlGetMember(get_db_padding())
-    edit_repo = MySqlEditMember(get_db_padding())
-    load_session_repo = MySqlLoadSession(get_db_padding())
-
-    get_user_info = AdminService(read_repo, edit_repo, load_session_repo)
-
-    data = request.get_json()
-    user_key = data.get("key")
-    page = data.get("page")
-    page -= 1
-
-    size = 20
-    result = get_user_info.read_members(user_key, page, size)
-
-    response_data = {"page": page + 1, "size": size, "data": []}
-
-    match result:
-        case Ok((max, members)):
-            response_data["totalPage"] = math.ceil(max / size)
-            for v in members:
-                user_data = {
-                    "userKey": v.id.get_id(),  # 사용자 key
-                    "userId": v.account,  # 사용자 아이디(로그인용)
-                    "userAuth": v.role.value,  # 사용자 권한
-                }
-                response_data["data"].append(user_data)
-            return jsonify(response_data)
-
-        case Err(e):
-            ic(e)
-            return jsonify({"success": False, "message": "잘못된 접근입니다."})
-
-
 @app.route("/api/order-history", methods=["POST"])
 def orderHistroy():
     get_order_Repo = MySqlGetOrder(get_db_padding())
@@ -514,8 +447,6 @@ def orderHistroy():
     page = data.get("page")
     page -= 1
     size = 3
-
-    ic(user_id, page, size)
 
     result = get_order_info.get_order_data_for_buyer_page(user_id, page, size)
     response_data = {"page": page + 1, "size": size, "data": []}
@@ -621,7 +552,8 @@ def userProductInfo():
         case Ok(session):
             return jsonify({"success": True, "transId": session.get_id()})
         case Err("만료된 세션입니다"):
-            return jsonify({"success": False, "message": "만료된 세션입니다"})
+            ic("session ex")
+            return jsonify({"success": False, "timeout": True ,"message": "만료된 세션입니다"})
         case Err(e):
             ic(e)
             return jsonify({"success": False, "message": "잘못된 접근입니다."})
@@ -655,7 +587,7 @@ def sendPayInfo():
             if e.is_err():
                 message = e.err()
             ic(e, message)
-            return jsonify({"success": False, "message": message})
+            return jsonify({"success": False, "nomey": True,"message": message})
 
     match send_pay_info.payment_and_approval_order(
         order_transition_session=order_transition_session,
@@ -666,7 +598,7 @@ def sendPayInfo():
 
         case Err(e):
             ic(e)
-            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+            return jsonify({"success": False, "message": "세션이 만료되었습니다."})
 
 
 @app.route("/api/answer", methods=["POST"])
@@ -779,7 +711,7 @@ def cUser():
             }
             return jsonify(privacy_data)
         case Err("만료된 세션입니다"):
-            return jsonify({"success": False, "message": "만료된 세션입니다"})
+            return jsonify({"success": False, "timeout" : True,"message": "만료된 세션입니다"})
 
         case Err(e):
             ic(e)

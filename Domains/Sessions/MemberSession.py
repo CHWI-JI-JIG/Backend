@@ -30,7 +30,7 @@ class MemberSession(ISessionSerializeable, ID, SecuritySession):
     member_id: MemberID
 
     max_count:int = 100
-    minute:int=60
+    minute:int=5
     
     def MAX_USE_COUNT(self) -> int:
         return self.max_count
