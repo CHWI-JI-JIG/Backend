@@ -22,7 +22,7 @@ def parse_opt():
         default="flask-main",
     )
     # parser.add_argument("--branch", default="main")
-    parser.add_argument("--not_debug", action="store_true")
+    parser.add_argument("--debug", action="store_true")
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument(
         "--port", default=None, help="Set port number. ex) --port 5000."
@@ -34,7 +34,7 @@ def parse_opt():
     parser.add_argument(
         "--ver",
         choices=["python", "python3"],
-        default="python",
+        default="python3",
     )
     parser.add_argument(
         "--test_file",
@@ -166,7 +166,7 @@ def main(opt):
     from get_config_data import set_db_padding
 
     global db_name
-    debug = not opt.not_debug
+    debug = opt.debug
     set_db_padding(opt.db_attach)
 
     if debug:
