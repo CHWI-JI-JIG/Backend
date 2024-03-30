@@ -142,7 +142,8 @@ def send_otp():
     create_time = get_create_time_by_key(key)
 
     otp = generate_otp()
-    ic(otp)
+    ic()
+    print("OTP : ",otp)
     send_otp_email(email, otp)
 
     otp_storage["otp"] = str(otp)
@@ -310,7 +311,16 @@ def updateUserRole():
     data = request.get_json()
     user_key = data.get("key")  # 세션키(즉, 관리자 세션키)
     user_id = data.get("userKey")  # 사용자 key
-    new_role = data.get("userAuth")  # 변경할 권한
+    new_role:str = data.get("userAuth")  # 변경할 권한
+
+    try:
+        if new_role.upper() == RoleType.ADMIN.name.upper():
+            ic(new_role)
+            return jsonify({"success": False, "message": "잘못된 접근입니다."})
+    except:
+        ic(new_role)
+        return jsonify({"success": False, "message": "잘못된 접근입니다."})
+        
 
     result = get_user_info.change_role(user_key, new_role, user_id)
 
