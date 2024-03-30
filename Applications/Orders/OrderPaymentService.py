@@ -99,7 +99,8 @@ class OrderPaymentService:
                         ic(e)
                         return Err("Failed to fetch product information")
             case e:
-                return e
+                ic(e)
+                return Err(str(e))
 
         # publish
         match (
@@ -124,7 +125,50 @@ class OrderPaymentService:
                 # publish
                 return self.transition_repo.save_order_transition(order_temp)
             case e:
-                return e
+                ic(e)
+                return Err(e)
+
+    def check_payment_price(
+        self,
+        order_transition_session: str,
+        price: int,
+    ) -> Result[bool, str]:
+        assert isinstance(price, int), "Type of price is int."
+
+        # load transition
+        bulider = OrderTransitionBuilder().set_deserialize_key(order_transition_session)
+        match self.load_repo.load_session(order_transition_session):
+            case Ok(json):
+                match bulider.set_deserialize_value(json):
+                    case Ok(b) if b.is_success:
+                        return Err("already payment.")
+                    case Ok(b) if b.is_success != True:
+                        builder = b
+                    case e:
+                        ic(e)
+                        return e
+            case e:
+                ic(e)
+                return Err("만료된 세션입니다")
+
+        # Check Session
+        match builder.build():
+            case Ok(session):
+                if not check_valide_session(session):
+                    return Err("Expired Session")
+                order_session = session
+            case e:
+                ic(e)
+                return Err("Invalid Order Transition")
+
+        assert isinstance(
+            order_session.order.total_price, int
+        ), "not defind order session"
+        try:
+            return Ok(order_session.order.total_price == price)
+        except Exception as e:
+            ic(str(e))
+            return Err("Undefind Err")
 
     def payment_and_approval_order(
         self,

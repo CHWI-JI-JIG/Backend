@@ -262,9 +262,26 @@ class test_order_builder(unittest.TestCase):
         ):
             case Ok(trans):
                 order_transition = trans
+                order_price = trans.order.total_price
             case e:
                 assert False, f"{e}"
 
+        # 대금 확인 과정
+        match self.order_and_payment_service.check_payment_price(
+            order_transition.get_id(), order_price
+        ):
+            case Ok(True):
+                pass
+            case e:
+                assert False, f"{e}"
+
+        match self.order_and_payment_service.check_payment_price(
+            order_transition.get_id(), order_price - 1000
+        ):
+            case Ok(False):
+                pass
+            case e:
+                assert False, f"{e}"
         # 결제 완료
         match self.pay_service.approval_and_logging(
             order_transition,
@@ -306,6 +323,17 @@ class test_order_builder(unittest.TestCase):
         self.assertEqual(target_order.buy_count, 3)
         self.assertEqual(target_order.product_name, target_product.name)
         self.assertEqual(target_order.product_id.get_id(), target_product.id.get_id())
+
+        match self.order_and_payment_service.check_payment_price(
+            order_transition.get_id(), 10000000000000000000000000000
+        ):
+            case Ok(a):
+                assert False, f"Why Sucess:{a}"
+            case Err("already payment."):
+                pass
+            case e:
+                ic()
+                assert False, f"{e}"
 
     def test_회원생성_주문조회_상품조회및선택_트렌젝션생성_Fail(self):
         "Hook method for deconstructing the test fixture after testing it."
@@ -370,6 +398,32 @@ class test_order_builder(unittest.TestCase):
         ):
             case Ok(trans):
                 order_transition = trans
+                order_price = order_transition.order.total_price
+            case e:
+                assert False, f"{e}"
+
+        # 대금 확인 과정
+        match self.order_and_payment_service.check_payment_price(
+            order_transition.get_id(), 1000
+        ):
+            case Ok(False):
+                pass
+            case e:
+                assert False, f"{e}"
+
+        match self.order_and_payment_service.check_payment_price(
+            order_transition.get_id(), -100
+        ):
+            case Ok(False):
+                pass
+            case e:
+                assert False, f"{e}"
+
+        match self.order_and_payment_service.check_payment_price(
+            order_transition.get_id(), 1000000000000000000000000000000000000
+        ):
+            case Ok(False):
+                pass
             case e:
                 assert False, f"{e}"
 
