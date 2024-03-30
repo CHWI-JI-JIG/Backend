@@ -130,9 +130,9 @@ class OrderTransitionBuilder(ISessionBuilder, SecuritySessionBuilder):
             return Err(f"Not Exists {dict_key}")
         if to_dict.get(dict_key):
             dict_key = "is_success"
-            if not isinstance(to_dict.get(dict_key), str):
+            if not isinstance(to_dict.get(dict_key), bool):
                 return Err(f"Not Exists {dict_key}")
-            self.set_name(to_dict.get(dict_key))
+            self.set_is_success(to_dict.get(dict_key))
 
         dict_key = "buyer_id"
         if not isinstance(to_dict.get(dict_key), str):
