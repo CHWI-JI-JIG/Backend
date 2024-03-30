@@ -148,8 +148,8 @@ def init_member():
             assert False, f"Fail Create Member:{a}"
 
     match service.create(
-        account="admin",
-        passwd="admin",
+        account="cjjadmin",
+        passwd="cjj1q2w!Q@W",
         role="admin",
         name="관리자",
         phone="01049483948",
