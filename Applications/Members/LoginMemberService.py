@@ -9,7 +9,7 @@ from Domains.Members import *
 from Domains.Sessions import *
 from Builders.Members import *
 from Repositories.Members import *
-from Applications.Members.ExtentionMethod import hashing_passwd, check_passwd_change
+from Applications.Members.ExtentionMethod import *
 from datetime import datetime, timedelta
 from Repositories.Sessions import IMakeSaveMemberSession, ILoadableSession,IDeleteableSession
 
@@ -62,8 +62,8 @@ class AuthenticationMemberService:
                     return Err("관리자는 로그인할 수 없는 페이지 입니다.")
 
                 
-                block_time = self.get_block_time(auth.fail_count)
-                if block_time > 0 and not self.check_login_able(
+                block_time = get_block_time(auth.fail_count)
+                if block_time > 0 and not check_login_able(
                     auth.last_access, block_time
                 ):
                     ic()
@@ -99,47 +99,3 @@ class AuthenticationMemberService:
                     assert False, "Value Error"
         else:
             return Err("비밀번호가 틀렸습니다.")
-
-    def get_block_time(self, num_of_incorrect_login: int) -> int:
-        """_summary_
-        틀린 횟수에 따른 정지시간을 관리한다.
-        Args:
-            num_of_incorrect (int): _description_
-
-        Returns:
-            int: 제한 하는 분 반환 / 제한을 하지 않으면 0반환
-        """
-        #
-        self.block_rule_list: List[Tuple[int, int]] = [
-            (3, 5),  # 3회 틀리면, 5분
-            (5, 30),  # 5회 틀리면 30분
-            (7, 60),  # 7회 틀리면 1시간
-            (9, 1440),  # 9회 틀리면 하루
-            (11, 4320),  # 11회 틀리면 3일
-        ]
-        self.max_block: Tuple[int, int, int] = (
-            13,
-            2,
-            10080,
-        )  # 13회 이후부터는 2번 틀릴때마다 일주일씩 블락
-        for threshold, block_time in self.block_rule_list:
-            if num_of_incorrect_login == threshold:
-                return block_time
-
-        # 횟수가 최대 횟수를 초과하는 경우 최대 정지 시간 적용
-        match num_of_incorrect_login - self.max_block[0]:
-            case minus if minus < 0:  # not max
-                return 0
-            case up_max:
-                return ((up_max + 1) % self.max_block[1]) * self.max_block[2]
-
-    def check_login_able(self, last_access: datetime, block_minute: int) -> bool:
-        """
-        로그인 가능 여부를 확인하는 함수
-        """
-        # 잠긴 상태에서 시간이 지난 경우 잠금 해제
-        if last_access < datetime.now() - timedelta(minutes=block_minute):
-            return True
-        else:
-            return False
-    
