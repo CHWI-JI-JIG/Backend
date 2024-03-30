@@ -52,16 +52,17 @@ class AdminService:
             case Ok(json):
                 match builder.set_deserialize_value(json).map(lambda b: b.build()):
                     case Ok(session):
-
                         admin_session = session
+                        if not check_valide_session(session):
+                            return Err("만료된 세션입니다")
                         if admin_session.role != RoleType.ADMIN:
-                            return Err("Access Denied: User is not admin")
+                            return Err("Permission denied")
                     case _:
                         return Err("err")
 
             case e:
                 ic(e)
-                return Err("Session load or build failed")
+                return Err("만료된 세션입니다")
         return self.read_repo.get_members(page=page, size=size)
 
     def change_role(
@@ -78,13 +79,15 @@ class AdminService:
                     case Ok(session):
                         admin_session = session.build()
                         if not check_valide_session(admin_session):
-                            return Err("Expired Session")
+                            return Err("만료된 세션입니다")
                         if admin_session.role != RoleType.ADMIN:
                             return Err("Permission denied")
-                    case _:
+                    case e:
+                        ic(e)
                         return Err("Invalid Member Session")
-            case _:
-                return Err("Session load failed")
+            case e:
+                ic(e)
+                return Err("만료된 세션입니다")
 
         try:
             role_type = RoleType(role)
