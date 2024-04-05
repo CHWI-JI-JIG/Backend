@@ -16,8 +16,39 @@ comment_list: List[CommentID] = []
 order_list: List[OrderID] = []
 
 
+def init_admin_member():
+    from Migrations import MySqlCreateUser
+    from Applications.Members import CreateMemberService
+    from Storages.Members import MySqlSaveMember
+    from get_config_data import get_mail_object
+
+    obj = get_mail_object()
+
+    if obj is None:
+        raise ValueError("Not Find mail_config.py")
+    admin_mail = obj.MAIL_DEFAULT_SENDER
+
+    m_m = MySqlCreateUser(get_db_padding())
+    assert m_m.check_exist_user(), "Must Run --run migrate"
+
+    service = CreateMemberService(MySqlSaveMember(get_db_padding()))
+    match service.create(
+        account="cjjadmin",
+        passwd="cjj1q2w!Q@W",
+        role="admin",
+        name="관리자",
+        phone="01049483948",
+        email=admin_mail,
+        address="경기도 성남시 분당구 판교역로 235",
+    ):
+        case Ok(member):
+            member_list.append(member)
+        case a:
+            assert False, f"Fail Create Member:{a}"
+
+
 def init_member():
-    from Migrations import MySqlCreateProduct, MySqlCreateUser
+    from Migrations import MySqlCreateUser
     from Applications.Members import CreateMemberService
     from Storages.Members import MySqlSaveMember
 
@@ -147,19 +178,15 @@ def init_member():
         case a:
             assert False, f"Fail Create Member:{a}"
 
-    match service.create(
-        account="cjjadmin",
-        passwd="cjj1q2w!Q@W",
-        role="admin",
-        name="관리자",
-        phone="01049483948",
-        email="admin-chigigic@naver.com",
-        address="경기도 성남시 분당구 판교역로 235",
-    ):
-        case Ok(member):
-            member_list.append(member)
-        case a:
-            assert False, f"Fail Create Member:{a}"
+    try:
+        init_admin_member()
+    except ValueError:
+        print("관리자 생성이 안됐습니다.")
+    except AssertionError as ex:
+        print(str(ex))
+        assert False, """
+일단 넘기시려면 -O 옵션을 줘서 실행시키시면 됩니다.
+python manage.py -O --run migrate --clear_db_init --init"""
 
     match service.create(
         account="happymeal",
