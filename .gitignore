@@ -162,6 +162,7 @@ cython_debug/
 .vscode/*
 
 *config.py
+*secrets.*
 *payment_data.csv
 Images/*
 *payment_data.csv
