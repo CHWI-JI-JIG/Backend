@@ -14,9 +14,9 @@ pip install -r requirements.txt
 ```bash
 # python<=3.11
 pip install -r requirements.txt
-```
+```  
 
-### Make secrets.json and db_config.py
+### Make secrets.json and mysql_config.py
 `secrets.json`
 ```json
 {
@@ -36,7 +36,7 @@ mysql_db = {
 }
 ```
 
-### Set MySQL
+### How to Set MySQL
 1. `download` mysql and base setting
 2. `create` mysql user and database (root로 만들면, 유저관련은 생략가능)
    ```sql
@@ -52,6 +52,20 @@ mysql_db = {
     # just migrate
     python manage.py --run migrate
     ```
+
+### Make mail_config.py
+```python
+class Mail_Config:
+    MAIL_SERVER = "smtp.gmail.com"
+    MAIL_PORT = 465
+    MAIL_USERNAME = "[YOUR_MAIL]@gmail.com"
+    MAIL_PASSWORD = "[APP KEY ABOUT YOUR_MAIL]"
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = True
+    MAIL_DEFAULT_SENDER = "[YOUR_MAIL]@gmail.com"
+```
+
+### [How to Set Mail](https://roksf0130.tistory.com/126)
 
 # How to Run
 ## How to Run Flask
