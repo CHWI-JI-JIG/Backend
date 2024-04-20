@@ -3,7 +3,7 @@ It is a project to build a shopping mall backend using python.
 <br>취지직 쇼핑몰 제작
 <br>[Front-end](https://github.com/CHWI-JI-JIG/FrontEnd)
 <br>[Admin_Front](https://github.com/CHWI-JI-JIG/Admin_Front)
-## [시연영상](https://youtu.be/BcE3djFZ35M)
+<br>[시연영상](https://youtu.be/BcE3djFZ35M)
 
 
 # How to Start
